@@ -1,2 +1,2 @@
-branches: [main]
+branches: [non-existing]
 extends: '@relaycorp/shared-config'
