@@ -1,0 +1,59 @@
+{
+  "name": "@relaycorp/dnssec-verifier",
+  "version": "1.0.0",
+  "author": {
+    "email": "no-reply@relaycorp.tech",
+    "name": "Relaycorp, Inc.",
+    "url": "https://relaycorp.tech/"
+  },
+  "description": "Resolver-agnostic DNSSEC chain verification library",
+  "main": "build/main/index.js",
+  "typings": "build/main/index.d.ts",
+  "module": "build/module/index.js",
+  "repository": "https://github.com/relaycorp/dnssec-verifier-js",
+  "homepage": "https://docs.relaycorp.tech/dnssec-verifier-js/",
+  "license": "MIT",
+  "keywords": [
+    "dnssec"
+  ],
+  "scripts": {
+    "build": "run-s clean && run-p build:*",
+    "build:main": "tsc -p tsconfig.json",
+    "build:module": "tsc -p tsconfig.module.json",
+    "fix": "run-s fix:*",
+    "fix:prettier": "prettier \"src/**/*.ts\" --write",
+    "fix:tslint": "tslint --fix --project .",
+    "static-checks": "run-p static-checks:*",
+    "static-checks:lint": "tslint --project .",
+    "static-checks:prettier": "prettier \"src/**/*.ts\" --list-different",
+    "test": "jest --coverage",
+    "test:ci:unit": "run-s build test:ci:unit:jest",
+    "test:ci:unit:jest": "jest --config jest.config.ci.js --coverage",
+    "test:integration": "jest --config src/integration_tests/jest.config.js",
+    "doc-api": "typedoc src/index.ts --out build/docs",
+    "clean": "del-cli build test"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "devDependencies": {
+    "@relaycorp/shared-config": "^1.9.1",
+    "@types/jest": "^27.5.0",
+    "del-cli": "^5.0.0",
+    "jest": "^24.9.0",
+    "jest-date-mock": "^1.0.8",
+    "jest-extended": "^1.2.1",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^2.7.1",
+    "ts-jest": "^24.3.0",
+    "ts-node": "^10.9.1",
+    "tslint": "^5.20.1",
+    "typedoc": "^0.23.10",
+    "typescript": "^4.7.4"
+  },
+  "prettier": "@relaycorp/shared-config/.prettierrc.json",
+  "publishConfig": {
+    "access": "public",
+    "tag": "latest"
+  }
+}
