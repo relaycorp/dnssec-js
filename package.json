@@ -25,8 +25,6 @@
     "static-checks:lint": "tslint --project .",
     "static-checks:prettier": "prettier \"src/**/*.ts\" --list-different",
     "test": "jest --coverage",
-    "test:ci:unit": "run-s build test:ci:unit:jest",
-    "test:ci:unit:jest": "jest --config jest.config.ci.js --coverage",
     "test:integration": "jest --config src/integration_tests/jest.config.js",
     "tsc": "tsc",
     "doc-api": "typedoc src/index.ts --out build/docs",
