@@ -6,10 +6,10 @@
     "name": "Relaycorp, Inc.",
     "url": "https://relaycorp.tech/"
   },
-  "description": "Resolver-agnostic DNSSEC chain verification library",
-  "main": "build/main/index.js",
-  "typings": "build/main/index.d.ts",
-  "module": "build/module/index.js",
+  "description": "Resolver-agnostic DNSSEC verification library",
+  "type": "module",
+  "typings": "build/index.d.ts",
+  "module": "build/index.js",
   "repository": "https://github.com/relaycorp/dnssec-verifier-js",
   "homepage": "https://docs.relaycorp.tech/dnssec-verifier-js/",
   "license": "MIT",
@@ -17,9 +17,7 @@
     "dnssec"
   ],
   "scripts": {
-    "build": "run-s clean && run-p build:*",
-    "build:main": "tsc -p tsconfig.json",
-    "build:module": "tsc -p tsconfig.module.json",
+    "build": "run-s clean tsc",
     "fix": "run-s fix:*",
     "fix:prettier": "prettier \"src/**/*.ts\" --write",
     "fix:tslint": "tslint --fix --project .",
@@ -30,6 +28,7 @@
     "test:ci:unit": "run-s build test:ci:unit:jest",
     "test:ci:unit:jest": "jest --config jest.config.ci.js --coverage",
     "test:integration": "jest --config src/integration_tests/jest.config.js",
+    "tsc": "tsc",
     "doc-api": "typedoc src/index.ts --out build/docs",
     "clean": "del-cli build test"
   },
