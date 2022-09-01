@@ -2,7 +2,7 @@
   "extends": "@relaycorp/shared-config",
   "compilerOptions": {
     "module": "esnext",
-    "outDir": "build",
+    "outDir": "build/lib",
     "rootDir": "src",
     "target": "esnext",
     "types": ["node", "jest"],

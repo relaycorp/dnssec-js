@@ -1,4 +1,3 @@
-<!-- Work around for https://youtrack.jetbrains.com/issue/WEB-52967/Automatically-add-experimental-vm-modules-to-Jest-for-ESM-projects -->
 <component name="ProjectRunConfigurationManager">
   <configuration default="true" type="JavaScriptTestRunnerJest">
     <node-interpreter value="project" />

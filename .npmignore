@@ -1,9 +1,9 @@
 *
 
-!build/main/**
-!build/module/**
-build/**/_test_utils.*
-build/**/*.spec.js*
+!build/lib/**
+build/lib/integration_tests
+build/lib/**/_test_utils.*
+build/lib/**/*.spec.js*
 
 !LICENSE
 !README.md
