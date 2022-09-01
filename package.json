@@ -28,7 +28,7 @@
     "static-checks:lint": "tslint --project .",
     "static-checks:prettier": "prettier \"src/**/*.ts\" --list-different",
     "test": "node --experimental-vm-modules ./node_modules/.bin/jest --coverage",
-    "test:integration": "jest src/integration_tests",
+    "test:integration": "node --experimental-vm-modules ./node_modules/.bin/jest --config=src/integration_tests/jest.config.mjs",
     "tsc": "tsc",
     "doc-api": "typedoc src/index.ts --out build/docs",
     "clean": "del-cli build test"
