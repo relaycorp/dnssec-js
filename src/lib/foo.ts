@@ -1,1 +1,3 @@
-export const FOO = 'BAR';
+export function foo(): string {
+  return 'BAR';
+}

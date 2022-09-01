@@ -8,13 +8,16 @@
   },
   "description": "Resolver-agnostic DNSSEC verification library",
   "type": "module",
+  "exports": "./build/index.js",
   "typings": "build/index.d.ts",
   "module": "build/index.js",
   "repository": "https://github.com/relaycorp/dnssec-verifier-js",
   "homepage": "https://docs.relaycorp.tech/dnssec-verifier-js/",
   "license": "MIT",
   "keywords": [
-    "dnssec"
+    "dnssec",
+    "rfc1035",
+    "rfc4033"
   ],
   "scripts": {
     "build": "run-s clean tsc",
