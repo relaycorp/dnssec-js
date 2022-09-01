@@ -2,6 +2,13 @@
 
 Resolver-agnostic DNSSEC chain verification library for Node.js
 
+## Design decisions
+
+### Resolver agnosticism
+
+### DNS message parsing (RFC 1035)
+
+Why not: dns-packet, dns2, dns-node
 
 ## Alternatives considered
 
