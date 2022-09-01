@@ -1,4 +1,4 @@
-const mainJestConfig = require('../../jest.config.cjs');
+const mainJestConfig = require('../../jest.config.mjs');
 
 module.exports = {
   preset: mainJestConfig.preset,

@@ -24,7 +24,7 @@
     "static-checks": "run-p static-checks:*",
     "static-checks:lint": "tslint --project .",
     "static-checks:prettier": "prettier \"src/**/*.ts\" --list-different",
-    "test": "jest --coverage",
+    "test": "node --experimental-vm-modules ./node_modules/.bin/jest --coverage",
     "test:integration": "jest src/integration_tests",
     "tsc": "tsc",
     "doc-api": "typedoc src/index.ts --out build/docs",

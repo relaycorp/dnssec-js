@@ -1,7 +1,8 @@
 {
   "extends": "@relaycorp/shared-config",
   "compilerOptions": {
-    "module": "esnext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "outDir": "build",
     "rootDir": "src",
     "target": "esnext",
