@@ -1,8 +1,8 @@
 const mainJestConfig = require('../../jest.config.mjs');
 
-module.exports = {
+export default {
   preset: mainJestConfig.preset,
   roots: ['.'],
   testEnvironment: mainJestConfig.testEnvironment,
-  setupFilesAfterEnv: mainJestConfig.setupFilesAfterEnv
+  setupFilesAfterEnv: mainJestConfig.setupFilesAfterEnv,
 };
