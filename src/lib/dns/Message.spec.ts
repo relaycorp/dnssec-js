@@ -1,9 +1,9 @@
-import { decode, encode, TxtAnswer } from '@leichtgewicht/dns-packet';
+import { Answer, decode, encode, Question, TxtAnswer } from '@leichtgewicht/dns-packet';
 
-import { Message } from './Message.js';
-import { MalformedDNSMessage } from './MalformedDNSMessage.js';
-import { Record } from './Record.js';
-import { DNSClass } from './DNSClass.js';
+import { Message } from './Message';
+import { MalformedDNSMessage } from './MalformedDNSMessage';
+import { Record } from './Record';
+import { DNSClass } from './DNSClass';
 import {
   RECORD_CLASS,
   RECORD_CLASS_STR,
@@ -13,7 +13,7 @@ import {
   RECORD_TTL,
   RECORD_TYPE,
   RECORD_TYPE_ID,
-} from '../testUtils/stubs.js';
+} from '../../testUtils/stubs';
 
 describe('Message', () => {
   describe('serialise', () => {
@@ -109,6 +109,7 @@ describe('Message', () => {
         ttl: RECORD_TTL,
         type: RECORD_TYPE_ID,
       };
+      const recordNameWithoutDot = record.name.replace(/\.$/, '');
 
       test('No records should be output if there are none', () => {
         const message = new Message([]);
@@ -139,28 +140,26 @@ describe('Message', () => {
 
         const serialisation = message.serialise();
 
-        expect(decode(serialisation).answers![0]).toHaveProperty('name', record.name);
+        expect(decode(serialisation).answers![0]).toHaveProperty('name', recordNameWithoutDot);
       });
 
       test('Trailing dot in record name should be ignored', () => {
-        const nameWithoutDot = record.name.replace(/\.$/, '');
-        const name = nameWithoutDot + '.';
+        const name = recordNameWithoutDot + '.';
         const record2: Record = { ...record, name };
         const message = new Message([record2]);
 
         const serialisation = message.serialise();
 
-        expect(decode(serialisation).answers![0]).toHaveProperty('name', nameWithoutDot);
+        expect(decode(serialisation).answers![0]).toHaveProperty('name', recordNameWithoutDot);
       });
 
       test('Missing trailing dot in record name should be supported', () => {
-        const nameWithoutDot = record.name.replace(/\.$/, '');
-        const record2: Record = { ...record, name: nameWithoutDot };
+        const record2: Record = { ...record, name: recordNameWithoutDot };
         const message = new Message([record2]);
 
         const serialisation = message.serialise();
 
-        expect(decode(serialisation).answers![0]).toHaveProperty('name', nameWithoutDot);
+        expect(decode(serialisation).answers![0]).toHaveProperty('name', recordNameWithoutDot);
       });
 
       test('Record type should be serialised', () => {
@@ -220,18 +219,15 @@ describe('Message', () => {
   });
 
   describe('deserialise', () => {
-    test('Malformed messages should be refused', () => {
-      const malformedMessages = [Buffer.from([])];
+    const record: Answer = {
+      type: RECORD_TYPE,
+      class: RECORD_CLASS_STR,
+      name: RECORD_NAME,
+      ttl: RECORD_TTL,
+      data: RECORD_DATA.toString(),
+    };
 
-      malformedMessages.forEach((message) => {
-        expect(() => Message.deserialise(message)).toThrowWithMessage(
-          MalformedDNSMessage,
-          'Message serialisation does not comply with RFC 1035 (Section 4)',
-        );
-      });
-    });
-
-    test('No answer should be output of the message had none', () => {
+    test('No answer should be output if the message had none', () => {
       const messageSerialised = encode({
         type: 'response',
         answers: [],
@@ -239,33 +235,25 @@ describe('Message', () => {
 
       const message = Message.deserialise(messageSerialised);
 
-      expect(message.answer).toBeEmpty();
+      expect(message.answers).toBeEmpty();
     });
 
     test('One answer should be output if the message had one', () => {
       const messageSerialised = encode({
         type: 'response',
-        answers: [
-          {
-            type: RECORD_TYPE,
-            class: RECORD_CLASS_STR,
-            name: RECORD_NAME,
-            ttl: RECORD_TTL,
-            data: RECORD_DATA.toString(),
-          },
-        ],
+        answers: [record],
       });
 
       const message = Message.deserialise(messageSerialised);
 
-      expect(message.answer).toHaveLength(1);
-      expect(message.answer[0]).toEqual<Partial<Record>>({
+      expect(message.answers).toHaveLength(1);
+      expect(message.answers[0]).toMatchObject<Partial<Record>>({
         name: RECORD_NAME,
         type: RECORD_TYPE_ID,
         class: RECORD_CLASS,
         ttl: RECORD_TTL,
-        data: RECORD_DATA,
       });
+      expect(Buffer.from(message.answers[0].data)).toEqual(RECORD_DATA);
     });
 
     test('Multiple answers should be output if the message had multiple', () => {
@@ -277,39 +265,76 @@ describe('Message', () => {
       };
       const messageSerialised = encode({
         type: 'response',
-        answers: [
-          {
-            type: RECORD_TYPE,
-            class: RECORD_CLASS_STR,
-            name: RECORD_NAME,
-            ttl: RECORD_TTL,
-            data: RECORD_DATA.toString(),
-          },
-          record2,
-        ],
+        answers: [record, record2],
       });
 
       const message = Message.deserialise(messageSerialised);
 
-      expect(message.answer).toHaveLength(2);
-      expect(message.answer[0]).toEqual<Partial<Record>>({
+      expect(message.answers).toHaveLength(2);
+      expect(message.answers[0]).toMatchObject<Partial<Record>>({
         name: RECORD_NAME,
         type: RECORD_TYPE_ID,
         class: DNSClass.IN,
         ttl: RECORD_TTL,
-        data: RECORD_DATA,
       });
-      expect(message.answer[1]).toEqual<Partial<Record>>({
+      expect(Buffer.from(message.answers[0].data)).toEqual(RECORD_DATA);
+      expect(message.answers[1]).toMatchObject<Partial<Record>>({
         name: record2.name,
         type: 16,
         class: DNSClass.IN,
         ttl: record2.ttl,
-        data: Buffer.from(record2.data as string),
       });
+      expect(Buffer.from(message.answers[1].data)).toEqual(Buffer.from(record2.data as string));
     });
 
-    test.todo('Answers should be capped at the length prefix');
+    test('Questions should be ignored', () => {
+      const question: Question = { type: RECORD_TYPE, class: 'IN', name: `not-${RECORD_NAME}` };
+      const messageSerialised = encode({
+        type: 'response',
+        answers: [record],
+        questions: [question, question],
+      });
 
-    test.todo('Length prefix should be ignored if actual number of answers is lower');
+      const message = Message.deserialise(messageSerialised);
+
+      expect(message.answers).toHaveLength(1);
+      expect(message.answers[0].name).toEqual(RECORD_NAME);
+    });
+
+    test('Answers should be capped at the length prefix', () => {
+      const serialisation = serialiseMessage([record, record], 1);
+
+      const message = Message.deserialise(serialisation);
+
+      expect(message.answers).toHaveLength(1);
+    });
+
+    test('Empty serialisation should be regarded malformed', () => {
+      const serialisation = Buffer.from([]);
+
+      expect(() => Message.deserialise(serialisation)).toThrowWithMessage(
+        MalformedDNSMessage,
+        'Message serialisation does not comply with RFC 1035 (Section 4)',
+      );
+    });
+
+    test('Serialisation should be regarded malformed if ANCOUNT is too high', () => {
+      const serialisation = serialiseMessage([record], 2);
+
+      expect(() => Message.deserialise(serialisation)).toThrowWithMessage(
+        MalformedDNSMessage,
+        'Message serialisation does not comply with RFC 1035 (Section 4)',
+      );
+    });
+
+    function serialiseMessage(records: readonly Answer[], recordCount: number): Uint8Array {
+      const validSerialisation = encode({
+        type: 'response',
+        answers: records as Answer[],
+      });
+      const malformedSerialisation = Buffer.from(validSerialisation);
+      malformedSerialisation.writeUInt16BE(recordCount, 6);
+      return malformedSerialisation;
+    }
   });
 });

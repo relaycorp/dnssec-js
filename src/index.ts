@@ -1,1 +1,1 @@
-export { Message } from './lib/Message';
+export { Message } from './lib/dns/Message';

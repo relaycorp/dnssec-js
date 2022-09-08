@@ -1,4 +1,4 @@
-import { DNSClass } from './DNSClass.js';
+import { DNSClass } from './DNSClass';
 
 export interface Record {
   readonly name: string;

@@ -1,4 +1,6 @@
-import { Record } from './Record.js';
+import { Record } from './Record';
+import { DNS_MESSAGE_PARSER } from './parser';
+import { MalformedDNSMessage } from './MalformedDNSMessage';
 
 // tslint:disable-next-line:no-bitwise
 const RESPONSE_FLAG = 1 << 15;
@@ -13,17 +15,25 @@ const RESPONSE_FLAG = 1 << 15;
  */
 export class Message {
   public static deserialise(serialisation: Uint8Array): Message {
-    throw new Error(serialisation.toString());
+    let messageParts: any;
+    try {
+      messageParts = DNS_MESSAGE_PARSER.parse(serialisation);
+    } catch (_) {
+      throw new MalformedDNSMessage(
+        'Message serialisation does not comply with RFC 1035 (Section 4)',
+      );
+    }
+    return new Message(messageParts.answers);
   }
 
-  constructor(public readonly answer: readonly Record[]) {}
+  constructor(public readonly answers: readonly Record[]) {}
 
   public serialise(): Uint8Array {
     const header = Buffer.alloc(12);
     header.writeUInt16BE(RESPONSE_FLAG, 2);
-    header.writeUInt16BE(this.answer.length, 6);
+    header.writeUInt16BE(this.answers.length, 6);
 
-    const answers = this.answer.map(serialiseRecord);
+    const answers = this.answers.map(serialiseRecord);
 
     return Buffer.concat([header, ...answers]);
   }
