@@ -330,6 +330,7 @@ describe('Message', () => {
     function serialiseMessage(records: readonly Answer[], recordCount: number): Uint8Array {
       const validSerialisation = encode({
         type: 'response',
+        // tslint:disable-next-line:readonly-array
         answers: records as Answer[],
       });
       const malformedSerialisation = Buffer.from(validSerialisation);
