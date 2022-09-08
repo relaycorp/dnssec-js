@@ -327,14 +327,14 @@ describe('Message', () => {
       );
     });
 
-    function serialiseMessage(records: readonly Answer[], recordCount: number): Uint8Array {
+    function serialiseMessage(answers: readonly Answer[], answerCount: number): Uint8Array {
       const validSerialisation = encode({
         type: 'response',
         // tslint:disable-next-line:readonly-array
-        answers: records as Answer[],
+        answers: answers as Answer[],
       });
       const malformedSerialisation = Buffer.from(validSerialisation);
-      malformedSerialisation.writeUInt16BE(recordCount, 6);
+      malformedSerialisation.writeUInt16BE(answerCount, 6);
       return malformedSerialisation;
     }
   });
