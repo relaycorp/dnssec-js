@@ -8,7 +8,11 @@ Resolver-agnostic DNSSEC chain verification library for Node.js
 
 ### DNS message parsing (RFC 1035)
 
-Why not: dns-packet, dns2, dns-node
+We decided to write a partial implementation of the DNS wire format (as specified in RFC 1035, Section 4) because the existing third-party implementations we found on NPM ([dns-packet](https://www.npmjs.com/package/dns-packet) and [dns2](https://www.npmjs.com/package/dns2)) parsed the entire message eagerly and didn't offer an option to keep the original byte stream for the answers.
+
+This would've made it cumbersome to validate DNSSEC signatures, as we'd need to re-serialise the records that we just parsed -- which would also introduce the possibility that the new serialisation is equivalent but not identical to the plaintext that was originally signed (although this is admittedly unlikely).
+
+Fortunately, since we're only interested in the _answers_ section of the message, our implementation is very straightforward.
 
 ## Alternatives considered
 
