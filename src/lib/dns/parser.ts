@@ -5,7 +5,9 @@ const LABEL_PARSER = new Parser().uint8('labelLength').string('label', { length:
 const NAME_PARSER_OPTIONS = {
   formatter: (labels: any) => labels.map((label: any) => label.label).join('.'),
   type: LABEL_PARSER,
-  readUntil: (lastItem: any) => lastItem.labelLength === 0,
+  readUntil(lastItem: any): boolean {
+    return lastItem.labelLength === 0;
+  },
 };
 const QUESTION_PARSER = new Parser()
   .array('name', NAME_PARSER_OPTIONS)
@@ -13,7 +15,7 @@ const QUESTION_PARSER = new Parser()
   .uint16('class');
 const QUESTION_SET_PARSER = new Parser().array('questionSet', {
   type: new Parser().nest('question', { type: QUESTION_PARSER }),
-  readUntil () {
+  readUntil(): boolean {
     // @ts-ignore
     return this.questionSet.length === this.$parent.qCount;
   },
@@ -29,7 +31,7 @@ const ANSWER_SET_PARSER = new Parser().array('answerSet', {
   formatter: (answersRaw) => answersRaw.map((answerRaw: any) => answerRaw.answer),
   type: new Parser().nest('answer', {
     type: ANSWER_PARSER,
-    formatter (answerRaw: any): Record {
+    formatter(answerRaw: any): Record {
       return {
         class: answerRaw.class,
         data: answerRaw.data,
@@ -39,7 +41,7 @@ const ANSWER_SET_PARSER = new Parser().array('answerSet', {
       };
     },
   }),
-  readUntil () {
+  readUntil(): boolean {
     // @ts-ignore
     return this.answerSet.length === this.$parent.anCount;
   },
