@@ -1,17 +1,17 @@
 {
-  "name": "@relaycorp/dnssec-verifier",
+  "name": "@relaycorp/dnssec",
   "version": "1.0.0",
   "author": {
     "email": "no-reply@relaycorp.tech",
     "name": "Relaycorp, Inc.",
     "url": "https://relaycorp.tech/"
   },
-  "description": "Resolver-agnostic DNSSEC verification library",
+  "description": "Resolver-agnostic DNSSEC library",
   "type": "module",
   "typings": "build/lib/index.d.ts",
   "module": "build/lib/index.js",
-  "repository": "https://github.com/relaycorp/dnssec-verifier-js",
-  "homepage": "https://docs.relaycorp.tech/dnssec-verifier-js/",
+  "repository": "https://github.com/relaycorp/dnssec-js",
+  "homepage": "https://docs.relaycorp.tech/dnssec-js/",
   "license": "MIT",
   "keywords": [
     "dnssec",

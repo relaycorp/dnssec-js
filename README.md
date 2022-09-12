@@ -1,6 +1,6 @@
-# `@relaycorp/dnssec-verifier`
+# `@relaycorp/dnssec`
 
-Resolver-agnostic DNSSEC chain verification library for Node.js
+Resolver-agnostic DNSSEC library for Node.js.
 
 ## Design decisions
 
