@@ -1,8 +1,8 @@
-import { Answer, decode, encode, Question, TxtAnswer } from '@leichtgewicht/dns-packet';
+import { Answer as DPAnswer, decode, encode, Question, TxtAnswer } from '@leichtgewicht/dns-packet';
 
 import { Message } from './Message';
 import { MalformedDNSMessage } from './MalformedDNSMessage';
-import { Record } from './Record';
+import { Answer } from './Answer';
 import { DNSClass } from './DNSClass';
 import {
   RECORD_CLASS,
@@ -102,7 +102,7 @@ describe('Message', () => {
     });
 
     describe('Answer', () => {
-      const record: Record = {
+      const record: Answer = {
         data: RECORD_DATA,
         class: RECORD_CLASS,
         name: RECORD_NAME,
@@ -145,7 +145,7 @@ describe('Message', () => {
 
       test('Trailing dot in record name should be ignored', () => {
         const name = recordNameWithoutDot + '.';
-        const record2: Record = { ...record, name };
+        const record2: Answer = { ...record, name };
         const message = new Message([record2]);
 
         const serialisation = message.serialise();
@@ -154,7 +154,7 @@ describe('Message', () => {
       });
 
       test('Missing trailing dot in record name should be supported', () => {
-        const record2: Record = { ...record, name: recordNameWithoutDot };
+        const record2: Answer = { ...record, name: recordNameWithoutDot };
         const message = new Message([record2]);
 
         const serialisation = message.serialise();
@@ -219,7 +219,7 @@ describe('Message', () => {
   });
 
   describe('deserialise', () => {
-    const record: Answer = {
+    const record: DPAnswer = {
       type: RECORD_TYPE,
       class: RECORD_CLASS_STR,
       name: RECORD_NAME,
@@ -247,7 +247,7 @@ describe('Message', () => {
       const message = Message.deserialise(messageSerialised);
 
       expect(message.answers).toHaveLength(1);
-      expect(message.answers[0]).toMatchObject<Partial<Record>>({
+      expect(message.answers[0]).toMatchObject<Partial<Answer>>({
         name: RECORD_NAME,
         type: RECORD_TYPE_ID,
         class: RECORD_CLASS,
@@ -271,14 +271,14 @@ describe('Message', () => {
       const message = Message.deserialise(messageSerialised);
 
       expect(message.answers).toHaveLength(2);
-      expect(message.answers[0]).toMatchObject<Partial<Record>>({
+      expect(message.answers[0]).toMatchObject<Partial<Answer>>({
         name: RECORD_NAME,
         type: RECORD_TYPE_ID,
         class: DNSClass.IN,
         ttl: RECORD_TTL,
       });
       expect(Buffer.from(message.answers[0].data)).toEqual(RECORD_DATA);
-      expect(message.answers[1]).toMatchObject<Partial<Record>>({
+      expect(message.answers[1]).toMatchObject<Partial<Answer>>({
         name: record2.name,
         type: 16,
         class: DNSClass.IN,
@@ -327,11 +327,11 @@ describe('Message', () => {
       );
     });
 
-    function serialiseMessage(answers: readonly Answer[], answerCount: number): Uint8Array {
+    function serialiseMessage(answers: readonly DPAnswer[], answerCount: number): Uint8Array {
       const validSerialisation = encode({
         type: 'response',
         // tslint:disable-next-line:readonly-array
-        answers: answers as Answer[],
+        answers: answers as DPAnswer[],
       });
       const malformedSerialisation = Buffer.from(validSerialisation);
       malformedSerialisation.writeUInt16BE(answerCount, 6);
