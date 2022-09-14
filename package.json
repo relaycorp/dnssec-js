@@ -16,7 +16,8 @@
   "keywords": [
     "dnssec",
     "rfc1035",
-    "rfc4033"
+    "rfc4033",
+    "rfc4034"
   ],
   "scripts": {
     "build": "run-s clean tsc",

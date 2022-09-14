@@ -1,6 +1,6 @@
 import { Answer } from './Answer';
 import { DNS_MESSAGE_PARSER } from './parser';
-import { MalformedDNSMessage } from './MalformedDNSMessage';
+import { MalformedMessage } from './MalformedMessage';
 
 // tslint:disable-next-line:no-bitwise
 const RESPONSE_FLAG = 1 << 15;
@@ -19,9 +19,7 @@ export class Message {
     try {
       messageParts = DNS_MESSAGE_PARSER.parse(serialisation);
     } catch (_) {
-      throw new MalformedDNSMessage(
-        'Message serialisation does not comply with RFC 1035 (Section 4)',
-      );
+      throw new MalformedMessage('Message serialisation does not comply with RFC 1035 (Section 4)');
     }
     return new Message(messageParts.answers);
   }

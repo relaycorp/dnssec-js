@@ -1,7 +1,7 @@
 import { Answer as DPAnswer, decode, encode, Question, TxtAnswer } from '@leichtgewicht/dns-packet';
 
 import { Message } from './Message';
-import { MalformedDNSMessage } from './MalformedDNSMessage';
+import { MalformedMessage } from './MalformedMessage';
 import { Answer } from './Answer';
 import { DNSClass } from './DNSClass';
 import {
@@ -313,7 +313,7 @@ describe('Message', () => {
       const serialisation = Buffer.from([]);
 
       expect(() => Message.deserialise(serialisation)).toThrowWithMessage(
-        MalformedDNSMessage,
+        MalformedMessage,
         'Message serialisation does not comply with RFC 1035 (Section 4)',
       );
     });
@@ -322,7 +322,7 @@ describe('Message', () => {
       const serialisation = serialiseMessage([record], 2);
 
       expect(() => Message.deserialise(serialisation)).toThrowWithMessage(
-        MalformedDNSMessage,
+        MalformedMessage,
         'Message serialisation does not comply with RFC 1035 (Section 4)',
       );
     });
