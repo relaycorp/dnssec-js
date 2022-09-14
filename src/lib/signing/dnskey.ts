@@ -1,4 +1,5 @@
 import { KeyObject } from 'node:crypto';
+
 import { derSerialisePublicKey, getDNSSECAlgorithm } from './utils';
 
 export interface DNSKEYFlags {
