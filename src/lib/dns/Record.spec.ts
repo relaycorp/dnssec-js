@@ -1,16 +1,6 @@
 import { answer as ANSWER, TxtAnswer } from '@leichtgewicht/dns-packet';
 
-import { Record } from './Record';
-import {
-  RECORD,
-  RECORD_CLASS_STR,
-  RECORD_DATA,
-  RECORD_DATA_TXT_DATA,
-  RECORD_TTL,
-  RECORD_TYPE,
-  RECORD_TYPE_ID,
-} from '../../testUtils/stubs';
-import { DNSClass } from './DNSClass';
+import { RECORD, RECORD_CLASS_STR, RECORD_DATA_TXT_DATA, RECORD_TYPE } from '../../testUtils/stubs';
 
 describe('Record', () => {
   describe('serialise', () => {
@@ -18,29 +8,6 @@ describe('Record', () => {
 
     test('Record name should be serialised', () => {
       const serialisation = RECORD.serialise();
-
-      expect(ANSWER.decode(serialisation)).toHaveProperty('name', recordNameWithoutDot);
-    });
-
-    test('Trailing dot in record name should be ignored', () => {
-      const name = recordNameWithoutDot + '.';
-      const record2 = new Record(name, RECORD_TYPE_ID, DNSClass.IN, RECORD_TTL, RECORD_DATA);
-
-      const serialisation = record2.serialise();
-
-      expect(ANSWER.decode(serialisation)).toHaveProperty('name', recordNameWithoutDot);
-    });
-
-    test('Missing trailing dot in record name should be supported', () => {
-      const record2 = new Record(
-        recordNameWithoutDot,
-        RECORD_TYPE_ID,
-        DNSClass.IN,
-        RECORD_TTL,
-        RECORD_DATA,
-      );
-
-      const serialisation = record2.serialise();
 
       expect(ANSWER.decode(serialisation)).toHaveProperty('name', recordNameWithoutDot);
     });

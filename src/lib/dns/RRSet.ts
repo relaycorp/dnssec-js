@@ -12,7 +12,7 @@ export class RRSet {
   public readonly type: RecordType;
   public readonly ttl: number;
 
-  constructor(records: readonly Record[]) {
+  constructor(public readonly records: readonly Record[]) {
     if (records.length === 0) {
       throw new SignedRRSetError('At least one record should be specified');
     }

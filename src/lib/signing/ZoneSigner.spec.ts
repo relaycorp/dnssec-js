@@ -1,8 +1,18 @@
-import { dnskey as DNSKEY, ds as DS } from '@leichtgewicht/dns-packet';
+import { dnskey as DNSKEY, ds as DS, rrsig as RRSIG } from '@leichtgewicht/dns-packet';
+import { addHours, getUnixTime } from 'date-fns';
 
 import { ZoneSigner } from './ZoneSigner';
 import { DNSSECAlgorithm } from '../DNSSECAlgorithm';
 import { DigestAlgorithm } from '../DigestAlgorithm';
+import { RRSet } from '../dns/RRSet';
+import {
+  RECORD_CLASS,
+  RECORD_DATA,
+  RECORD_TTL,
+  RECORD_TYPE,
+  RECORD_TYPE_ID,
+} from '../../testUtils/stubs';
+import { Record } from '../dns/Record';
 
 describe('ZoneSigner', () => {
   test('generateDnskey', async () => {
@@ -29,6 +39,32 @@ describe('ZoneSigner', () => {
       digestType: digestAlgorithm,
       keyTag: signer.keyTag,
     });
+  });
+
+  test('generateRrsig', async () => {
+    const dnssecAlgorithm = DNSSECAlgorithm.RSASHA256;
+    const signer = await ZoneSigner.generate(dnssecAlgorithm, '.');
+    const recordName = 'com.';
+
+    const rrset = new RRSet([
+      new Record(recordName, RECORD_TYPE_ID, RECORD_CLASS, RECORD_TTL, RECORD_DATA),
+    ]);
+
+    const signatureExpiry = addHours(new Date(), 3);
+    const signatureInception = new Date();
+    const rrsig = signer.generateRrsig(rrset, signatureExpiry, signatureInception);
+    const rdata = lengthPrefixRdata(rrsig.data);
+
+    const parsed = RRSIG.decode(rdata);
+
+    expect(parsed.typeCovered).toEqual(RECORD_TYPE);
+    expect(parsed.algorithm).toEqual(dnssecAlgorithm);
+    expect(parsed.labels).toEqual(1);
+    expect(parsed.originalTTL).toEqual(rrset.ttl);
+    expect(parsed.expiration).toEqual(getUnixTime(signatureExpiry));
+    expect(parsed.inception).toEqual(getUnixTime(signatureInception));
+    expect(parsed.keyTag).toEqual(signer.keyTag);
+    expect(parsed.signersName).toEqual(signer.zoneName);
   });
 });
 

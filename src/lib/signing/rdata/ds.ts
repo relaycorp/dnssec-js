@@ -1,27 +1,7 @@
 import { createHash, KeyObject } from 'node:crypto';
 
 import { DigestAlgorithm } from '../../DigestAlgorithm';
-import { derSerialisePublicKey, getDNSSECAlgorithm } from '../utils';
-
-function getNodejsHashAlgorithm(algorithm: DigestAlgorithm): string {
-  switch (algorithm) {
-    case DigestAlgorithm.SHA1:
-      return 'sha1';
-    case DigestAlgorithm.SHA256:
-      return 'sha256';
-    case DigestAlgorithm.SHA384:
-      return 'sha384';
-    default:
-      throw new Error(`Unsupported hashing algorithm ${algorithm}`);
-  }
-}
-
-function hashKey(publicKey: KeyObject, digestAlgorithm: DigestAlgorithm): Buffer {
-  const hashName = getNodejsHashAlgorithm(digestAlgorithm);
-  const hash = createHash(hashName);
-  hash.update(derSerialisePublicKey(publicKey));
-  return hash.digest();
-}
+import { derSerialisePublicKey, getDNSSECAlgoFromKey, getNodejsHashAlgo } from '../utils';
 
 export function serialiseDsRdata(
   keyTag: number,
@@ -34,7 +14,7 @@ export function serialiseDsRdata(
   data.writeUInt16BE(keyTag, 0);
 
   // Algorithm
-  const algorithm = getDNSSECAlgorithm(publicKey);
+  const algorithm = getDNSSECAlgoFromKey(publicKey);
   data.writeUInt8(algorithm, 2);
 
   data.writeUInt8(digestAlgorithm, 3);
@@ -42,4 +22,11 @@ export function serialiseDsRdata(
   digest.copy(data, 4);
 
   return data;
+}
+
+function hashKey(publicKey: KeyObject, digestAlgorithm: DigestAlgorithm): Buffer {
+  const hashName = getNodejsHashAlgo(digestAlgorithm);
+  const hash = createHash(hashName);
+  hash.update(derSerialisePublicKey(publicKey));
+  return hash.digest();
 }

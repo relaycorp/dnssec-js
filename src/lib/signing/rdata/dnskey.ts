@@ -1,6 +1,6 @@
 import { KeyObject } from 'node:crypto';
 
-import { derSerialisePublicKey, getDNSSECAlgorithm } from '../utils';
+import { derSerialisePublicKey, getDNSSECAlgoFromKey } from '../utils';
 
 export interface DNSKEYFlags {
   readonly zoneKey: boolean;
@@ -22,7 +22,7 @@ export function serialiseDnskeyRdata(publicKey: KeyObject, flags: Partial<DNSKEY
   data.writeUInt8(3, 2);
 
   // Algorithm
-  const algorithm = getDNSSECAlgorithm(publicKey);
+  const algorithm = getDNSSECAlgoFromKey(publicKey);
   data.writeUInt8(algorithm, 3);
 
   publicKeyEncoded.copy(data, 4);
