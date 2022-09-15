@@ -1,5 +1,5 @@
 import { DNSClass } from '../lib/dns/DNSClass';
-import { Answer } from '../lib/dns/Answer';
+import { Record } from '../lib/dns/Record';
 import { RecordType } from '../lib/dns/RecordType';
 
 export const RECORD_NAME = 'example.com.';
@@ -15,7 +15,7 @@ export const RECORD_DATA = Buffer.allocUnsafe(RECORD_DATA_TXT_DATA.byteLength + 
 RECORD_DATA.writeUint8(RECORD_DATA_TXT_DATA.byteLength);
 RECORD_DATA_TXT_DATA.copy(RECORD_DATA, 1);
 
-export const ANSWER: Answer = {
+export const ANSWER: Record = {
   class: DNSClass.IN,
   data: RECORD_DATA,
   name: RECORD_NAME,

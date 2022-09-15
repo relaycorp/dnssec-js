@@ -1,6 +1,6 @@
 import { RRSet } from './RRSet';
-import { ANSWER } from '../testUtils/stubs';
-import { SignedRRSetError } from './errors';
+import { ANSWER } from '../../testUtils/stubs';
+import { SignedRRSetError } from '../errors';
 
 describe('RRSet', () => {
   describe('constructor', () => {
@@ -41,6 +41,16 @@ describe('RRSet', () => {
       );
     });
 
+    test('All record TTls should match', () => {
+      const record1 = { ...ANSWER };
+      const record2 = { ...record1, ttl: record1.ttl + 1 };
+
+      expect(() => new RRSet([record1, record2])).toThrowWithMessage(
+        SignedRRSetError,
+        `Record TTLs don't match (${record1.ttl}, ${record2.ttl})`,
+      );
+    });
+
     test('Name property should be set', () => {
       const rrset = new RRSet([ANSWER]);
 
@@ -57,6 +67,12 @@ describe('RRSet', () => {
       const rrset = new RRSet([ANSWER]);
 
       expect(rrset.type).toEqual(ANSWER.type);
+    });
+
+    test('TTL property should be set', () => {
+      const rrset = new RRSet([ANSWER]);
+
+      expect(rrset.ttl).toEqual(ANSWER.ttl);
     });
   });
 });

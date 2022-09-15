@@ -1,6 +1,6 @@
 import { DNSClass } from './DNSClass';
 
-export interface Answer {
+export interface Record {
   readonly name: string;
   readonly type: number;
   readonly class: DNSClass;

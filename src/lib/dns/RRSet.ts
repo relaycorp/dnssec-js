@@ -1,7 +1,7 @@
-import { Answer } from './dns/Answer';
-import { SignedRRSetError } from './errors';
-import { DNSClass } from './dns/DNSClass';
-import { RecordType } from './dns/RecordType';
+import { Record } from './Record';
+import { SignedRRSetError } from '../errors';
+import { DNSClass } from './DNSClass';
+import { RecordType } from './RecordType';
 
 /**
  * A set of Resource Records (aka `RRset`).
@@ -10,8 +10,9 @@ export class RRSet {
   public readonly name: string;
   public readonly class_: DNSClass;
   public readonly type: RecordType;
+  public readonly ttl: number;
 
-  constructor(records: readonly Answer[]) {
+  constructor(records: readonly Record[]) {
     if (records.length === 0) {
       throw new SignedRRSetError('At least one record should be specified');
     }
@@ -34,10 +35,14 @@ export class RRSet {
           `Record types don't match (${firstRecord.type}, ${record.type})`,
         );
       }
+      if (record.ttl !== firstRecord.ttl) {
+        throw new SignedRRSetError(`Record TTLs don't match (${firstRecord.ttl}, ${record.ttl})`);
+      }
     }
 
     this.name = firstRecord.name;
     this.type = firstRecord.type;
     this.class_ = firstRecord.class;
+    this.ttl = firstRecord.ttl;
   }
 }

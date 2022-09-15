@@ -2,7 +2,7 @@ import { Answer as DPAnswer, decode, encode, Question, TxtAnswer } from '@leicht
 
 import { Message } from './Message';
 import { MalformedMessage } from './MalformedMessage';
-import { Answer } from './Answer';
+import { Record } from './Record';
 import { DNSClass } from './DNSClass';
 import {
   RECORD_CLASS,
@@ -102,7 +102,7 @@ describe('Message', () => {
     });
 
     describe('Answer', () => {
-      const record: Answer = {
+      const record: Record = {
         data: RECORD_DATA,
         class: RECORD_CLASS,
         name: RECORD_NAME,
@@ -145,7 +145,7 @@ describe('Message', () => {
 
       test('Trailing dot in record name should be ignored', () => {
         const name = recordNameWithoutDot + '.';
-        const record2: Answer = { ...record, name };
+        const record2: Record = { ...record, name };
         const message = new Message([record2]);
 
         const serialisation = message.serialise();
@@ -154,7 +154,7 @@ describe('Message', () => {
       });
 
       test('Missing trailing dot in record name should be supported', () => {
-        const record2: Answer = { ...record, name: recordNameWithoutDot };
+        const record2: Record = { ...record, name: recordNameWithoutDot };
         const message = new Message([record2]);
 
         const serialisation = message.serialise();
@@ -247,7 +247,7 @@ describe('Message', () => {
       const message = Message.deserialise(messageSerialised);
 
       expect(message.answers).toHaveLength(1);
-      expect(message.answers[0]).toMatchObject<Partial<Answer>>({
+      expect(message.answers[0]).toMatchObject<Partial<Record>>({
         name: RECORD_NAME,
         type: RECORD_TYPE_ID,
         class: RECORD_CLASS,
@@ -271,14 +271,14 @@ describe('Message', () => {
       const message = Message.deserialise(messageSerialised);
 
       expect(message.answers).toHaveLength(2);
-      expect(message.answers[0]).toMatchObject<Partial<Answer>>({
+      expect(message.answers[0]).toMatchObject<Partial<Record>>({
         name: RECORD_NAME,
         type: RECORD_TYPE_ID,
         class: DNSClass.IN,
         ttl: RECORD_TTL,
       });
       expect(Buffer.from(message.answers[0].data)).toEqual(RECORD_DATA);
-      expect(message.answers[1]).toMatchObject<Partial<Answer>>({
+      expect(message.answers[1]).toMatchObject<Partial<Record>>({
         name: record2.name,
         type: 16,
         class: DNSClass.IN,

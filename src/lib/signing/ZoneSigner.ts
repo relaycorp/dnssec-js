@@ -1,7 +1,7 @@
 import { KeyObject } from 'node:crypto';
 
 import { DNSSECAlgorithm } from '../DNSSECAlgorithm';
-import { Answer } from '../dns/Answer';
+import { Record } from '../dns/Record';
 import { DNSClass } from '../dns/DNSClass';
 import { DNSKEYFlags, serialiseDnskeyRdata } from './rdata/dnskey';
 import { generateKeyPairAsync, getKeyGenOptions } from './keyGen';
@@ -30,7 +30,7 @@ export class ZoneSigner {
     public readonly zoneName: string,
   ) {}
 
-  public generateDnskey(ttl: number, flags: Partial<DNSKEYFlags> = {}): Answer {
+  public generateDnskey(ttl: number, flags: Partial<DNSKEYFlags> = {}): Record {
     const data = serialiseDnskeyRdata(this.publicKey, flags);
     return { type: RecordType.DNSKEY, class: DNSClass.IN, name: this.zoneName, ttl, data };
   }
@@ -39,7 +39,7 @@ export class ZoneSigner {
     childLabel: string,
     ttl: number,
     digestAlgorithm: DigestAlgorithm = DigestAlgorithm.SHA256,
-  ): Answer {
+  ): Record {
     const data = serialiseDsRdata(this.keyTag, this.publicKey, digestAlgorithm);
     return {
       type: RecordType.DS,

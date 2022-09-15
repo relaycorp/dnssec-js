@@ -1,5 +1,5 @@
 import { Parser } from 'binary-parser';
-import { Answer } from './Answer';
+import { Record } from './Record';
 
 const LABEL_PARSER = new Parser().uint8('labelLength').string('label', { length: 'labelLength' });
 const NAME_PARSER_OPTIONS = {
@@ -31,7 +31,7 @@ const ANSWER_SET_PARSER = new Parser().array('answerSet', {
   formatter: (answersRaw) => answersRaw.map((answerRaw: any) => answerRaw.answer),
   type: new Parser().nest('answer', {
     type: ANSWER_PARSER,
-    formatter(answerRaw: any): Answer {
+    formatter(answerRaw: any): Record {
       return {
         class: answerRaw.class,
         data: answerRaw.data,

@@ -1,4 +1,4 @@
-import { Answer } from './Answer';
+import { Record } from './Record';
 import { DNS_MESSAGE_PARSER } from './parser';
 import { MalformedMessage } from './MalformedMessage';
 
@@ -24,7 +24,7 @@ export class Message {
     return new Message(messageParts.answers);
   }
 
-  constructor(public readonly answers: readonly Answer[]) {}
+  constructor(public readonly answers: readonly Record[]) {}
 
   public serialise(): Uint8Array {
     const header = Buffer.alloc(12);
@@ -37,7 +37,7 @@ export class Message {
   }
 }
 
-function serialiseRecord(answer: Answer): Buffer {
+function serialiseRecord(answer: Record): Buffer {
   const labelsSerialised = serialiseName(answer.name);
 
   const typeSerialised = Buffer.allocUnsafe(2);
