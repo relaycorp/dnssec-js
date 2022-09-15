@@ -30,3 +30,7 @@ Fortunately, since we're only interested in the _answers_ section of the message
 ### Signature production support
 
 This library supports producing RRSig records simply for testing purposes: It makes it very easy to test valid and invalid signatures both internally and from any software using this library, without mocking anything.
+
+### No GOST R 34.11-94 support
+
+We don't support the hashing algorithm GOST R 34.11-94 because Node.js does not support it as of this writing. Since [this algorithm is allowed by IANA](https://www.iana.org/assignments/ds-rr-types/ds-rr-types.xhtml), we'd add support for it if Node.js were to support it in the future -- even though it's actually an insecure algorithm (just like SHA-1, which is supported and, sadly, widely used still).
