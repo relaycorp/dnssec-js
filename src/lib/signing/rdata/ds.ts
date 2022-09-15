@@ -1,7 +1,7 @@
 import { createHash, KeyObject } from 'node:crypto';
 
-import { DigestAlgorithm } from '../DigestAlgorithm';
-import { derSerialisePublicKey, getDNSSECAlgorithm } from './utils';
+import { DigestAlgorithm } from '../../DigestAlgorithm';
+import { derSerialisePublicKey, getDNSSECAlgorithm } from '../utils';
 
 function getNodejsHashAlgorithm(algorithm: DigestAlgorithm): string {
   switch (algorithm) {

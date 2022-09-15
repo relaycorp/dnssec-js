@@ -1,6 +1,6 @@
 import { KeyObject } from 'node:crypto';
 
-import { derSerialisePublicKey, getDNSSECAlgorithm } from './utils';
+import { derSerialisePublicKey, getDNSSECAlgorithm } from '../utils';
 
 export interface DNSKEYFlags {
   readonly zoneKey: boolean;

@@ -3,9 +3,9 @@ import { KeyObject } from 'node:crypto';
 import { DNSSECAlgorithm } from '../DNSSECAlgorithm';
 import { Answer } from '../dns/Answer';
 import { DNSClass } from '../dns/DNSClass';
-import { DNSKEYFlags, serialiseDnskeyRdata } from './dnskey';
+import { DNSKEYFlags, serialiseDnskeyRdata } from './rdata/dnskey';
 import { generateKeyPairAsync, getKeyGenOptions } from './keyGen';
-import { serialiseDsRdata } from './ds';
+import { serialiseDsRdata } from './rdata/ds';
 import { DigestAlgorithm } from '../DigestAlgorithm';
 import { RecordType } from '../dns/RecordType';
 
