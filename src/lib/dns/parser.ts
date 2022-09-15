@@ -32,13 +32,13 @@ const ANSWER_SET_PARSER = new Parser().array('answerSet', {
   type: new Parser().nest('answer', {
     type: ANSWER_PARSER,
     formatter(answerRaw: any): Record {
-      return {
-        class: answerRaw.class,
-        data: answerRaw.data,
-        ttl: answerRaw.ttl,
-        type: answerRaw.type,
-        name: answerRaw.name,
-      };
+      return new Record(
+        answerRaw.name,
+        answerRaw.type,
+        answerRaw.class,
+        answerRaw.ttl,
+        answerRaw.data,
+      );
     },
   }),
   readUntil(): boolean {

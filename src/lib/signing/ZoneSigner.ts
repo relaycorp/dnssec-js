@@ -32,7 +32,7 @@ export class ZoneSigner {
 
   public generateDnskey(ttl: number, flags: Partial<DNSKEYFlags> = {}): Record {
     const data = serialiseDnskeyRdata(this.publicKey, flags);
-    return { type: RecordType.DNSKEY, class: DNSClass.IN, name: this.zoneName, ttl, data };
+    return new Record(this.zoneName, RecordType.DNSKEY, DNSClass.IN, ttl, data);
   }
 
   public generateDs(
@@ -41,12 +41,6 @@ export class ZoneSigner {
     digestAlgorithm: DigestAlgorithm = DigestAlgorithm.SHA256,
   ): Record {
     const data = serialiseDsRdata(this.keyTag, this.publicKey, digestAlgorithm);
-    return {
-      type: RecordType.DS,
-      class: DNSClass.IN,
-      name: `${childLabel}.${this.zoneName}`,
-      ttl,
-      data,
-    };
+    return new Record(`${childLabel}.${this.zoneName}`, RecordType.DS, DNSClass.IN, ttl, data);
   }
 }

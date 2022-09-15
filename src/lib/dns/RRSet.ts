@@ -25,9 +25,9 @@ export class RRSet {
           `Record names don't match (${firstRecord.name}, ${record.name})`,
         );
       }
-      if (record.class !== firstRecord.class) {
+      if (record.class_ !== firstRecord.class_) {
         throw new SignedRRSetError(
-          `Record classes don't match (${firstRecord.class}, ${record.class})`,
+          `Record classes don't match (${firstRecord.class_}, ${record.class_})`,
         );
       }
       if (record.type !== firstRecord.type) {
@@ -42,7 +42,7 @@ export class RRSet {
 
     this.name = firstRecord.name;
     this.type = firstRecord.type;
-    this.class_ = firstRecord.class;
+    this.class_ = firstRecord.class_;
     this.ttl = firstRecord.ttl;
   }
 }

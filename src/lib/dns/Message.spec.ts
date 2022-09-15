@@ -1,10 +1,18 @@
-import { Answer as DPAnswer, decode, encode, Question, TxtAnswer } from '@leichtgewicht/dns-packet';
+import {
+  Answer as DPAnswer,
+  decode,
+  encode,
+  Question,
+  TxtAnswer,
+  TxtData,
+} from '@leichtgewicht/dns-packet';
 
 import { Message } from './Message';
 import { MalformedMessage } from './MalformedMessage';
 import { Record } from './Record';
 import { DNSClass } from './DNSClass';
 import {
+  RECORD,
   RECORD_CLASS,
   RECORD_CLASS_STR,
   RECORD_DATA,
@@ -102,15 +110,6 @@ describe('Message', () => {
     });
 
     describe('Answer', () => {
-      const record: Record = {
-        data: RECORD_DATA,
-        class: RECORD_CLASS,
-        name: RECORD_NAME,
-        ttl: RECORD_TTL,
-        type: RECORD_TYPE_ID,
-      };
-      const recordNameWithoutDot = record.name.replace(/\.$/, '');
-
       test('No records should be output if there are none', () => {
         const message = new Message([]);
 
@@ -120,80 +119,39 @@ describe('Message', () => {
       });
 
       test('One record should be output if there is one', () => {
-        const message = new Message([record]);
+        const message = new Message([RECORD]);
 
         const serialisation = message.serialise();
 
-        expect(decode(serialisation).answers).toHaveLength(1);
+        const answers = decode(serialisation).answers;
+        expect(answers).toHaveLength(1);
+        expect(answers![0].name).toEqual(RECORD_NAME.replace(/\.$/, ''));
+        expect(answers![0].type).toEqual(RECORD_TYPE);
+        expect(answers![0].class).toEqual('IN');
+        expect(answers![0].ttl).toEqual(RECORD_TTL);
+        expect(answers![0].data).toHaveLength(1);
+        expect((answers![0].data as TxtData)[0]).toEqual(RECORD_DATA_TXT_DATA);
       });
 
       test('Multiple records should be output if there are multiple', () => {
-        const message = new Message([record, record]);
+        const answer2Rdata = Buffer.alloc(2);
+        answer2Rdata.writeUInt8(1);
+        answer2Rdata.writeUInt8(42, 1);
+        const answer2 = new Record(
+          RECORD_NAME,
+          RECORD_TYPE_ID,
+          DNSClass.IN,
+          RECORD_TTL,
+          answer2Rdata,
+        );
+        const message = new Message([RECORD, answer2]);
 
         const serialisation = message.serialise();
 
-        expect(decode(serialisation).answers).toHaveLength(2);
-      });
-
-      test('Record name should be serialised', () => {
-        const message = new Message([record]);
-
-        const serialisation = message.serialise();
-
-        expect(decode(serialisation).answers![0]).toHaveProperty('name', recordNameWithoutDot);
-      });
-
-      test('Trailing dot in record name should be ignored', () => {
-        const name = recordNameWithoutDot + '.';
-        const record2: Record = { ...record, name };
-        const message = new Message([record2]);
-
-        const serialisation = message.serialise();
-
-        expect(decode(serialisation).answers![0]).toHaveProperty('name', recordNameWithoutDot);
-      });
-
-      test('Missing trailing dot in record name should be supported', () => {
-        const record2: Record = { ...record, name: recordNameWithoutDot };
-        const message = new Message([record2]);
-
-        const serialisation = message.serialise();
-
-        expect(decode(serialisation).answers![0]).toHaveProperty('name', recordNameWithoutDot);
-      });
-
-      test('Record type should be serialised', () => {
-        const message = new Message([record]);
-
-        const serialisation = message.serialise();
-
-        expect(decode(serialisation).answers![0]).toHaveProperty('type', RECORD_TYPE);
-      });
-
-      test('Record class should be serialised', () => {
-        const message = new Message([record]);
-
-        const serialisation = message.serialise();
-
-        expect(decode(serialisation).answers![0]).toHaveProperty('class', RECORD_CLASS_STR);
-      });
-
-      test('Record TTL should be serialised', () => {
-        const message = new Message([record]);
-
-        const serialisation = message.serialise();
-
-        expect(decode(serialisation).answers![0]).toHaveProperty('ttl', record.ttl);
-      });
-
-      test('Record data should be serialised', () => {
-        const message = new Message([record]);
-
-        const serialisation = message.serialise();
-
-        const answer = decode(serialisation).answers![0];
-        expect(answer.data).toHaveLength(1);
-        expect(RECORD_DATA_TXT_DATA.equals((answer.data as any)[0])).toBeTrue();
+        const answers = decode(serialisation).answers;
+        expect(answers).toHaveLength(2);
+        expect((answers![0].data as TxtData)[0]).toEqual(RECORD_DATA_TXT_DATA);
+        expect((answers![1].data as TxtData)[0]).toEqual(answer2Rdata.subarray(1));
       });
     });
 
@@ -250,7 +208,7 @@ describe('Message', () => {
       expect(message.answers[0]).toMatchObject<Partial<Record>>({
         name: RECORD_NAME,
         type: RECORD_TYPE_ID,
-        class: RECORD_CLASS,
+        class_: RECORD_CLASS,
         ttl: RECORD_TTL,
       });
       expect(Buffer.from(message.answers[0].data)).toEqual(RECORD_DATA);
@@ -274,14 +232,14 @@ describe('Message', () => {
       expect(message.answers[0]).toMatchObject<Partial<Record>>({
         name: RECORD_NAME,
         type: RECORD_TYPE_ID,
-        class: DNSClass.IN,
+        class_: DNSClass.IN,
         ttl: RECORD_TTL,
       });
       expect(Buffer.from(message.answers[0].data)).toEqual(RECORD_DATA);
       expect(message.answers[1]).toMatchObject<Partial<Record>>({
         name: record2.name,
         type: 16,
-        class: DNSClass.IN,
+        class_: DNSClass.IN,
         ttl: record2.ttl,
       });
       expect(Buffer.from(message.answers[1].data)).toEqual(Buffer.from(record2.data as string));

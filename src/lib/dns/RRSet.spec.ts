@@ -1,6 +1,14 @@
 import { RRSet } from './RRSet';
-import { ANSWER } from '../../testUtils/stubs';
+import {
+  RECORD,
+  RECORD_DATA,
+  RECORD_NAME,
+  RECORD_TTL,
+  RECORD_TYPE_ID,
+} from '../../testUtils/stubs';
 import { SignedRRSetError } from '../errors';
+import { Record } from './Record';
+import { DNSClass } from './DNSClass';
 
 describe('RRSet', () => {
   describe('constructor', () => {
@@ -12,67 +20,87 @@ describe('RRSet', () => {
     });
 
     test('All record names should match', () => {
-      const record1 = { ...ANSWER };
-      const record2 = { ...record1, name: `sub.${record1.name}` };
+      const record2 = new Record(
+        `sub.${RECORD_NAME}`,
+        RECORD_TYPE_ID,
+        DNSClass.IN,
+        RECORD_TTL,
+        RECORD_DATA,
+      );
 
-      expect(() => new RRSet([record1, record2])).toThrowWithMessage(
+      expect(() => new RRSet([RECORD, record2])).toThrowWithMessage(
         SignedRRSetError,
-        `Record names don't match (${record1.name}, ${record2.name})`,
+        `Record names don't match (${RECORD.name}, ${record2.name})`,
       );
     });
 
     test('All record classes should match', () => {
-      const record1 = { ...ANSWER };
-      const record2 = { ...record1, class: record1.class + 1 };
+      const record2 = new Record(
+        RECORD_NAME,
+        RECORD_TYPE_ID,
+        DNSClass.IN + 1,
+        RECORD_TTL,
+        RECORD_DATA,
+      );
 
-      expect(() => new RRSet([record1, record2])).toThrowWithMessage(
+      expect(() => new RRSet([RECORD, record2])).toThrowWithMessage(
         SignedRRSetError,
-        `Record classes don't match (${record1.class}, ${record2.class})`,
+        `Record classes don't match (${RECORD.class_}, ${record2.class_})`,
       );
     });
 
     test('All record types should match', () => {
-      const record1 = { ...ANSWER };
-      const record2 = { ...record1, type: record1.type + 1 };
+      const record2 = new Record(
+        RECORD_NAME,
+        RECORD_TYPE_ID + 1,
+        DNSClass.IN,
+        RECORD_TTL,
+        RECORD_DATA,
+      );
 
-      expect(() => new RRSet([record1, record2])).toThrowWithMessage(
+      expect(() => new RRSet([RECORD, record2])).toThrowWithMessage(
         SignedRRSetError,
-        `Record types don't match (${record1.type}, ${record2.type})`,
+        `Record types don't match (${RECORD.type}, ${record2.type})`,
       );
     });
 
     test('All record TTls should match', () => {
-      const record1 = { ...ANSWER };
-      const record2 = { ...record1, ttl: record1.ttl + 1 };
+      const record2 = new Record(
+        RECORD_NAME,
+        RECORD_TYPE_ID,
+        DNSClass.IN,
+        RECORD_TTL + 1,
+        RECORD_DATA,
+      );
 
-      expect(() => new RRSet([record1, record2])).toThrowWithMessage(
+      expect(() => new RRSet([RECORD, record2])).toThrowWithMessage(
         SignedRRSetError,
-        `Record TTLs don't match (${record1.ttl}, ${record2.ttl})`,
+        `Record TTLs don't match (${RECORD.ttl}, ${record2.ttl})`,
       );
     });
 
     test('Name property should be set', () => {
-      const rrset = new RRSet([ANSWER]);
+      const rrset = new RRSet([RECORD]);
 
-      expect(rrset.name).toEqual(ANSWER.name);
+      expect(rrset.name).toEqual(RECORD.name);
     });
 
     test('Class property should be set', () => {
-      const rrset = new RRSet([ANSWER]);
+      const rrset = new RRSet([RECORD]);
 
-      expect(rrset.class_).toEqual(ANSWER.class);
+      expect(rrset.class_).toEqual(RECORD.class_);
     });
 
     test('Type property should be set', () => {
-      const rrset = new RRSet([ANSWER]);
+      const rrset = new RRSet([RECORD]);
 
-      expect(rrset.type).toEqual(ANSWER.type);
+      expect(rrset.type).toEqual(RECORD.type);
     });
 
     test('TTL property should be set', () => {
-      const rrset = new RRSet([ANSWER]);
+      const rrset = new RRSet([RECORD]);
 
-      expect(rrset.ttl).toEqual(ANSWER.ttl);
+      expect(rrset.ttl).toEqual(RECORD.ttl);
     });
   });
 });
