@@ -23,10 +23,14 @@ DNS resolution is a problem solved in Node.js -- there's just no shortage of rel
 
 We decided to write a partial implementation of the DNS wire format (as specified in RFC 1035, Section 4) because the existing third-party implementations we found on NPM ([dns-packet](https://www.npmjs.com/package/dns-packet) and [dns2](https://www.npmjs.com/package/dns2)) parsed the entire message eagerly and didn't offer an option to keep the original byte stream for the answers.
 
-This would've made it cumbersome to validate DNSSEC signatures, as we'd need to re-serialise the records that we just parsed -- which would also introduce the possibility that the new serialisation is equivalent but not identical to the plaintext that was originally signed (although this is admittedly unlikely).
+This would've made it cumbersome to validate DNSSEC signatures, as we'd need to re-serialise the records that we just parsed. A re-serialisation would also introduce the possibility that the new byte stream would be equivalent but not identical to the one that was originally signed (although this is admittedly unlikely).
 
 Fortunately, since we're only interested in the _answers_ section of the message, our implementation is very straightforward.
 
 ### Signature production support
 
 This library supports producing RRSig records simply for testing purposes: It makes it very easy to test valid and invalid signatures both internally and from any software using this library, without mocking anything.
+
+### No GOST R 34.11-94 support
+
+We don't support the hashing algorithm GOST R 34.11-94 because Node.js does not support it as of this writing. Since [this algorithm is allowed by IANA](https://www.iana.org/assignments/ds-rr-types/ds-rr-types.xhtml), we'd add support for it if Node.js were to support it in the future -- even though it's actually an insecure algorithm (just like SHA-1, which is supported and, sadly, widely used still).
