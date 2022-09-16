@@ -27,18 +27,20 @@ This would've made it cumbersome to validate DNSSEC signatures, as we'd need to 
 
 Fortunately, since we're only interested in the _answers_ section of the message, our implementation is very straightforward.
 
+### Denial of Existence record support
+
+We don't need DoE records in Vera, so [we won't be implementing that functionality](https://github.com/relaycorp/dnssec-js/issues/17), but we will welcome a PR to support them.
+
 ### Signature production support
 
 This library supports producing RRSig records simply for testing purposes: It makes it very easy to test valid and invalid signatures both internally and from any software using this library, without mocking anything.
 
 ### Cryptographic Algorithms support
 
-We support all the active, _Zone Signing_ [DNSSEC algorithms](https://www.iana.org/assignments/dns-sec-alg-numbers/dns-sec-alg-numbers.xhtml#dns-sec-alg-numbers-1):
+We support the active, _Zone Signing_ [DNSSEC algorithms](https://www.iana.org/assignments/dns-sec-alg-numbers/dns-sec-alg-numbers.xhtml#dns-sec-alg-numbers-1) below:
 
 - DSA/SHA1 (`3`)
 - RSA/SHA-1 (`5`)
-- DSA-NSEC3-SHA1 (`6`)
-- RSASHA1-NSEC3-SHA1 (`7`)
 - RSA/SHA-256 (`8`)
 - RSA/SHA-512 (`10`)
 - ECDSA Curve P-256 with SHA-256 (`13`)
@@ -46,6 +48,8 @@ We support all the active, _Zone Signing_ [DNSSEC algorithms](https://www.iana.o
 - Ed25519 (`15`)
 - Ed448 (`16`)
 
-[GOST](https://en.wikipedia.org/wiki/GOST) algorithms are not supported by Node.js as of this writing, so this library doesn't support them.
+However, we don't support the following algorithms:
 
-RSA/MD5 (`2`) is deprecated and therefore not supported by this library.
+- RSA/MD5 (`2`) because it's deprecated by IANA.
+- NSEC3 (`6` and `7`) because [we don't currently support Denial of Existence records](https://github.com/relaycorp/dnssec-js/issues/17).
+- [GOST](https://en.wikipedia.org/wiki/GOST) (`12`) due to lack of support in Node.js, and its lack of popularity and security doesn't seem to justify integrating a third party NPM package supporting it (assuming a suitable one exists).
