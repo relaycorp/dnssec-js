@@ -33,7 +33,7 @@ This library supports producing RRSig records simply for testing purposes: It ma
 
 ### Cryptographic Algorithms support
 
-We support all the active, _Zone Signing_ DNSSEC algorithms:
+We support all the active, _Zone Signing_ [DNSSEC algorithms](https://www.iana.org/assignments/dns-sec-alg-numbers/dns-sec-alg-numbers.xhtml#dns-sec-alg-numbers-1):
 
 - DSA/SHA1 (`3`)
 - RSA/SHA-1 (`5`)
