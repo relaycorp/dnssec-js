@@ -31,6 +31,21 @@ Fortunately, since we're only interested in the _answers_ section of the message
 
 This library supports producing RRSig records simply for testing purposes: It makes it very easy to test valid and invalid signatures both internally and from any software using this library, without mocking anything.
 
-### No GOST R 34.11-94 support
+### Cryptographic Algorithms support
 
-We don't support the hashing algorithm GOST R 34.11-94 because Node.js does not support it as of this writing. Since [this algorithm is allowed by IANA](https://www.iana.org/assignments/ds-rr-types/ds-rr-types.xhtml), we'd add support for it if Node.js were to support it in the future -- even though it's actually an insecure algorithm (just like SHA-1, which is supported and, sadly, widely used still).
+We support all the active, _Zone Signing_ DNSSEC algorithms:
+
+- DSA/SHA1 (`3`)
+- RSA/SHA-1 (`5`)
+- DSA-NSEC3-SHA1 (`6`)
+- RSASHA1-NSEC3-SHA1 (`7`)
+- RSA/SHA-256 (`8`)
+- RSA/SHA-512 (`10`)
+- ECDSA Curve P-256 with SHA-256 (`13`)
+- ECDSA Curve P-384 with SHA-384 (`14`)
+- Ed25519 (`15`)
+- Ed448 (`16`)
+
+[GOST](https://en.wikipedia.org/wiki/GOST) algorithms are not supported by Node.js as of this writing, so this library doesn't support them.
+
+RSA/MD5 (`2`) is deprecated and therefore not supported by this library.
