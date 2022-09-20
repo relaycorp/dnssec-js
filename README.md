@@ -29,7 +29,7 @@ Fortunately, since we're only interested in the _answers_ section of the message
 
 ### Denial of Existence record support
 
-We don't need DoE records in Vera, so [we won't be implementing that functionality](https://github.com/relaycorp/dnssec-js/issues/17), but we will welcome a PR to support them.
+We don't need DoE records in Vera, so [we won't be implementing that functionality ourselves](https://github.com/relaycorp/dnssec-js/issues/17), but PRs are welcomed.
 
 ### Signature production support
 
@@ -48,7 +48,7 @@ We support the active, _Zone Signing_ [DNSSEC algorithms](https://www.iana.org/a
 - Ed25519 (`15`)
 - Ed448 (`16`)
 
-However, we don't support the following algorithms:
+We don't support the following algorithms:
 
 - RSA/MD5 (`2`) because it's deprecated by IANA.
 - NSEC3 (`6` and `7`) because [we don't currently support Denial of Existence records](https://github.com/relaycorp/dnssec-js/issues/17).
