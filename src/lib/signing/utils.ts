@@ -3,9 +3,30 @@ import { KeyObject } from 'node:crypto';
 import { DNSSECAlgorithm } from '../DNSSECAlgorithm';
 import { DigestAlgorithm } from '../DigestAlgorithm';
 
-export function getDNSSECAlgoFromKey(_publicOrPrivateKey: KeyObject): DNSSECAlgorithm {
-  // TODO: Support more algorithms
-  return DNSSECAlgorithm.RSASHA256;
+const DSA_ALGORITHMS_BY_HASH: { readonly [key: string]: DNSSECAlgorithm } = {
+  sha1: DNSSECAlgorithm.DSA,
+};
+
+const RSA_ALGORITHMS_BY_HASH: { readonly [key: string]: DNSSECAlgorithm } = {
+  sha1: DNSSECAlgorithm.RSASHA1,
+  sha256: DNSSECAlgorithm.RSASHA256,
+};
+
+export function getDNSSECAlgoFromKey(publicOrPrivateKey: KeyObject): DNSSECAlgorithm {
+  const keyType = publicOrPrivateKey.asymmetricKeyType!;
+  const hashAlgorithm = publicOrPrivateKey.asymmetricKeyDetails!.hashAlgorithm!;
+  let algorithm: DNSSECAlgorithm | null = null;
+
+  if (keyType.startsWith('rsa')) {
+    algorithm = RSA_ALGORITHMS_BY_HASH[hashAlgorithm];
+  } else if (keyType === 'dsa') {
+    algorithm = DSA_ALGORITHMS_BY_HASH[hashAlgorithm];
+  }
+
+  if (!algorithm) {
+    throw new Error(`Unsupported algorithm (${keyType}, ${hashAlgorithm})`);
+  }
+  return algorithm;
 }
 
 export function getNodejsHashAlgo(algorithm: DigestAlgorithm): string {
