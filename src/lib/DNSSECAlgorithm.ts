@@ -7,4 +7,5 @@ export enum DNSSECAlgorithm {
   DSA = 3,
   RSASHA1 = 5,
   RSASHA256 = 8,
+  RSASHA512 = 10,
 }

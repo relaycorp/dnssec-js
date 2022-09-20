@@ -30,6 +30,14 @@ const KEY_GEN_OPTIONS: { readonly [key in DNSSECAlgorithm]: KeyGenOptions } = {
       mgf1HashAlgorithm: 'sha256',
     },
   },
+  [DNSSECAlgorithm.RSASHA512]: {
+    type: RSA_PSS_TYPE,
+    options: {
+      modulusLength: RSA_MODULUS,
+      hashAlgorithm: 'sha512',
+      mgf1HashAlgorithm: 'sha512',
+    },
+  },
 };
 
 export function getKeyGenOptions(dnssecAlgorithm: DNSSECAlgorithm): KeyGenOptions {

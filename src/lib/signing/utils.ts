@@ -10,6 +10,7 @@ const DSA_ALGORITHMS_BY_HASH: { readonly [key: string]: DNSSECAlgorithm } = {
 const RSA_ALGORITHMS_BY_HASH: { readonly [key: string]: DNSSECAlgorithm } = {
   sha1: DNSSECAlgorithm.RSASHA1,
   sha256: DNSSECAlgorithm.RSASHA256,
+  sha512: DNSSECAlgorithm.RSASHA512,
 };
 
 export function getDNSSECAlgoFromKey(publicOrPrivateKey: KeyObject): DNSSECAlgorithm {
