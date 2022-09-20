@@ -10,6 +10,7 @@ const DSA_ALGORITHMS_BY_HASH: DNSSECAlgorithmMapping = {
 };
 const ECDSA_ALGORITHMS_BY_CURVE: DNSSECAlgorithmMapping = {
   prime256v1: DNSSECAlgorithm.ECDSAP256SHA256,
+  secp384r1: DNSSECAlgorithm.ECDSAP384SHA384,
 };
 const RSA_ALGORITHMS_BY_HASH: DNSSECAlgorithmMapping = {
   sha1: DNSSECAlgorithm.RSASHA1,
@@ -19,6 +20,7 @@ const RSA_ALGORITHMS_BY_HASH: DNSSECAlgorithmMapping = {
 
 const HASH_BY_CURVE: { readonly [curve: string]: string } = {
   prime256v1: 'sha256',
+  secp384r1: 'sha384',
 };
 
 export function getDNSSECAlgoFromKey(publicOrPrivateKey: KeyObject): DNSSECAlgorithm {
