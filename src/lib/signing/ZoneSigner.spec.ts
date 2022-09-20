@@ -66,6 +66,23 @@ describe('ZoneSigner', () => {
     expect(parsed.keyTag).toEqual(signer.keyTag);
     expect(parsed.signersName).toEqual(signer.zoneName);
   });
+
+  test('generateRrsig with ECDSAP256SHA256', async () => {
+    const dnssecAlgorithm = DNSSECAlgorithm.ECDSAP256SHA256;
+    const signer = await ZoneSigner.generate(dnssecAlgorithm, '.');
+    const recordName = 'com.';
+
+    const rrset = new RRSet([
+      new Record(recordName, RECORD_TYPE_ID, RECORD_CLASS, RECORD_TTL, RECORD_DATA),
+    ]);
+
+    const rrsig = signer.generateRrsig(rrset, addHours(new Date(), 3));
+    const rdata = lengthPrefixRdata(rrsig.data);
+
+    const parsed = RRSIG.decode(rdata);
+
+    expect(parsed.algorithm).toEqual(dnssecAlgorithm);
+  });
 });
 
 function lengthPrefixRdata(rdata: Buffer): Buffer {

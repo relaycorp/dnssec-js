@@ -14,6 +14,7 @@ const RSA_MODULUS = 2048;
 const RSA_PSS_TYPE = 'rsa-pss';
 const KEY_GEN_OPTIONS: { readonly [key in DNSSECAlgorithm]: KeyGenOptions } = {
   [DNSSECAlgorithm.DSA]: { type: 'dsa', options: {} },
+  [DNSSECAlgorithm.ECDSAP256SHA256]: { type: 'ec', options: { namedCurve: 'prime256v1' } },
   [DNSSECAlgorithm.RSASHA1]: {
     type: RSA_PSS_TYPE,
     options: {

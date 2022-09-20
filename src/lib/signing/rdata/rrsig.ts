@@ -2,7 +2,7 @@ import { createSign, KeyObject } from 'node:crypto';
 import { getUnixTime } from 'date-fns';
 
 import { RRSet } from '../../dns/RRSet';
-import { getDNSSECAlgoFromKey } from '../utils';
+import { getDNSSECAlgoFromKey, getNodejsHashAlgoFromKey } from '../utils';
 import { serialiseName } from '../../dns/name';
 
 export function serialiseRrsigData(
@@ -56,7 +56,8 @@ function serialiseRrset(rrset: RRSet): Buffer {
 }
 
 function sign(plaintext: Buffer, privateKey: KeyObject): Buffer {
-  const signer = createSign(privateKey.asymmetricKeyDetails!.hashAlgorithm!);
+  const hashAlgorithm = getNodejsHashAlgoFromKey(privateKey);
+  const signer = createSign(hashAlgorithm);
   signer.update(plaintext);
   signer.end();
   return signer.sign(privateKey);

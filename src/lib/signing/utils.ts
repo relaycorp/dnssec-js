@@ -3,31 +3,59 @@ import { KeyObject } from 'node:crypto';
 import { DNSSECAlgorithm } from '../DNSSECAlgorithm';
 import { DigestAlgorithm } from '../DigestAlgorithm';
 
-const DSA_ALGORITHMS_BY_HASH: { readonly [key: string]: DNSSECAlgorithm } = {
+type DNSSECAlgorithmMapping = { readonly [key: string]: DNSSECAlgorithm };
+
+const DSA_ALGORITHMS_BY_HASH: DNSSECAlgorithmMapping = {
   sha1: DNSSECAlgorithm.DSA,
 };
-
-const RSA_ALGORITHMS_BY_HASH: { readonly [key: string]: DNSSECAlgorithm } = {
+const ECDSA_ALGORITHMS_BY_CURVE: DNSSECAlgorithmMapping = {
+  prime256v1: DNSSECAlgorithm.ECDSAP256SHA256,
+};
+const RSA_ALGORITHMS_BY_HASH: DNSSECAlgorithmMapping = {
   sha1: DNSSECAlgorithm.RSASHA1,
   sha256: DNSSECAlgorithm.RSASHA256,
   sha512: DNSSECAlgorithm.RSASHA512,
 };
 
+const HASH_BY_CURVE: { readonly [curve: string]: string } = {
+  prime256v1: 'sha256',
+};
+
 export function getDNSSECAlgoFromKey(publicOrPrivateKey: KeyObject): DNSSECAlgorithm {
   const keyType = publicOrPrivateKey.asymmetricKeyType!;
-  const hashAlgorithm = publicOrPrivateKey.asymmetricKeyDetails!.hashAlgorithm!;
-  let algorithm: DNSSECAlgorithm | null = null;
+  const asymmetricKeyDetails = publicOrPrivateKey.asymmetricKeyDetails!;
+  const hashAlgorithm = asymmetricKeyDetails.hashAlgorithm;
 
+  let algorithm: DNSSECAlgorithm | null = null;
   if (keyType.startsWith('rsa')) {
-    algorithm = RSA_ALGORITHMS_BY_HASH[hashAlgorithm];
+    algorithm = RSA_ALGORITHMS_BY_HASH[hashAlgorithm!];
   } else if (keyType === 'dsa') {
-    algorithm = DSA_ALGORITHMS_BY_HASH[hashAlgorithm];
+    algorithm = DSA_ALGORITHMS_BY_HASH[hashAlgorithm!];
+  } else if (keyType === 'ec') {
+    const namedCurve = asymmetricKeyDetails.namedCurve;
+    algorithm = ECDSA_ALGORITHMS_BY_CURVE[namedCurve!];
   }
 
   if (!algorithm) {
     throw new Error(`Unsupported algorithm (${keyType}, ${hashAlgorithm})`);
   }
   return algorithm;
+}
+
+export function getNodejsHashAlgoFromKey(publicOrPrivateKey: KeyObject): string {
+  const asymmetricKeyDetails = publicOrPrivateKey.asymmetricKeyDetails!;
+
+  let hash: string | null = null;
+  if (asymmetricKeyDetails.hashAlgorithm) {
+    hash = asymmetricKeyDetails.hashAlgorithm;
+  } else if (publicOrPrivateKey.asymmetricKeyType === 'ec') {
+    hash = HASH_BY_CURVE[asymmetricKeyDetails.namedCurve!];
+  }
+
+  if (!hash) {
+    throw new Error('Unsupported key');
+  }
+  return hash;
 }
 
 export function getNodejsHashAlgo(algorithm: DigestAlgorithm): string {
