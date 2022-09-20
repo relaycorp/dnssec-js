@@ -21,16 +21,35 @@ DNS resolution is a problem solved in Node.js -- there's just no shortage of rel
 
 ### DNS message parsing (RFC 1035)
 
-We decided to write a partial implementation of the DNS wire format (as specified in RFC 1035, Section 4) because the existing third-party implementations we found on NPM ([dns-packet](https://www.npmjs.com/package/dns-packet) and [dns2](https://www.npmjs.com/package/dns2)) parsed the entire message eagerly and didn't offer an option to keep the original byte stream for the answers.
+We decided to write a partial implementation of the DNS wire format (as specified in RFC 1035, Section 4) because the existing third-party implementations we found on NPM ([dns-packet](https://www.npmjs.com/package/dns-packet) and [dns2](https://www.npmjs.com/package/dns2)) parsed the entire message eagerly (all the way down to the RDATA fields) and didn't offer an option to keep the original byte stream.
 
-This would've made it cumbersome to validate DNSSEC signatures, as we'd need to re-serialise the records that we just parsed. A re-serialisation would also introduce the possibility that the new byte stream would be equivalent but not identical to the one that was originally signed (although this is admittedly unlikely).
+This would've made it cumbersome to validate DNSSEC signatures, as we'd need to re-serialise the records that we just parsed. A re-serialisation would also introduce the possibility that the new byte stream would be functionally equivalent but not identical to the one that was originally signed (especially when re-serialising the RDATA field).
 
 Fortunately, since we're only interested in the _answers_ section of the message, our implementation is very straightforward.
+
+### Denial of Existence record support
+
+We don't need DoE records in Vera, so [we won't be implementing that functionality](https://github.com/relaycorp/dnssec-js/issues/17), but we will welcome a PR to support them.
 
 ### Signature production support
 
 This library supports producing RRSig records simply for testing purposes: It makes it very easy to test valid and invalid signatures both internally and from any software using this library, without mocking anything.
 
-### No GOST R 34.11-94 support
+### Cryptographic Algorithms support
 
-We don't support the hashing algorithm GOST R 34.11-94 because Node.js does not support it as of this writing. Since [this algorithm is allowed by IANA](https://www.iana.org/assignments/ds-rr-types/ds-rr-types.xhtml), we'd add support for it if Node.js were to support it in the future -- even though it's actually an insecure algorithm (just like SHA-1, which is supported and, sadly, widely used still).
+We support the active, _Zone Signing_ [DNSSEC algorithms](https://www.iana.org/assignments/dns-sec-alg-numbers/dns-sec-alg-numbers.xhtml#dns-sec-alg-numbers-1) below:
+
+- DSA/SHA1 (`3`)
+- RSA/SHA-1 (`5`)
+- RSA/SHA-256 (`8`)
+- RSA/SHA-512 (`10`)
+- ECDSA Curve P-256 with SHA-256 (`13`)
+- ECDSA Curve P-384 with SHA-384 (`14`)
+- Ed25519 (`15`)
+- Ed448 (`16`)
+
+However, we don't support the following algorithms:
+
+- RSA/MD5 (`2`) because it's deprecated by IANA.
+- NSEC3 (`6` and `7`) because [we don't currently support Denial of Existence records](https://github.com/relaycorp/dnssec-js/issues/17).
+- [GOST](https://en.wikipedia.org/wiki/GOST) (`12`) due to lack of support in Node.js, and its lack of popularity and security doesn't seem to justify integrating a third party NPM package supporting it (assuming a suitable one exists).
