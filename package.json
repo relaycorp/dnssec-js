@@ -34,7 +34,7 @@
     "clean": "del-cli build test"
   },
   "engines": {
-    "node": ">=14"
+    "node": ">=16"
   },
   "devDependencies": {
     "@leichtgewicht/dns-packet": "^6.0.3",

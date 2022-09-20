@@ -7,6 +7,7 @@ jobs:
   ci:
     uses: relaycorp/shared-workflows/.github/workflows/nodejs-lib-ci.yml@main
     with:
+      min_nodejs_version: 16
       restrict_integration_tests_to_ubuntu: true
 
   release:
