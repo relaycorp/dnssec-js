@@ -7,13 +7,13 @@ export const generateKeyPairAsync = promisify(generateKeyPair);
 
 interface KeyGenOptions {
   readonly type: string;
-  readonly options: object;
+  readonly options?: object;
 }
 
 const RSA_MODULUS = 2048;
 const RSA_PSS_TYPE = 'rsa-pss';
 const KEY_GEN_OPTIONS: { readonly [key in DNSSECAlgorithm]: KeyGenOptions } = {
-  [DNSSECAlgorithm.DSA]: { type: 'dsa', options: {} },
+  [DNSSECAlgorithm.DSA]: { type: 'dsa' },
   [DNSSECAlgorithm.ECDSAP256SHA256]: { type: 'ec', options: { namedCurve: 'prime256v1' } },
   [DNSSECAlgorithm.ECDSAP384SHA384]: { type: 'ec', options: { namedCurve: 'secp384r1' } },
   [DNSSECAlgorithm.RSASHA1]: {
@@ -40,6 +40,7 @@ const KEY_GEN_OPTIONS: { readonly [key in DNSSECAlgorithm]: KeyGenOptions } = {
       mgf1HashAlgorithm: 'sha512',
     },
   },
+  [DNSSECAlgorithm.ED25519]: { type: 'ed25519' },
 };
 
 export function getKeyGenOptions(dnssecAlgorithm: DNSSECAlgorithm): KeyGenOptions {

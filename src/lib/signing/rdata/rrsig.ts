@@ -1,4 +1,4 @@
-import { createSign, KeyObject } from 'node:crypto';
+import { sign as cryptoSign, KeyObject } from 'node:crypto';
 import { getUnixTime } from 'date-fns';
 
 import { RRSet } from '../../dns/RRSet';
@@ -57,10 +57,7 @@ function serialiseRrset(rrset: RRSet): Buffer {
 
 function sign(plaintext: Buffer, privateKey: KeyObject): Buffer {
   const hashAlgorithm = getNodejsHashAlgoFromKey(privateKey);
-  const signer = createSign(hashAlgorithm);
-  signer.update(plaintext);
-  signer.end();
-  return signer.sign(privateKey);
+  return cryptoSign(hashAlgorithm, plaintext, privateKey);
 }
 
 function countLabels(name: string): number {
