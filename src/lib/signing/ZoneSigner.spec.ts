@@ -67,8 +67,8 @@ describe('ZoneSigner', () => {
     expect(parsed.signersName).toEqual(signer.zoneName);
   });
 
-  test('generateRrsig with ED25519', async () => {
-    const dnssecAlgorithm = DNSSECAlgorithm.ED25519;
+  test('generateRrsig with ED448', async () => {
+    const dnssecAlgorithm = DNSSECAlgorithm.ED448;
     const signer = await ZoneSigner.generate(dnssecAlgorithm, '.');
     const recordName = 'com.';
 

@@ -38,6 +38,8 @@ export function getDNSSECAlgoFromKey(publicOrPrivateKey: KeyObject): DNSSECAlgor
     algorithm = ECDSA_ALGORITHMS_BY_CURVE[namedCurve!];
   } else if (keyType === 'ed25519') {
     algorithm = DNSSECAlgorithm.ED25519;
+  } else if (keyType === 'ed448') {
+    algorithm = DNSSECAlgorithm.ED448;
   }
 
   if (!algorithm) {
@@ -54,7 +56,7 @@ export function getNodejsHashAlgoFromKey(publicOrPrivateKey: KeyObject): string 
     hash = asymmetricKeyDetails.hashAlgorithm;
   } else if (publicOrPrivateKey.asymmetricKeyType === 'ec') {
     hash = HASH_BY_CURVE[asymmetricKeyDetails.namedCurve!];
-  } else if (publicOrPrivateKey.asymmetricKeyType === 'ed25519') {
+  } else if (['ed25519', 'ed448'].includes(publicOrPrivateKey.asymmetricKeyType!)) {
     hash = null;
   } else {
     throw new Error('Unsupported key');

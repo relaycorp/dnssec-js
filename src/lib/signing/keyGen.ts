@@ -41,6 +41,7 @@ const KEY_GEN_OPTIONS: { readonly [key in DNSSECAlgorithm]: KeyGenOptions } = {
     },
   },
   [DNSSECAlgorithm.ED25519]: { type: 'ed25519' },
+  [DNSSECAlgorithm.ED448]: { type: 'ed448' },
 };
 
 export function getKeyGenOptions(dnssecAlgorithm: DNSSECAlgorithm): KeyGenOptions {
