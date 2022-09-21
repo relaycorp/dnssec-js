@@ -1,14 +1,14 @@
 import { createHash, KeyObject } from 'node:crypto';
 
-import { DigestAlgorithm } from '../../DigestAlgorithm';
+import { DigestType } from '../../DigestType';
 import { derSerialisePublicKey, getDNSSECAlgoFromKey, getNodejsHashAlgo } from '../utils';
 
 export function serialiseDsRdata(
   keyTag: number,
   publicKey: KeyObject,
-  digestAlgorithm: DigestAlgorithm,
+  digestType: DigestType,
 ): Buffer {
-  const digest = hashKey(publicKey, digestAlgorithm);
+  const digest = hashKey(publicKey, digestType);
   const data = Buffer.alloc(4 + digest.byteLength);
 
   data.writeUInt16BE(keyTag, 0);
@@ -17,14 +17,14 @@ export function serialiseDsRdata(
   const algorithm = getDNSSECAlgoFromKey(publicKey);
   data.writeUInt8(algorithm, 2);
 
-  data.writeUInt8(digestAlgorithm, 3);
+  data.writeUInt8(digestType, 3);
 
   digest.copy(data, 4);
 
   return data;
 }
 
-function hashKey(publicKey: KeyObject, digestAlgorithm: DigestAlgorithm): Buffer {
+function hashKey(publicKey: KeyObject, digestAlgorithm: DigestType): Buffer {
   const hashName = getNodejsHashAlgo(digestAlgorithm);
   const hash = createHash(hashName);
   hash.update(derSerialisePublicKey(publicKey));

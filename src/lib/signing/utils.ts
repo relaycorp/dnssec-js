@@ -1,7 +1,7 @@
 import { KeyObject } from 'node:crypto';
 
 import { DNSSECAlgorithm } from '../DNSSECAlgorithm';
-import { DigestAlgorithm } from '../DigestAlgorithm';
+import { DigestType } from '../DigestType';
 
 type DNSSECAlgorithmMapping = { readonly [key: string]: DNSSECAlgorithm };
 
@@ -65,13 +65,13 @@ export function getNodejsHashAlgoFromKey(publicOrPrivateKey: KeyObject): string 
   return hash;
 }
 
-export function getNodejsHashAlgo(algorithm: DigestAlgorithm): string {
+export function getNodejsHashAlgo(algorithm: DigestType): string {
   switch (algorithm) {
-    case DigestAlgorithm.SHA1:
+    case DigestType.SHA1:
       return 'sha1';
-    case DigestAlgorithm.SHA256:
+    case DigestType.SHA256:
       return 'sha256';
-    case DigestAlgorithm.SHA384:
+    case DigestType.SHA384:
       return 'sha384';
     default:
       throw new Error(`Unsupported hashing algorithm ${algorithm}`);

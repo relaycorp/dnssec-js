@@ -3,7 +3,7 @@ import { addHours, getUnixTime } from 'date-fns';
 
 import { ZoneSigner } from './ZoneSigner';
 import { DNSSECAlgorithm } from '../DNSSECAlgorithm';
-import { DigestAlgorithm } from '../DigestAlgorithm';
+import { DigestType } from '../DigestType';
 import { RRSet } from '../dns/RRSet';
 import {
   RECORD_CLASS,
@@ -28,7 +28,7 @@ describe('ZoneSigner', () => {
   test('generateDs', async () => {
     const signer = await ZoneSigner.generate(DNSSECAlgorithm.RSASHA256, '.');
 
-    const digestAlgorithm = DigestAlgorithm.SHA256;
+    const digestAlgorithm = DigestType.SHA256;
     const dskey = signer.generateDs('com', 10, digestAlgorithm);
     const rdata = lengthPrefixRdata(dskey.data);
 

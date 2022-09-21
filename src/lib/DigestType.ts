@@ -5,7 +5,7 @@
  *
  * GOST R 34.11-94 is unsupported because Node.js doesn't support it as of this writing.
  */
-export enum DigestAlgorithm {
+export enum DigestType {
   SHA1 = 1,
   SHA256 = 2,
   SHA384 = 4,

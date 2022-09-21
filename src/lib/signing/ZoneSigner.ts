@@ -6,7 +6,7 @@ import { DNSClass } from '../dns/DNSClass';
 import { DNSKEYFlags, serialiseDnskeyRdata } from './rdata/dnskey';
 import { generateKeyPairAsync, getKeyGenOptions } from './keyGen';
 import { serialiseDsRdata } from './rdata/ds';
-import { DigestAlgorithm } from '../DigestAlgorithm';
+import { DigestType } from '../DigestType';
 import { RecordType } from '../dns/RecordType';
 import { RRSet } from '../dns/RRSet';
 import { serialiseRrsigData } from './rdata/rrsig';
@@ -40,7 +40,7 @@ export class ZoneSigner {
   public generateDs(
     childLabel: string,
     ttl: number,
-    digestAlgorithm: DigestAlgorithm = DigestAlgorithm.SHA256,
+    digestAlgorithm: DigestType = DigestType.SHA256,
   ): Record {
     const data = serialiseDsRdata(this.keyTag, this.publicKey, digestAlgorithm);
     return new Record(`${childLabel}.${this.zoneName}`, RecordType.DS, DNSClass.IN, ttl, data);
