@@ -24,7 +24,7 @@ export function serialiseDsRdata(
   return data;
 }
 
-function hashKey(publicKey: KeyObject, digestAlgorithm: DigestType): Buffer {
+export function hashKey(publicKey: KeyObject, digestAlgorithm: DigestType): Buffer {
   const hashName = getNodejsHashAlgo(digestAlgorithm);
   const hash = createHash(hashName);
   hash.update(derSerialisePublicKey(publicKey));
