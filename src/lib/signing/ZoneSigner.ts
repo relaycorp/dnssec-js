@@ -3,13 +3,14 @@ import { KeyObject } from 'node:crypto';
 import { DNSSECAlgorithm } from '../DNSSECAlgorithm';
 import { Record } from '../dns/Record';
 import { DNSClass } from '../dns/DNSClass';
-import { DNSKEYFlags, serialiseDnskeyRdata } from './rdata/dnskey';
+import { serialiseDnskeyRdata } from './rdata/dnskey';
 import { generateKeyPairAsync, getKeyGenOptions } from './keyGen';
 import { serialiseDsRdata } from './rdata/ds';
 import { DigestType } from '../DigestType';
 import { RecordType } from '../dns/RecordType';
 import { RRSet } from '../dns/RRSet';
 import { serialiseRrsigData } from './rdata/rrsig';
+import { DNSKEYFlags } from '../DNSKEYFlags';
 
 const MAX_KEY_TAG = 2 ** 16 - 1; // 2 octets (16 bits) per RFC4034 (Section 5.1)
 
@@ -32,8 +33,12 @@ export class ZoneSigner {
     public readonly zoneName: string,
   ) {}
 
-  public generateDnskey(ttl: number, flags: Partial<DNSKEYFlags> = {}): Record {
-    const data = serialiseDnskeyRdata(this.publicKey, flags);
+  public generateDnskey(
+    ttl: number,
+    flags: Partial<DNSKEYFlags> = {},
+    protocol: number = 3,
+  ): Record {
+    const data = serialiseDnskeyRdata(this.publicKey, flags, protocol);
     return new Record(this.zoneName, RecordType.DNSKEY, DNSClass.IN, ttl, data);
   }
 

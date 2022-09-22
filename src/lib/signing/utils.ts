@@ -1,7 +1,6 @@
 import { KeyObject } from 'node:crypto';
 
 import { DNSSECAlgorithm } from '../DNSSECAlgorithm';
-import { DigestType } from '../DigestType';
 
 type DNSSECAlgorithmMapping = { readonly [key: string]: DNSSECAlgorithm };
 
@@ -63,21 +62,4 @@ export function getNodejsHashAlgoFromKey(publicOrPrivateKey: KeyObject): string 
   }
 
   return hash;
-}
-
-export function getNodejsHashAlgo(algorithm: DigestType): string {
-  switch (algorithm) {
-    case DigestType.SHA1:
-      return 'sha1';
-    case DigestType.SHA256:
-      return 'sha256';
-    case DigestType.SHA384:
-      return 'sha384';
-    default:
-      throw new Error(`Unsupported hashing algorithm ${algorithm}`);
-  }
-}
-
-export function derSerialisePublicKey(publicKey: KeyObject): Buffer {
-  return publicKey.export({ format: 'der', type: 'spki' });
 }
