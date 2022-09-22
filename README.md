@@ -50,6 +50,5 @@ We support the active, _Zone Signing_ [DNSSEC algorithms](https://www.iana.org/a
 
 We don't support the following algorithms:
 
-- RSA/MD5 (`2`) because it's deprecated by IANA.
 - NSEC3 (`6` and `7`) because [we don't currently support Denial of Existence records](https://github.com/relaycorp/dnssec-js/issues/17).
 - [GOST](https://en.wikipedia.org/wiki/GOST) (`12`) due to lack of support in Node.js, and its lack of popularity and security doesn't seem to justify integrating a third party NPM package supporting it (assuming a suitable one exists).
