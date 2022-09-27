@@ -1,3 +1,3 @@
-export interface RecordData {
+export interface DnssecRecordData {
   readonly serialise: () => Buffer;
 }

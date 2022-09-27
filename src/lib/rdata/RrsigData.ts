@@ -5,7 +5,7 @@ import { fromUnixTime, getUnixTime } from 'date-fns';
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { NAME_PARSER_OPTIONS, serialiseName } from '../dns/name';
 import { InvalidRdataError } from '../errors';
-import { RecordData } from './RecordData';
+import { DnssecRecordData } from './DnssecRecordData';
 import { RRSet } from '../dns/RRSet';
 import { getDNSSECAlgoFromKey, getNodejsHashAlgoFromKey } from '../signing/utils';
 
@@ -21,7 +21,7 @@ const PARSER = new Parser()
   .array('signerName', NAME_PARSER_OPTIONS)
   .buffer('signature', { readUntil: 'eof' });
 
-export class RrsigData implements RecordData {
+export class RrsigData implements DnssecRecordData {
   static deserialise(serialisation: Buffer): RrsigData {
     let parsingResult: any;
     try {

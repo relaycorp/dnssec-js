@@ -4,7 +4,7 @@ import { createPublicKey, KeyObject } from 'node:crypto';
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { DnskeyFlags } from '../DnskeyFlags';
 import { InvalidRdataError } from '../errors';
-import { RecordData } from './RecordData';
+import { DnssecRecordData } from './DnssecRecordData';
 import { derSerialisePublicKey } from '../utils/crypto';
 
 const PARSER = new Parser()
@@ -15,7 +15,7 @@ const PARSER = new Parser()
   .uint8('algorithm')
   .buffer('publicKey', { readUntil: 'eof' });
 
-export class DnskeyData implements RecordData {
+export class DnskeyData implements DnssecRecordData {
   public static deserialise(serialisation: Buffer): DnskeyData {
     let parsingResult: any;
     try {

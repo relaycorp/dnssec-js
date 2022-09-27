@@ -5,7 +5,7 @@ import { DigestType } from '../DigestType';
 import { DnssecValidationError, InvalidRdataError } from '../errors';
 import { DnskeyData } from './DnskeyData';
 import { hashPublicKey } from '../utils/crypto';
-import { RecordData } from './RecordData';
+import { DnssecRecordData } from './DnssecRecordData';
 
 const PARSER = new Parser()
   .endianness('big')
@@ -14,7 +14,7 @@ const PARSER = new Parser()
   .uint8('digestType')
   .buffer('digest', { readUntil: 'eof' });
 
-export class DsData implements RecordData {
+export class DsData implements DnssecRecordData {
   static deserialise(serialisation: Buffer): DsData {
     let parsingResult: any;
     try {
