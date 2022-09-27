@@ -1,9 +1,9 @@
 import { Parser } from 'binary-parser';
+import { fromUnixTime } from 'date-fns';
 
 import { DNSSECAlgorithm } from '../../DNSSECAlgorithm';
 import { NAME_PARSER_OPTIONS } from '../../dns/name';
 import { InvalidRdataError } from '../../errors';
-import { fromUnixTime } from 'date-fns';
 
 const PARSER = new Parser()
   .endianness('big')
