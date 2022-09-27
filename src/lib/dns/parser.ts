@@ -1,14 +1,8 @@
 import { Parser } from 'binary-parser';
-import { Record } from './Record';
 
-const LABEL_PARSER = new Parser().uint8('labelLength').string('label', { length: 'labelLength' });
-const NAME_PARSER_OPTIONS = {
-  formatter: (labels: any) => labels.map((label: any) => label.label).join('.'),
-  type: LABEL_PARSER,
-  readUntil(lastItem: any): boolean {
-    return lastItem.labelLength === 0;
-  },
-};
+import { Record } from './Record';
+import { NAME_PARSER_OPTIONS } from './name';
+
 const QUESTION_PARSER = new Parser()
   .array('name', NAME_PARSER_OPTIONS)
   .uint16('type')

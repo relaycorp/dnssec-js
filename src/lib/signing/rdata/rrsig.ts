@@ -18,7 +18,6 @@ export function serialiseRrsigData(
   const rdataFirstPart = generateRdataFirstPart(
     signatureExpiry,
     signatureInception,
-    signerName,
     signerKeyTag,
     signerPrivateKey,
     rrset,
@@ -33,7 +32,6 @@ export function serialiseRrsigData(
 function generateRdataFirstPart(
   signatureExpiry: Date,
   signatureInception: Date,
-  signerName: string,
   signerKeyTag: number,
   signerPrivateKey: KeyObject,
   rrset: RRSet,
@@ -42,7 +40,7 @@ function generateRdataFirstPart(
 
   partialRrsigRdata.writeUInt16BE(rrset.type, 0);
   partialRrsigRdata.writeUInt8(getDNSSECAlgoFromKey(signerPrivateKey), 2);
-  partialRrsigRdata.writeUInt8(countLabels(signerName), 3);
+  partialRrsigRdata.writeUInt8(countLabels(rrset.name), 3);
   partialRrsigRdata.writeUInt32BE(rrset.ttl, 4);
   partialRrsigRdata.writeUInt32BE(getUnixTime(signatureExpiry), 8);
   partialRrsigRdata.writeUInt32BE(getUnixTime(signatureInception), 12);
