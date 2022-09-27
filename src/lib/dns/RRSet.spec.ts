@@ -6,7 +6,7 @@ import {
   RECORD_TTL,
   RECORD_TYPE_ID,
 } from '../../testUtils/stubs';
-import { SignedRRSetError } from '../errors';
+import { RRSetError } from '../errors';
 import { Record } from './Record';
 import { DNSClass } from './DNSClass';
 
@@ -14,7 +14,7 @@ describe('RRSet', () => {
   describe('constructor', () => {
     test('At least one record should be specified', () => {
       expect(() => new RRSet([])).toThrowWithMessage(
-        SignedRRSetError,
+        RRSetError,
         'At least one record should be specified',
       );
     });
@@ -29,7 +29,7 @@ describe('RRSet', () => {
       );
 
       expect(() => new RRSet([RECORD, record2])).toThrowWithMessage(
-        SignedRRSetError,
+        RRSetError,
         `Record names don't match (${RECORD.name}, ${record2.name})`,
       );
     });
@@ -44,7 +44,7 @@ describe('RRSet', () => {
       );
 
       expect(() => new RRSet([RECORD, record2])).toThrowWithMessage(
-        SignedRRSetError,
+        RRSetError,
         `Record classes don't match (${RECORD.class_}, ${record2.class_})`,
       );
     });
@@ -59,7 +59,7 @@ describe('RRSet', () => {
       );
 
       expect(() => new RRSet([RECORD, record2])).toThrowWithMessage(
-        SignedRRSetError,
+        RRSetError,
         `Record types don't match (${RECORD.type}, ${record2.type})`,
       );
     });
@@ -74,7 +74,7 @@ describe('RRSet', () => {
       );
 
       expect(() => new RRSet([RECORD, record2])).toThrowWithMessage(
-        SignedRRSetError,
+        RRSetError,
         `Record TTLs don't match (${RECORD.ttl}, ${record2.ttl})`,
       );
     });

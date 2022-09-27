@@ -1,16 +1,18 @@
 import { KeyObject } from 'node:crypto';
 
-import { DNSSECAlgorithm } from '../DNSSECAlgorithm';
+import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { Record } from '../dns/Record';
 import { DNSClass } from '../dns/DNSClass';
-import { serialiseDnskeyRdata } from './rdata/dnskey';
 import { generateKeyPairAsync, getKeyGenOptions } from './keyGen';
-import { serialiseDsRdata } from './rdata/ds';
 import { DigestType } from '../DigestType';
 import { RecordType } from '../dns/RecordType';
 import { RRSet } from '../dns/RRSet';
-import { serialiseRrsigData } from './rdata/rrsig';
-import { DNSKEYFlags } from '../DNSKEYFlags';
+import { DnskeyFlags } from '../DnskeyFlags';
+import { DnskeyData } from '../rdata/DnskeyData';
+import { getDNSSECAlgoFromKey } from './utils';
+import { DsData } from '../rdata/DsData';
+import { hashPublicKey } from '../utils/crypto';
+import { RrsigData } from '../rdata/RrsigData';
 
 const MAX_KEY_TAG = 2 ** 16 - 1; // 2 octets (16 bits) per RFC4034 (Section 5.1)
 
@@ -19,7 +21,7 @@ function generateKeyTag(): number {
 }
 
 export class ZoneSigner {
-  public static async generate(algorithm: DNSSECAlgorithm, zoneName: string): Promise<ZoneSigner> {
+  public static async generate(algorithm: DnssecAlgorithm, zoneName: string): Promise<ZoneSigner> {
     const keyTag = generateKeyTag();
     const keyGenOptions = getKeyGenOptions(algorithm);
     const keyPair = await generateKeyPairAsync(keyGenOptions.type as any, keyGenOptions.options);
@@ -35,20 +37,30 @@ export class ZoneSigner {
 
   public generateDnskey(
     ttl: number,
-    flags: Partial<DNSKEYFlags> = {},
+    flags: Partial<DnskeyFlags> = {},
     protocol: number = 3,
   ): Record {
-    const data = serialiseDnskeyRdata(this.publicKey, flags, protocol);
-    return new Record(this.zoneName, RecordType.DNSKEY, DNSClass.IN, ttl, data);
+    const algorithm = getDNSSECAlgoFromKey(this.publicKey);
+    const finalFlags: DnskeyFlags = { zoneKey: true, secureEntryPoint: false, ...flags };
+    const data = new DnskeyData(this.publicKey, protocol, algorithm, finalFlags);
+    return new Record(this.zoneName, RecordType.DNSKEY, DNSClass.IN, ttl, data.serialise());
   }
 
   public generateDs(
     childLabel: string,
     ttl: number,
-    digestAlgorithm: DigestType = DigestType.SHA256,
+    digestType: DigestType = DigestType.SHA256,
   ): Record {
-    const data = serialiseDsRdata(this.keyTag, this.publicKey, digestAlgorithm);
-    return new Record(`${childLabel}.${this.zoneName}`, RecordType.DS, DNSClass.IN, ttl, data);
+    const digest = hashPublicKey(this.publicKey, digestType);
+    const algorithm = getDNSSECAlgoFromKey(this.publicKey);
+    const data = new DsData(this.keyTag, algorithm, digestType, digest);
+    return new Record(
+      `${childLabel}.${this.zoneName}`,
+      RecordType.DS,
+      DNSClass.IN,
+      ttl,
+      data.serialise(),
+    );
   }
 
   public generateRrsig(
@@ -56,7 +68,7 @@ export class ZoneSigner {
     signatureExpiry: Date,
     signatureInception: Date = new Date(),
   ): Record {
-    const data = serialiseRrsigData(
+    const data = RrsigData.generate(
       rrset,
       signatureExpiry,
       signatureInception,
@@ -64,6 +76,6 @@ export class ZoneSigner {
       this.zoneName,
       this.keyTag,
     );
-    return new Record(rrset.name, RecordType.RRSIG, DNSClass.IN, rrset.ttl, data);
+    return new Record(rrset.name, RecordType.RRSIG, DNSClass.IN, rrset.ttl, data.serialise());
   }
 }

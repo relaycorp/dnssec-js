@@ -211,7 +211,7 @@ describe('Message', () => {
         class_: RECORD_CLASS,
         ttl: RECORD_TTL,
       });
-      expect(Buffer.from(message.answers[0].data)).toEqual(RECORD_DATA);
+      expect(Buffer.from(message.answers[0].dataSerialised)).toEqual(RECORD_DATA);
     });
 
     test('Multiple answers should be output if the message had multiple', () => {
@@ -235,14 +235,16 @@ describe('Message', () => {
         class_: DNSClass.IN,
         ttl: RECORD_TTL,
       });
-      expect(Buffer.from(message.answers[0].data)).toEqual(RECORD_DATA);
+      expect(Buffer.from(message.answers[0].dataSerialised)).toEqual(RECORD_DATA);
       expect(message.answers[1]).toMatchObject<Partial<Record>>({
         name: record2.name,
         type: 16,
         class_: DNSClass.IN,
         ttl: record2.ttl,
       });
-      expect(Buffer.from(message.answers[1].data)).toEqual(Buffer.from(record2.data as string));
+      expect(Buffer.from(message.answers[1].dataSerialised)).toEqual(
+        Buffer.from(record2.data as string),
+      );
     });
 
     test('Questions should be ignored', () => {

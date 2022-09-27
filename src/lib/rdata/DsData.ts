@@ -1,10 +1,11 @@
 import { Parser } from 'binary-parser';
 
-import { DNSSECAlgorithm } from '../../DNSSECAlgorithm';
-import { DigestType } from '../../DigestType';
-import { DNSSECValidationError, InvalidRdataError } from '../../errors';
-import { DNSKEY } from './DNSKEY';
-import { hashPublicKey } from '../../utils/crypto';
+import { DnssecAlgorithm } from '../DnssecAlgorithm';
+import { DigestType } from '../DigestType';
+import { DnssecValidationError, InvalidRdataError } from '../errors';
+import { DnskeyData } from './DnskeyData';
+import { hashPublicKey } from '../utils/crypto';
+import { RecordData } from './RecordData';
 
 const PARSER = new Parser()
   .endianness('big')
@@ -13,8 +14,8 @@ const PARSER = new Parser()
   .uint8('digestType')
   .buffer('digest', { readUntil: 'eof' });
 
-export class DS {
-  static deserialise(serialisation: Buffer): DS {
+export class DsData implements RecordData {
+  static deserialise(serialisation: Buffer): DsData {
     let parsingResult: any;
     try {
       parsingResult = PARSER.parse(serialisation);
@@ -24,7 +25,7 @@ export class DS {
     if (parsingResult.digest.byteLength === 0) {
       throw new InvalidRdataError('DS data is missing digest');
     }
-    return new DS(
+    return new DsData(
       parsingResult.keyTag,
       parsingResult.algorithm,
       parsingResult.digestType,
@@ -34,32 +35,46 @@ export class DS {
 
   constructor(
     readonly keyTag: number,
-    readonly algorithm: DNSSECAlgorithm,
+    readonly algorithm: DnssecAlgorithm,
     readonly digestType: DigestType,
     readonly digest: Buffer,
   ) {}
+
+  public serialise(): Buffer {
+    const data = Buffer.alloc(4 + this.digest.byteLength);
+
+    data.writeUInt16BE(this.keyTag, 0);
+
+    data.writeUInt8(this.algorithm, 2);
+
+    data.writeUInt8(this.digestType, 3);
+
+    this.digest.copy(data, 4);
+
+    return data;
+  }
 
   /**
    * Verify that the `key` corresponds to the current DS data.
    *
    * @param key
-   * @throws {DNSSECValidationError}
+   * @throws {DnssecValidationError}
    */
-  public verifyDnskey(key: DNSKEY): void {
+  public verifyDnskey(key: DnskeyData): void {
     if (!key.flags.zoneKey) {
-      throw new DNSSECValidationError('Zone Key flag is off');
+      throw new DnssecValidationError('Zone Key flag is off');
     }
     if (key.protocol !== 3) {
-      throw new DNSSECValidationError(`Protocol must be 3 (got ${key.protocol})`);
+      throw new DnssecValidationError(`Protocol must be 3 (got ${key.protocol})`);
     }
     if (key.algorithm !== this.algorithm) {
-      throw new DNSSECValidationError(
+      throw new DnssecValidationError(
         `DS uses algorithm ${this.algorithm} but DNSKEY uses algorithm ${key.algorithm}`,
       );
     }
     const digest = hashPublicKey(key.publicKey, this.digestType);
     if (!digest.equals(this.digest)) {
-      throw new DNSSECValidationError('DNSKEY key digest does not match that of DS data');
+      throw new DnssecValidationError('DNSKEY key digest does not match that of DS data');
     }
   }
 }

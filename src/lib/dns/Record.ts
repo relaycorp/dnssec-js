@@ -8,7 +8,7 @@ export class Record {
     public readonly type: RecordType,
     public readonly class_: DNSClass,
     public readonly ttl: number,
-    public readonly data: Buffer,
+    public readonly dataSerialised: Buffer,
   ) {}
 
   public serialise(): Buffer {
@@ -24,7 +24,7 @@ export class Record {
     ttlSerialised.writeUInt32BE(this.ttl);
 
     const dataLengthSerialised = Buffer.allocUnsafe(2);
-    dataLengthSerialised.writeUInt16BE(this.data.length);
+    dataLengthSerialised.writeUInt16BE(this.dataSerialised.length);
 
     return Buffer.concat([
       labelsSerialised,
@@ -32,7 +32,7 @@ export class Record {
       classSerialised,
       ttlSerialised,
       dataLengthSerialised,
-      this.data,
+      this.dataSerialised,
     ]);
   }
 }

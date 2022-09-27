@@ -1,11 +1,11 @@
-import { DNSSECAlgorithm } from '../../DNSSECAlgorithm';
-import { ZoneSigner } from '../../signing/ZoneSigner';
-import { DNSKEY } from './DNSKEY';
-import { InvalidRdataError } from '../../errors';
+import { DnssecAlgorithm } from '../DnssecAlgorithm';
+import { ZoneSigner } from '../signing/ZoneSigner';
+import { DnskeyData } from './DnskeyData';
+import { InvalidRdataError } from '../errors';
 
-describe('DNSKEY', () => {
+describe('DnskeyData', () => {
   describe('deserialise', () => {
-    const algorithm = DNSSECAlgorithm.RSASHA256;
+    const algorithm = DnssecAlgorithm.RSASHA256;
 
     let signer: ZoneSigner;
     beforeAll(async () => {
@@ -16,7 +16,7 @@ describe('DNSKEY', () => {
       // 3 octets means that the algorithm and public key are missing
       const malformedDnskey = Buffer.allocUnsafe(3);
 
-      expect(() => DNSKEY.deserialise(malformedDnskey)).toThrowWithMessage(
+      expect(() => DnskeyData.deserialise(malformedDnskey)).toThrowWithMessage(
         InvalidRdataError,
         'DNSKEY data is malformed',
       );
@@ -26,7 +26,7 @@ describe('DNSKEY', () => {
       // 4 octets means that the public key is missing
       const malformedDnskey = Buffer.allocUnsafe(4);
 
-      expect(() => DNSKEY.deserialise(malformedDnskey)).toThrowWithMessage(
+      expect(() => DnskeyData.deserialise(malformedDnskey)).toThrowWithMessage(
         InvalidRdataError,
         'DNSKEY data is missing public key',
       );
@@ -35,7 +35,7 @@ describe('DNSKEY', () => {
     test('Public key should be extracted', () => {
       const record = signer.generateDnskey(0);
 
-      const data = DNSKEY.deserialise(record.data);
+      const data = DnskeyData.deserialise(record.dataSerialised);
 
       expect(data.publicKey.export({ format: 'der', type: 'spki' })).toEqual(
         signer.publicKey.export({ format: 'der', type: 'spki' }),
@@ -45,7 +45,7 @@ describe('DNSKEY', () => {
     test('Algorithm should be extracted', () => {
       const record = signer.generateDnskey(0);
 
-      const data = DNSKEY.deserialise(record.data);
+      const data = DnskeyData.deserialise(record.dataSerialised);
 
       expect(data.algorithm).toEqual(algorithm);
     });
@@ -54,7 +54,7 @@ describe('DNSKEY', () => {
       const protocol = 42;
       const record = signer.generateDnskey(0, {}, protocol);
 
-      const data = DNSKEY.deserialise(record.data);
+      const data = DnskeyData.deserialise(record.dataSerialised);
 
       expect(data.protocol).toEqual(protocol);
     });
@@ -63,7 +63,7 @@ describe('DNSKEY', () => {
       test('Zone Key should be on if set', () => {
         const record = signer.generateDnskey(0, { zoneKey: true });
 
-        const data = DNSKEY.deserialise(record.data);
+        const data = DnskeyData.deserialise(record.dataSerialised);
 
         expect(data.flags.zoneKey).toBeTrue();
       });
@@ -71,7 +71,7 @@ describe('DNSKEY', () => {
       test('Zone Key should off if unset', () => {
         const record = signer.generateDnskey(0, { zoneKey: false });
 
-        const data = DNSKEY.deserialise(record.data);
+        const data = DnskeyData.deserialise(record.dataSerialised);
 
         expect(data.flags.zoneKey).toBeFalse();
       });
@@ -79,7 +79,7 @@ describe('DNSKEY', () => {
       test('Secure Entrypoint should be on if set', () => {
         const record = signer.generateDnskey(0, { secureEntryPoint: true });
 
-        const data = DNSKEY.deserialise(record.data);
+        const data = DnskeyData.deserialise(record.dataSerialised);
 
         expect(data.flags.secureEntryPoint).toBeTrue();
       });
@@ -87,7 +87,7 @@ describe('DNSKEY', () => {
       test('Secure Entrypoint should be off if unset', () => {
         const record = signer.generateDnskey(0, { secureEntryPoint: false });
 
-        const data = DNSKEY.deserialise(record.data);
+        const data = DnskeyData.deserialise(record.dataSerialised);
 
         expect(data.flags.secureEntryPoint).toBeFalse();
       });

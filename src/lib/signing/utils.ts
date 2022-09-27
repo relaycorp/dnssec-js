@@ -1,20 +1,20 @@
 import { KeyObject } from 'node:crypto';
 
-import { DNSSECAlgorithm } from '../DNSSECAlgorithm';
+import { DnssecAlgorithm } from '../DnssecAlgorithm';
 
-type DNSSECAlgorithmMapping = { readonly [key: string]: DNSSECAlgorithm };
+type DNSSECAlgorithmMapping = { readonly [key: string]: DnssecAlgorithm };
 
 const DSA_ALGORITHMS_BY_HASH: DNSSECAlgorithmMapping = {
-  sha1: DNSSECAlgorithm.DSA,
+  sha1: DnssecAlgorithm.DSA,
 };
 const ECDSA_ALGORITHMS_BY_CURVE: DNSSECAlgorithmMapping = {
-  prime256v1: DNSSECAlgorithm.ECDSAP256SHA256,
-  secp384r1: DNSSECAlgorithm.ECDSAP384SHA384,
+  prime256v1: DnssecAlgorithm.ECDSAP256SHA256,
+  secp384r1: DnssecAlgorithm.ECDSAP384SHA384,
 };
 const RSA_ALGORITHMS_BY_HASH: DNSSECAlgorithmMapping = {
-  sha1: DNSSECAlgorithm.RSASHA1,
-  sha256: DNSSECAlgorithm.RSASHA256,
-  sha512: DNSSECAlgorithm.RSASHA512,
+  sha1: DnssecAlgorithm.RSASHA1,
+  sha256: DnssecAlgorithm.RSASHA256,
+  sha512: DnssecAlgorithm.RSASHA512,
 };
 
 const HASH_BY_CURVE: { readonly [curve: string]: string } = {
@@ -22,12 +22,12 @@ const HASH_BY_CURVE: { readonly [curve: string]: string } = {
   secp384r1: 'sha384',
 };
 
-export function getDNSSECAlgoFromKey(publicOrPrivateKey: KeyObject): DNSSECAlgorithm {
+export function getDNSSECAlgoFromKey(publicOrPrivateKey: KeyObject): DnssecAlgorithm {
   const keyType = publicOrPrivateKey.asymmetricKeyType!;
   const asymmetricKeyDetails = publicOrPrivateKey.asymmetricKeyDetails!;
   const hashAlgorithm = asymmetricKeyDetails.hashAlgorithm;
 
-  let algorithm: DNSSECAlgorithm | null = null;
+  let algorithm: DnssecAlgorithm | null = null;
   if (keyType.startsWith('rsa')) {
     algorithm = RSA_ALGORITHMS_BY_HASH[hashAlgorithm!];
   } else if (keyType === 'dsa') {
@@ -36,9 +36,9 @@ export function getDNSSECAlgoFromKey(publicOrPrivateKey: KeyObject): DNSSECAlgor
     const namedCurve = asymmetricKeyDetails.namedCurve;
     algorithm = ECDSA_ALGORITHMS_BY_CURVE[namedCurve!];
   } else if (keyType === 'ed25519') {
-    algorithm = DNSSECAlgorithm.ED25519;
+    algorithm = DnssecAlgorithm.ED25519;
   } else if (keyType === 'ed448') {
-    algorithm = DNSSECAlgorithm.ED448;
+    algorithm = DnssecAlgorithm.ED448;
   }
 
   if (!algorithm) {
