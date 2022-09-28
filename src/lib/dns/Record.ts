@@ -1,11 +1,13 @@
 import { DNSClass } from './DNSClass';
-import { RecordType } from './RecordType';
 import { serialiseName } from './name';
 
+/**
+ * A "raw" DNS record with its data unserialised.
+ */
 export class Record {
   constructor(
     public readonly name: string,
-    public readonly type: RecordType,
+    public readonly type: number,
     public readonly class_: DNSClass,
     public readonly ttl: number,
     public readonly dataSerialised: Buffer,

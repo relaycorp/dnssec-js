@@ -5,7 +5,7 @@ import { Record } from '../dns/Record';
 import { DNSClass } from '../dns/DNSClass';
 import { generateKeyPairAsync, getKeyGenOptions } from './keyGen';
 import { DigestType } from '../DigestType';
-import { RecordType } from '../dns/RecordType';
+import { DnssecRecordType } from '../DnssecRecordType';
 import { RRSet } from '../dns/RRSet';
 import { DnskeyFlags } from '../DnskeyFlags';
 import { DnskeyData } from '../rdata/DnskeyData';
@@ -43,7 +43,7 @@ export class ZoneSigner {
     const algorithm = getDNSSECAlgoFromKey(this.publicKey);
     const finalFlags: DnskeyFlags = { zoneKey: true, secureEntryPoint: false, ...flags };
     const data = new DnskeyData(this.publicKey, protocol, algorithm, finalFlags);
-    return new Record(this.zoneName, RecordType.DNSKEY, DNSClass.IN, ttl, data.serialise());
+    return new Record(this.zoneName, DnssecRecordType.DNSKEY, DNSClass.IN, ttl, data.serialise());
   }
 
   public generateDs(
@@ -56,7 +56,7 @@ export class ZoneSigner {
     const data = new DsData(this.keyTag, algorithm, digestType, digest);
     return new Record(
       `${childLabel}.${this.zoneName}`,
-      RecordType.DS,
+      DnssecRecordType.DS,
       DNSClass.IN,
       ttl,
       data.serialise(),
@@ -76,6 +76,6 @@ export class ZoneSigner {
       this.zoneName,
       this.keyTag,
     );
-    return new Record(rrset.name, RecordType.RRSIG, DNSClass.IN, rrset.ttl, data.serialise());
+    return new Record(rrset.name, DnssecRecordType.RRSIG, DNSClass.IN, rrset.ttl, data.serialise());
   }
 }

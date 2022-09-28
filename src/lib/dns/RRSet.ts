@@ -1,7 +1,6 @@
 import { Record } from './Record';
 import { RRSetError } from '../errors';
 import { DNSClass } from './DNSClass';
-import { RecordType } from './RecordType';
 
 /**
  * A set of Resource Records (aka `RRset`).
@@ -9,7 +8,7 @@ import { RecordType } from './RecordType';
 export class RRSet {
   public readonly name: string;
   public readonly class_: DNSClass;
-  public readonly type: RecordType;
+  public readonly type: number;
   public readonly ttl: number;
 
   constructor(public readonly records: readonly Record[]) {

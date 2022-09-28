@@ -1,5 +1,4 @@
-export enum RecordType {
-  TXT = 16,
+export enum DnssecRecordType {
   DS = 43,
   RRSIG = 46,
   DNSKEY = 48,
