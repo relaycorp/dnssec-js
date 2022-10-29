@@ -1,6 +1,14 @@
 import { DNSClass } from './DNSClass';
 import { serialiseName } from './name';
 
+interface RecordFields {
+  readonly name: string;
+  readonly type: number;
+  readonly class: DNSClass;
+  readonly ttl: number;
+  readonly dataSerialised: Buffer;
+}
+
 /**
  * A "raw" DNS record with its data unserialised.
  */
@@ -36,5 +44,14 @@ export class Record {
       dataLengthSerialised,
       this.dataSerialised,
     ]);
+  }
+
+  public shallowCopy(partialRecord: Partial<RecordFields>): Record {
+    const name = partialRecord.name ?? this.name;
+    const type = partialRecord.type ?? this.type;
+    const class_ = partialRecord.class ?? this.class_;
+    const ttl = partialRecord.ttl ?? this.ttl;
+    const dataSerialised = partialRecord.dataSerialised ?? this.dataSerialised;
+    return new Record(name, type, class_, ttl, dataSerialised);
   }
 }

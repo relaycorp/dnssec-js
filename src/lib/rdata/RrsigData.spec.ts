@@ -42,76 +42,76 @@ describe('RrsigData', () => {
     });
 
     test('Record type should be extracted', () => {
-      const serialisation = signer.generateRrsig(rrset, signatureExpiry);
+      const rrsig = signer.generateRrsig(rrset, signatureExpiry);
 
-      const rrsig = RrsigData.deserialise(serialisation.dataSerialised);
+      const rrsigData = RrsigData.deserialise(rrsig.record.dataSerialised);
 
-      expect(rrsig.type).toEqual(RECORD.type);
+      expect(rrsigData.type).toEqual(RECORD.type);
     });
 
     test('Algorithm should be extracted', () => {
-      const serialisation = signer.generateRrsig(rrset, signatureExpiry);
+      const rrsig = signer.generateRrsig(rrset, signatureExpiry);
 
-      const rrsig = RrsigData.deserialise(serialisation.dataSerialised);
+      const rrsigData = RrsigData.deserialise(rrsig.record.dataSerialised);
 
-      expect(rrsig.algorithm).toEqual(algorithm);
+      expect(rrsigData.algorithm).toEqual(algorithm);
     });
 
     test('Labels should be extracted', () => {
-      const serialisation = signer.generateRrsig(rrset, signatureExpiry);
+      const rrsig = signer.generateRrsig(rrset, signatureExpiry);
 
-      const rrsig = RrsigData.deserialise(serialisation.dataSerialised);
+      const rrsigData = RrsigData.deserialise(rrsig.record.dataSerialised);
 
       const expectedLabelCount = rrset.name.replace(/\.$/, '').split('.').length;
-      expect(rrsig.labels).toEqual(expectedLabelCount);
+      expect(rrsigData.labels).toEqual(expectedLabelCount);
     });
 
     test('TTL should be extracted', () => {
-      const serialisation = signer.generateRrsig(rrset, signatureExpiry);
+      const rrsig = signer.generateRrsig(rrset, signatureExpiry);
 
-      const rrsig = RrsigData.deserialise(serialisation.dataSerialised);
+      const rrsigData = RrsigData.deserialise(rrsig.record.dataSerialised);
 
-      expect(rrsig.ttl).toEqual(rrset.ttl);
+      expect(rrsigData.ttl).toEqual(rrset.ttl);
     });
 
     test('Signature expiry date should be extracted', () => {
-      const serialisation = signer.generateRrsig(rrset, signatureExpiry);
+      const rrsig = signer.generateRrsig(rrset, signatureExpiry);
 
-      const rrsig = RrsigData.deserialise(serialisation.dataSerialised);
+      const rrsigData = RrsigData.deserialise(rrsig.record.dataSerialised);
 
-      expect(rrsig.signatureExpiry).toEqual(signatureExpiry);
+      expect(rrsigData.signatureExpiry).toEqual(signatureExpiry);
     });
 
     test('Signature inception date should be extracted', () => {
-      const serialisation = signer.generateRrsig(rrset, signatureExpiry, signatureInception);
+      const rrsig = signer.generateRrsig(rrset, signatureExpiry, signatureInception);
 
-      const rrsig = RrsigData.deserialise(serialisation.dataSerialised);
+      const rrsigData = RrsigData.deserialise(rrsig.record.dataSerialised);
 
-      expect(rrsig.signatureInception).toEqual(signatureInception);
+      expect(rrsigData.signatureInception).toEqual(signatureInception);
     });
 
     test('Key tag should be extracted', () => {
-      const serialisation = signer.generateRrsig(rrset, signatureExpiry, signatureInception);
+      const rrsig = signer.generateRrsig(rrset, signatureExpiry, signatureInception);
 
-      const rrsig = RrsigData.deserialise(serialisation.dataSerialised);
+      const rrsigData = RrsigData.deserialise(rrsig.record.dataSerialised);
 
-      expect(rrsig.keyTag).toEqual(signer.keyTag);
+      expect(rrsigData.keyTag).toEqual(signer.keyTag);
     });
 
     test('Signer name should be extracted', () => {
-      const serialisation = signer.generateRrsig(rrset, signatureExpiry, signatureInception);
+      const rrsig = signer.generateRrsig(rrset, signatureExpiry, signatureInception);
 
-      const rrsig = RrsigData.deserialise(serialisation.dataSerialised);
+      const rrsigData = RrsigData.deserialise(rrsig.record.dataSerialised);
 
-      expect(rrsig.signerName).toEqual(signer.zoneName);
+      expect(rrsigData.signerName).toEqual(signer.zoneName);
     });
 
     test('Signature should be extracted', () => {
-      const serialisation = signer.generateRrsig(rrset, signatureExpiry, signatureInception);
+      const rrsig = signer.generateRrsig(rrset, signatureExpiry, signatureInception);
 
-      const rrsig = RrsigData.deserialise(serialisation.dataSerialised);
+      const rrsigData = RrsigData.deserialise(rrsig.record.dataSerialised);
 
-      expect(rrsig.signature.byteLength).toBeGreaterThan(0);
+      expect(rrsigData.signature.byteLength).toBeGreaterThan(0);
     });
   });
 });

@@ -38,4 +38,71 @@ describe('Record', () => {
       expect(RECORD_DATA_TXT_DATA.equals((record as any).data[0])).toBeTrue();
     });
   });
+
+  describe('shallowCopy', () => {
+    test('Nothing should be changed if nothing is overridden', () => {
+      const newRecord = RECORD.shallowCopy({});
+
+      expect(newRecord.name).toEqual(RECORD.name);
+      expect(newRecord.type).toEqual(RECORD.type);
+      expect(newRecord.class_).toEqual(RECORD.class_);
+      expect(newRecord.ttl).toEqual(RECORD.ttl);
+      expect(newRecord.dataSerialised).toBe(RECORD.dataSerialised);
+    });
+
+    test('New name should be used if set', () => {
+      const newName = `not-${RECORD.name}`;
+      const newRecord = RECORD.shallowCopy({ name: newName });
+
+      expect(newRecord.name).toEqual(newName);
+      expect(newRecord.type).toEqual(RECORD.type);
+      expect(newRecord.class_).toEqual(RECORD.class_);
+      expect(newRecord.ttl).toEqual(RECORD.ttl);
+      expect(newRecord.dataSerialised).toBe(RECORD.dataSerialised);
+    });
+
+    test('New type should be used if set', () => {
+      const newType = RECORD.type + 1;
+      const newRecord = RECORD.shallowCopy({ type: newType });
+
+      expect(newRecord.name).toEqual(RECORD.name);
+      expect(newRecord.type).toEqual(newType);
+      expect(newRecord.class_).toEqual(RECORD.class_);
+      expect(newRecord.ttl).toEqual(RECORD.ttl);
+      expect(newRecord.dataSerialised).toBe(RECORD.dataSerialised);
+    });
+
+    test('New class should be used if set', () => {
+      const newClass: any = 'foobar';
+      const newRecord = RECORD.shallowCopy({ class: newClass });
+
+      expect(newRecord.name).toEqual(RECORD.name);
+      expect(newRecord.type).toEqual(RECORD.type);
+      expect(newRecord.class_).toEqual(newClass);
+      expect(newRecord.ttl).toEqual(RECORD.ttl);
+      expect(newRecord.dataSerialised).toBe(RECORD.dataSerialised);
+    });
+
+    test('New TTL should be used if set', () => {
+      const newTtl = RECORD.ttl + 1;
+      const newRecord = RECORD.shallowCopy({ ttl: newTtl });
+
+      expect(newRecord.name).toEqual(RECORD.name);
+      expect(newRecord.type).toEqual(RECORD.type);
+      expect(newRecord.class_).toEqual(RECORD.class_);
+      expect(newRecord.ttl).toEqual(newTtl);
+      expect(newRecord.dataSerialised).toBe(RECORD.dataSerialised);
+    });
+
+    test('New data should be used if set', () => {
+      const newData = Buffer.alloc(8);
+      const newRecord = RECORD.shallowCopy({ dataSerialised: newData });
+
+      expect(newRecord.name).toEqual(RECORD.name);
+      expect(newRecord.type).toEqual(RECORD.type);
+      expect(newRecord.class_).toEqual(RECORD.class_);
+      expect(newRecord.ttl).toEqual(RECORD.ttl);
+      expect(newRecord.dataSerialised).toBe(newData);
+    });
+  });
 });

@@ -1,4 +1,5 @@
 import { KeyObject } from 'node:crypto';
+import { setMilliseconds } from 'date-fns';
 
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { Record } from '../dns/Record';
@@ -13,6 +14,7 @@ import { getDNSSECAlgoFromKey } from './utils';
 import { DsData } from '../rdata/DsData';
 import { hashPublicKey } from '../utils/crypto';
 import { RrsigData } from '../rdata/RrsigData';
+import { RrsigRecord } from '../dnssecRecords';
 
 const MAX_KEY_TAG = 2 ** 16 - 1; // 2 octets (16 bits) per RFC4034 (Section 5.1)
 
@@ -28,7 +30,7 @@ export class ZoneSigner {
     return new ZoneSigner(keyTag, keyPair.privateKey, keyPair.publicKey, zoneName);
   }
 
-  constructor(
+  protected constructor(
     public readonly keyTag: number,
     protected readonly privateKey: KeyObject,
     public readonly publicKey: KeyObject,
@@ -67,15 +69,22 @@ export class ZoneSigner {
     rrset: RRSet,
     signatureExpiry: Date,
     signatureInception: Date = new Date(),
-  ): Record {
+  ): RrsigRecord {
     const data = RrsigData.generate(
       rrset,
-      signatureExpiry,
-      signatureInception,
+      setMilliseconds(signatureExpiry, 0),
+      setMilliseconds(signatureInception, 0),
       this.privateKey,
       this.zoneName,
       this.keyTag,
     );
-    return new Record(rrset.name, DnssecRecordType.RRSIG, DNSClass.IN, rrset.ttl, data.serialise());
+    const record = new Record(
+      rrset.name,
+      DnssecRecordType.RRSIG,
+      DNSClass.IN,
+      rrset.ttl,
+      data.serialise(),
+    );
+    return { record, data };
   }
 }

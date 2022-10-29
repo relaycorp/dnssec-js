@@ -1,5 +1,5 @@
 import { dnskey as DNSKEY, ds as DS, rrsig as RRSIG } from '@leichtgewicht/dns-packet';
-import { addHours, getUnixTime } from 'date-fns';
+import { addHours, getUnixTime, setMilliseconds } from 'date-fns';
 
 import { ZoneSigner } from './ZoneSigner';
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
@@ -50,10 +50,10 @@ describe('ZoneSigner', () => {
       new Record(recordName, RECORD_TYPE_ID, RECORD_CLASS, RECORD_TTL, RECORD_DATA),
     ]);
 
-    const signatureExpiry = addHours(new Date(), 3);
-    const signatureInception = new Date();
+    const signatureExpiry = setMilliseconds(addHours(new Date(), 3), 5);
+    const signatureInception = setMilliseconds(new Date(), 5);
     const rrsig = signer.generateRrsig(rrset, signatureExpiry, signatureInception);
-    const rdata = lengthPrefixRdata(rrsig.dataSerialised);
+    const rdata = lengthPrefixRdata(rrsig.record.dataSerialised);
 
     const parsed = RRSIG.decode(rdata);
 
@@ -61,8 +61,8 @@ describe('ZoneSigner', () => {
     expect(parsed.algorithm).toEqual(dnssecAlgorithm);
     expect(parsed.labels).toEqual(1);
     expect(parsed.originalTTL).toEqual(rrset.ttl);
-    expect(parsed.expiration).toEqual(getUnixTime(signatureExpiry));
-    expect(parsed.inception).toEqual(getUnixTime(signatureInception));
+    expect(parsed.expiration).toEqual(getUnixTime(setMilliseconds(signatureExpiry, 0)));
+    expect(parsed.inception).toEqual(getUnixTime(setMilliseconds(signatureInception, 0)));
     expect(parsed.keyTag).toEqual(signer.keyTag);
     expect(parsed.signersName).toEqual(signer.zoneName);
   });
@@ -77,7 +77,7 @@ describe('ZoneSigner', () => {
     ]);
 
     const rrsig = signer.generateRrsig(rrset, addHours(new Date(), 3));
-    const rdata = lengthPrefixRdata(rrsig.dataSerialised);
+    const rdata = lengthPrefixRdata(rrsig.record.dataSerialised);
 
     const parsed = RRSIG.decode(rdata);
 
