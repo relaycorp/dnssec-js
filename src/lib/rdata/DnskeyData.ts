@@ -6,6 +6,8 @@ import { DnskeyFlags } from '../DnskeyFlags';
 import { InvalidRdataError } from '../errors';
 import { DnssecRecordData } from './DnssecRecordData';
 import { derSerialisePublicKey } from '../utils/crypto';
+import { SecurityStatus } from '../verification/SecurityStatus';
+import { RrsigData } from './RrsigData';
 
 const PARSER = new Parser()
   .endianness('big')
@@ -55,6 +57,22 @@ export class DnskeyData implements DnssecRecordData {
 
     publicKeyEncoded.copy(data, 4);
     return data;
+  }
+
+  public verifyRrsig(rrsigData: RrsigData, referenceDate: Date): SecurityStatus {
+    if (this.algorithm !== rrsigData.algorithm) {
+      return SecurityStatus.BOGUS;
+    }
+
+    if (rrsigData.signatureExpiry < referenceDate) {
+      return SecurityStatus.BOGUS;
+    }
+
+    if (referenceDate < rrsigData.signatureInception) {
+      return SecurityStatus.BOGUS;
+    }
+
+    return SecurityStatus.SECURE;
   }
 }
 

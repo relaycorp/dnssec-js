@@ -14,7 +14,7 @@ import { getDNSSECAlgoFromKey } from './utils';
 import { DsData } from '../rdata/DsData';
 import { hashPublicKey } from '../utils/crypto';
 import { RrsigData } from '../rdata/RrsigData';
-import { RrsigRecord } from '../dnssecRecords';
+import { DnskeyRecord, RrsigRecord } from '../dnssecRecords';
 
 const MAX_KEY_TAG = 2 ** 16 - 1; // 2 octets (16 bits) per RFC4034 (Section 5.1)
 
@@ -30,9 +30,9 @@ export class ZoneSigner {
     return new ZoneSigner(keyTag, keyPair.privateKey, keyPair.publicKey, zoneName);
   }
 
-  protected constructor(
+  constructor(
     public readonly keyTag: number,
-    protected readonly privateKey: KeyObject,
+    public readonly privateKey: KeyObject,
     public readonly publicKey: KeyObject,
     public readonly zoneName: string,
   ) {}
@@ -41,11 +41,18 @@ export class ZoneSigner {
     ttl: number,
     flags: Partial<DnskeyFlags> = {},
     protocol: number = 3,
-  ): Record {
+  ): DnskeyRecord {
     const algorithm = getDNSSECAlgoFromKey(this.publicKey);
     const finalFlags: DnskeyFlags = { zoneKey: true, secureEntryPoint: false, ...flags };
     const data = new DnskeyData(this.publicKey, protocol, algorithm, finalFlags);
-    return new Record(this.zoneName, DnssecRecordType.DNSKEY, DNSClass.IN, ttl, data.serialise());
+    const record = new Record(
+      this.zoneName,
+      DnssecRecordType.DNSKEY,
+      DNSClass.IN,
+      ttl,
+      data.serialise(),
+    );
+    return { data, record };
   }
 
   public generateDs(

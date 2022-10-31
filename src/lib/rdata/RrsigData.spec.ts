@@ -1,4 +1,4 @@
-import { addMinutes, addSeconds, setMilliseconds, subSeconds } from 'date-fns';
+import { addMinutes, setMilliseconds } from 'date-fns';
 
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { ZoneSigner } from '../signing/ZoneSigner';
@@ -119,20 +119,19 @@ describe('RrsigData', () => {
 
   describe('verifyRrset', () => {
     const rrset = new RRSet([RECORD]);
-    const now = setMilliseconds(new Date(), 0);
 
     describe('Signer name', () => {
       test('Signer name matching RRset parent zone should be SECURE', async () => {
         const { data } = tldSigner.generateRrsig(rrset, signatureExpiry, signatureInception);
 
-        expect(data.verifyRrset(rrset, now)).toEqual(SecurityStatus.SECURE);
+        expect(data.verifyRrset(rrset)).toEqual(SecurityStatus.SECURE);
       });
 
       test('Signer name mismatching RRset parent zone should be BOGUS', async () => {
         const differentParent = await ZoneSigner.generate(algorithm, `not-${RECORD_TLD}`);
         const { data } = differentParent.generateRrsig(rrset, signatureExpiry, signatureInception);
 
-        expect(data.verifyRrset(rrset, now)).toEqual(SecurityStatus.BOGUS);
+        expect(data.verifyRrset(rrset)).toEqual(SecurityStatus.BOGUS);
       });
 
       test('TLD RRset should be supported', async () => {
@@ -140,7 +139,7 @@ describe('RrsigData', () => {
         const tldRrset = new RRSet([RECORD.shallowCopy({ name: RECORD_TLD })]);
         const { data } = rootSigner.generateRrsig(tldRrset, signatureExpiry, signatureInception);
 
-        expect(data.verifyRrset(tldRrset, now)).toEqual(SecurityStatus.SECURE);
+        expect(data.verifyRrset(tldRrset)).toEqual(SecurityStatus.SECURE);
       });
     });
 
@@ -148,14 +147,14 @@ describe('RrsigData', () => {
       const invalidRrset = new RRSet([RECORD.shallowCopy({ type: RECORD.type + 1 })]);
       const { data } = tldSigner.generateRrsig(invalidRrset, signatureExpiry, signatureInception);
 
-      expect(data.verifyRrset(rrset, now)).toEqual(SecurityStatus.BOGUS);
+      expect(data.verifyRrset(rrset)).toEqual(SecurityStatus.BOGUS);
     });
 
     test('Original TTL should match RRset TTL', () => {
       const invalidRrset = new RRSet([RECORD.shallowCopy({ ttl: RECORD.ttl + 1 })]);
       const { data } = tldSigner.generateRrsig(invalidRrset, signatureExpiry, signatureInception);
 
-      expect(data.verifyRrset(rrset, now)).toEqual(SecurityStatus.BOGUS);
+      expect(data.verifyRrset(rrset)).toEqual(SecurityStatus.BOGUS);
     });
 
     describe('Label count', () => {
@@ -166,7 +165,7 @@ describe('RrsigData', () => {
         const signer = await ZoneSigner.generate(algorithm, RECORD.name);
         const { data } = signer.generateRrsig(differentRrset, signatureExpiry, signatureInception);
 
-        expect(data.verifyRrset(differentRrset, now)).toEqual(SecurityStatus.SECURE);
+        expect(data.verifyRrset(differentRrset)).toEqual(SecurityStatus.SECURE);
       });
 
       test('Count equal to actual number should be SECURE', () => {
@@ -177,7 +176,7 @@ describe('RrsigData', () => {
           signatureInception,
         );
 
-        expect(data.verifyRrset(differentRrset, now)).toEqual(SecurityStatus.SECURE);
+        expect(data.verifyRrset(differentRrset)).toEqual(SecurityStatus.SECURE);
       });
 
       test('Count less than actual number should be BOGUS', async () => {
@@ -199,52 +198,14 @@ describe('RrsigData', () => {
           data.signature,
         );
 
-        expect(mismatchingData.verifyRrset(differentRrset, now)).toEqual(SecurityStatus.BOGUS);
-      });
-    });
-
-    describe('Signature validity period', () => {
-      test('Expiry date equal to current time should be SECURE', () => {
-        const { data } = tldSigner.generateRrsig(rrset, now, signatureInception);
-
-        expect(data.verifyRrset(rrset, now)).toEqual(SecurityStatus.SECURE);
-      });
-
-      test('Expiry date later than current time should be SECURE', () => {
-        const { data } = tldSigner.generateRrsig(rrset, addSeconds(now, 1), signatureInception);
-
-        expect(data.verifyRrset(rrset, now)).toEqual(SecurityStatus.SECURE);
-      });
-
-      test('Expiry date earlier than current time should be BOGUS', () => {
-        const { data } = tldSigner.generateRrsig(rrset, subSeconds(now, 1), signatureInception);
-
-        expect(data.verifyRrset(rrset, now)).toEqual(SecurityStatus.BOGUS);
-      });
-
-      test('Inception date equal to current time should be SECURE', () => {
-        const { data } = tldSigner.generateRrsig(rrset, signatureExpiry, now);
-
-        expect(data.verifyRrset(rrset, now)).toEqual(SecurityStatus.SECURE);
-      });
-
-      test('Inception date earlier than current time should be SECURE', () => {
-        const { data } = tldSigner.generateRrsig(rrset, signatureExpiry, subSeconds(now, 1));
-
-        expect(data.verifyRrset(rrset, now)).toEqual(SecurityStatus.SECURE);
-      });
-
-      test('Inception date later than current time should be BOGUS', () => {
-        const { data } = tldSigner.generateRrsig(rrset, signatureExpiry, addSeconds(now, 1));
-
-        expect(data.verifyRrset(rrset, now)).toEqual(SecurityStatus.BOGUS);
+        expect(mismatchingData.verifyRrset(differentRrset)).toEqual(SecurityStatus.BOGUS);
       });
     });
 
     test('Valid RRset should be SECURE', () => {
       const { data } = tldSigner.generateRrsig(rrset, signatureExpiry, signatureInception);
 
-      expect(data.verifyRrset(rrset, now)).toEqual(SecurityStatus.SECURE);
+      expect(data.verifyRrset(rrset)).toEqual(SecurityStatus.SECURE);
     });
   });
 });

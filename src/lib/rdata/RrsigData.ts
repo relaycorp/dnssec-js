@@ -111,7 +111,7 @@ export class RrsigData implements DnssecRecordData {
     return serialisation;
   }
 
-  public verifyRrset(rrset: RRSet, referenceDate: Date): SecurityStatus {
+  public verifyRrset(rrset: RRSet): SecurityStatus {
     const parentZoneName = getParentZoneName(rrset.name);
     if (parentZoneName !== this.signerName) {
       return SecurityStatus.BOGUS;
@@ -126,14 +126,6 @@ export class RrsigData implements DnssecRecordData {
     }
 
     if (this.labels < countLabels(rrset.name)) {
-      return SecurityStatus.BOGUS;
-    }
-
-    if (this.signatureExpiry < referenceDate) {
-      return SecurityStatus.BOGUS;
-    }
-
-    if (referenceDate < this.signatureInception) {
       return SecurityStatus.BOGUS;
     }
 

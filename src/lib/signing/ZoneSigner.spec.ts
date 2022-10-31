@@ -18,7 +18,7 @@ describe('ZoneSigner', () => {
   test('generateDnskey', async () => {
     const signer = await ZoneSigner.generate(DnssecAlgorithm.RSASHA256, '.');
 
-    const dnskey = signer.generateDnskey(10, { secureEntryPoint: true });
+    const dnskey = signer.generateDnskey(10, { secureEntryPoint: true }).record;
 
     expect(dnskey.name).toEqual(signer.zoneName);
     const dnskeyParsed = DNSKEY.decode(lengthPrefixRdata(dnskey.dataSerialised));
