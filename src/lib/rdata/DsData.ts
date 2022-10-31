@@ -2,10 +2,11 @@ import { Parser } from 'binary-parser';
 
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { DigestType } from '../DigestType';
-import { DnssecValidationError, InvalidRdataError } from '../errors';
+import { InvalidRdataError } from '../errors';
 import { DnskeyData } from './DnskeyData';
 import { hashPublicKey } from '../utils/crypto';
 import { DnssecRecordData } from './DnssecRecordData';
+import { SecurityStatus } from '../verification/SecurityStatus';
 
 const PARSER = new Parser()
   .endianness('big')
@@ -58,23 +59,25 @@ export class DsData implements DnssecRecordData {
    * Verify that the `key` corresponds to the current DS data.
    *
    * @param key
-   * @throws {DnssecValidationError}
    */
-  public verifyDnskey(key: DnskeyData): void {
+  public verifyDnskey(key: DnskeyData): SecurityStatus {
     if (!key.flags.zoneKey) {
-      throw new DnssecValidationError('Zone Key flag is off');
+      return SecurityStatus.BOGUS;
     }
+
     if (key.protocol !== 3) {
-      throw new DnssecValidationError(`Protocol must be 3 (got ${key.protocol})`);
+      return SecurityStatus.BOGUS;
     }
+
     if (key.algorithm !== this.algorithm) {
-      throw new DnssecValidationError(
-        `DS uses algorithm ${this.algorithm} but DNSKEY uses algorithm ${key.algorithm}`,
-      );
+      return SecurityStatus.BOGUS;
     }
+
     const digest = hashPublicKey(key.publicKey, this.digestType);
     if (!digest.equals(this.digest)) {
-      throw new DnssecValidationError('DNSKEY key digest does not match that of DS data');
+      return SecurityStatus.BOGUS;
     }
+
+    return SecurityStatus.SECURE;
   }
 }

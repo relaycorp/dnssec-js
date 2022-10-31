@@ -1,11 +1,12 @@
 import { DsData } from './DsData';
-import { DnssecValidationError, InvalidRdataError } from '../errors';
+import { InvalidRdataError } from '../errors';
 import { ZoneSigner } from '../signing/ZoneSigner';
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { DigestType } from '../DigestType';
 import { DnskeyData } from './DnskeyData';
 import { DnskeyFlags } from '../DnskeyFlags';
 import { hashPublicKey } from '../utils/crypto';
+import { SecurityStatus } from '../verification/SecurityStatus';
 
 describe('DsData', () => {
   const algorithm = DnssecAlgorithm.RSASHA256;
@@ -84,29 +85,20 @@ describe('DsData', () => {
         zoneKey: false,
       });
 
-      expect(() => ds.verifyDnskey(dnskey)).toThrowWithMessage(
-        DnssecValidationError,
-        'Zone Key flag is off',
-      );
+      expect(ds.verifyDnskey(dnskey)).toEqual(SecurityStatus.BOGUS);
     });
 
     test('Serialisation should be refused if protocol is not 3', () => {
       const protocol = 42;
       const dnskey = new DnskeyData(signer.publicKey, protocol, algorithm, dnskeyFlags);
 
-      expect(() => ds.verifyDnskey(dnskey)).toThrowWithMessage(
-        DnssecValidationError,
-        `Protocol must be 3 (got ${protocol})`,
-      );
+      expect(ds.verifyDnskey(dnskey)).toEqual(SecurityStatus.BOGUS);
     });
 
     test('Key should be refused if algorithm does not match', () => {
       const dnskey = new DnskeyData(signer.publicKey, 3, algorithm + 1, dnskeyFlags);
 
-      expect(() => ds.verifyDnskey(dnskey)).toThrowWithMessage(
-        DnssecValidationError,
-        `DS uses algorithm ${algorithm} but DNSKEY uses algorithm ${dnskey.algorithm}`,
-      );
+      expect(ds.verifyDnskey(dnskey)).toEqual(SecurityStatus.BOGUS);
     });
 
     test('Key should be refused if digest does not match', () => {
@@ -118,16 +110,13 @@ describe('DsData', () => {
       );
       const dnskey = new DnskeyData(signer.publicKey, 3, algorithm, dnskeyFlags);
 
-      expect(() => anotherDs.verifyDnskey(dnskey)).toThrowWithMessage(
-        DnssecValidationError,
-        'DNSKEY key digest does not match that of DS data',
-      );
+      expect(anotherDs.verifyDnskey(dnskey)).toEqual(SecurityStatus.BOGUS);
     });
 
     test('Key should be accepted if valid', () => {
       const dnskey = new DnskeyData(signer.publicKey, 3, algorithm, dnskeyFlags);
 
-      ds.verifyDnskey(dnskey);
+      expect(ds.verifyDnskey(dnskey)).toEqual(SecurityStatus.SECURE);
     });
   });
 });
