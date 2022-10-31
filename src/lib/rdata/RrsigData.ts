@@ -114,26 +114,32 @@ export class RrsigData implements DnssecRecordData {
   public verifyRrset(rrset: RRSet, referenceDate: Date): SecurityStatus {
     const parentZoneName = getParentZoneName(rrset.name);
     if (parentZoneName !== this.signerName) {
+      console.log('Invalid signer name'); // TODO: DELETE
       return SecurityStatus.BOGUS;
     }
 
     if (rrset.type !== this.type) {
+      console.log('Invalid type'); // TODO: DELETE
       return SecurityStatus.BOGUS;
     }
 
     if (rrset.ttl !== this.ttl) {
+      console.log('Invalid ttl'); // TODO: DELETE
       return SecurityStatus.BOGUS;
     }
 
     if (this.labels < countLabels(rrset.name)) {
+      console.log('Invalid labels'); // TODO: DELETE
       return SecurityStatus.BOGUS;
     }
 
     if (this.signatureExpiry < referenceDate) {
+      console.log('Invalid expiry'); // TODO: DELETE
       return SecurityStatus.BOGUS;
     }
 
     if (referenceDate < this.signatureInception) {
+      console.log('Invalid inception'); // TODO: DELETE
       return SecurityStatus.BOGUS;
     }
 
