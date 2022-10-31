@@ -123,14 +123,14 @@ describe('RrsigData', () => {
 
     describe('Signer name', () => {
       test('Signer name matching RRset parent zone should be SECURE', async () => {
-        const { data } = tldSigner.generateRrsig(rrset, signatureExpiry);
+        const { data } = tldSigner.generateRrsig(rrset, signatureExpiry, signatureInception);
 
         expect(data.verifyRrset(rrset, now)).toEqual(SecurityStatus.SECURE);
       });
 
       test('Signer name mismatching RRset parent zone should be BOGUS', async () => {
         const differentParent = await ZoneSigner.generate(algorithm, `not-${RECORD_TLD}`);
-        const { data } = differentParent.generateRrsig(rrset, signatureExpiry);
+        const { data } = differentParent.generateRrsig(rrset, signatureExpiry, signatureInception);
 
         expect(data.verifyRrset(rrset, now)).toEqual(SecurityStatus.BOGUS);
       });
@@ -138,7 +138,7 @@ describe('RrsigData', () => {
       test('TLD RRset should be supported', async () => {
         const rootSigner = await ZoneSigner.generate(algorithm, '.');
         const tldRrset = new RRSet([RECORD.shallowCopy({ name: RECORD_TLD })]);
-        const { data } = rootSigner.generateRrsig(tldRrset, signatureExpiry);
+        const { data } = rootSigner.generateRrsig(tldRrset, signatureExpiry, signatureInception);
 
         expect(data.verifyRrset(tldRrset, now)).toEqual(SecurityStatus.SECURE);
       });
@@ -146,14 +146,14 @@ describe('RrsigData', () => {
 
     test('Covered type should match RRset type', () => {
       const invalidRrset = new RRSet([RECORD.shallowCopy({ type: RECORD.type + 1 })]);
-      const { data } = tldSigner.generateRrsig(invalidRrset, signatureExpiry);
+      const { data } = tldSigner.generateRrsig(invalidRrset, signatureExpiry, signatureInception);
 
       expect(data.verifyRrset(rrset, now)).toEqual(SecurityStatus.BOGUS);
     });
 
     test('Original TTL should match RRset TTL', () => {
       const invalidRrset = new RRSet([RECORD.shallowCopy({ ttl: RECORD.ttl + 1 })]);
-      const { data } = tldSigner.generateRrsig(invalidRrset, signatureExpiry);
+      const { data } = tldSigner.generateRrsig(invalidRrset, signatureExpiry, signatureInception);
 
       expect(data.verifyRrset(rrset, now)).toEqual(SecurityStatus.BOGUS);
     });
@@ -164,21 +164,29 @@ describe('RrsigData', () => {
           RECORD.shallowCopy({ name: `subdomain.${RECORD.name}` }),
         ]);
         const signer = await ZoneSigner.generate(algorithm, RECORD.name);
-        const { data } = signer.generateRrsig(differentRrset, signatureExpiry);
+        const { data } = signer.generateRrsig(differentRrset, signatureExpiry, signatureInception);
 
         expect(data.verifyRrset(differentRrset, now)).toEqual(SecurityStatus.SECURE);
       });
 
       test('Count equal to actual number should be SECURE', () => {
         const differentRrset = new RRSet([RECORD]);
-        const { data } = tldSigner.generateRrsig(differentRrset, signatureExpiry);
+        const { data } = tldSigner.generateRrsig(
+          differentRrset,
+          signatureExpiry,
+          signatureInception,
+        );
 
         expect(data.verifyRrset(differentRrset, now)).toEqual(SecurityStatus.SECURE);
       });
 
       test('Count less than actual number should be BOGUS', async () => {
         const differentRrset = new RRSet([RECORD]);
-        const { data } = tldSigner.generateRrsig(differentRrset, signatureExpiry);
+        const { data } = tldSigner.generateRrsig(
+          differentRrset,
+          signatureExpiry,
+          signatureInception,
+        );
         const mismatchingData = new RrsigData(
           data.type,
           data.algorithm,
@@ -197,19 +205,19 @@ describe('RrsigData', () => {
 
     describe('Signature validity period', () => {
       test('Expiry date equal to current time should be SECURE', () => {
-        const { data } = tldSigner.generateRrsig(rrset, now);
+        const { data } = tldSigner.generateRrsig(rrset, now, signatureInception);
 
         expect(data.verifyRrset(rrset, now)).toEqual(SecurityStatus.SECURE);
       });
 
       test('Expiry date later than current time should be SECURE', () => {
-        const { data } = tldSigner.generateRrsig(rrset, addSeconds(now, 1));
+        const { data } = tldSigner.generateRrsig(rrset, addSeconds(now, 1), signatureInception);
 
         expect(data.verifyRrset(rrset, now)).toEqual(SecurityStatus.SECURE);
       });
 
       test('Expiry date earlier than current time should be BOGUS', () => {
-        const { data } = tldSigner.generateRrsig(rrset, subSeconds(now, 1));
+        const { data } = tldSigner.generateRrsig(rrset, subSeconds(now, 1), signatureInception);
 
         expect(data.verifyRrset(rrset, now)).toEqual(SecurityStatus.BOGUS);
       });
@@ -234,7 +242,7 @@ describe('RrsigData', () => {
     });
 
     test('Valid RRset should be SECURE', () => {
-      const { data } = tldSigner.generateRrsig(rrset, signatureExpiry);
+      const { data } = tldSigner.generateRrsig(rrset, signatureExpiry, signatureInception);
 
       expect(data.verifyRrset(rrset, now)).toEqual(SecurityStatus.SECURE);
     });
