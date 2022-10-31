@@ -10,7 +10,8 @@ import { RRSet } from '../dns/RRSet';
 
 describe('DnskeyData', () => {
   const algorithm = DnssecAlgorithm.RSASHA256;
-  const signatureInception = setMilliseconds(new Date(), 0);
+  const now = setMilliseconds(new Date(), 0);
+  const signatureInception = subSeconds(now, 1);
   const signatureExpiry = addMinutes(signatureInception, 10);
 
   let tldSigner: ZoneSigner;
@@ -103,7 +104,6 @@ describe('DnskeyData', () => {
 
   describe('verifyRrsig', () => {
     const rrset = new RRSet([RECORD]);
-    const now = setMilliseconds(new Date(), 0);
 
     let dnskeyData: DnskeyData;
     beforeAll(() => {
@@ -180,7 +180,11 @@ describe('DnskeyData', () => {
     });
 
     test('Valid RRSIg should be SECURE', () => {
-      const { data: rrsigData } = tldSigner.generateRrsig(rrset, signatureExpiry);
+      const { data: rrsigData } = tldSigner.generateRrsig(
+        rrset,
+        signatureExpiry,
+        signatureInception,
+      );
 
       expect(dnskeyData.verifyRrsig(rrsigData, now)).toEqual(SecurityStatus.SECURE);
     });
