@@ -8,6 +8,7 @@ import { InvalidRdataError } from '../errors';
 import { DnssecRecordData } from './DnssecRecordData';
 import { RRSet } from '../dns/RRSet';
 import { getDNSSECAlgoFromKey, getNodejsHashAlgoFromKey } from '../signing/utils';
+import { SecurityStatus } from '../verification/SecurityStatus';
 
 const PARSER = new Parser()
   .endianness('big')
@@ -109,6 +110,35 @@ export class RrsigData implements DnssecRecordData {
 
     return serialisation;
   }
+
+  public verifyRrset(rrset: RRSet, referenceDate: Date): SecurityStatus {
+    const parentZoneName = getParentZoneName(rrset.name);
+    if (parentZoneName !== this.signerName) {
+      return SecurityStatus.BOGUS;
+    }
+
+    if (rrset.type !== this.type) {
+      return SecurityStatus.BOGUS;
+    }
+
+    if (rrset.ttl !== this.ttl) {
+      return SecurityStatus.BOGUS;
+    }
+
+    if (this.labels < countLabels(rrset.name)) {
+      return SecurityStatus.BOGUS;
+    }
+
+    if (this.signatureExpiry < referenceDate) {
+      return SecurityStatus.BOGUS;
+    }
+
+    if (referenceDate < this.signatureInception) {
+      return SecurityStatus.BOGUS;
+    }
+
+    return SecurityStatus.SECURE;
+  }
 }
 
 // Calling this "first part" for lack of a better name, as RFC 4034 doesn't give it a name.
@@ -145,4 +175,9 @@ function countLabels(name: string): number {
   const nameWithoutTrailingDot = name.replace(/\.$/, '');
   const labels = nameWithoutTrailingDot.split('.').filter((label) => label !== '*');
   return labels.length;
+}
+
+function getParentZoneName(name: string): string {
+  const parent = name.replace(/^[^.]+\./, '');
+  return parent === '' ? '.' : parent;
 }
