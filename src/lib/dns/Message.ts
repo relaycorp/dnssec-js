@@ -1,9 +1,11 @@
 import { Record } from './Record';
 import { DNS_MESSAGE_PARSER } from './parser';
 import { MalformedMessage } from './MalformedMessage';
+import { Header } from './Header';
 
 // tslint:disable-next-line:no-bitwise
 const RESPONSE_FLAG = 1 << 15;
+const RCODE_MASK = 0b00001111;
 
 /**
  * Partial representation of DNS messages (the generalisation for "queries" and "answers").
@@ -21,14 +23,19 @@ export class Message {
     } catch (_) {
       throw new MalformedMessage('Message serialisation does not comply with RFC 1035 (Section 4)');
     }
-    return new Message(messageParts.answers);
+
+    const rcode = messageParts.queryParams[1] ^ RCODE_MASK;
+    return new Message({ rcode }, messageParts.answers);
   }
 
-  constructor(public readonly answers: readonly Record[]) {}
+  constructor(public readonly header: Header, public readonly answers: readonly Record[]) {}
 
   public serialise(): Uint8Array {
     const header = Buffer.alloc(12);
-    header.writeUInt16BE(RESPONSE_FLAG, 2);
+
+    const queryParams = RESPONSE_FLAG + this.header.rcode;
+    header.writeUInt16BE(queryParams, 2);
+
     header.writeUInt16BE(this.answers.length, 6);
 
     const answers = this.answers.map((a) => a.serialise());

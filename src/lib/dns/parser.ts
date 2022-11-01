@@ -43,7 +43,8 @@ const ANSWER_SET_PARSER = new Parser().array('answerSet', {
 export const DNS_MESSAGE_PARSER = new Parser()
   .endianness('big')
   .useContextVars()
-  .seek(4)
+  .seek(2)
+  .buffer('queryParams', { length: 2 })
   .uint16('qCount')
   .uint16('anCount')
   .seek(4) // Skip the rest of the header
