@@ -59,6 +59,24 @@ export class DnskeyData implements DnssecRecordData {
     return data;
   }
 
+  /**
+   * Return key tag for DNSKEY.
+   *
+   * RFC 4034 requires using one of two algorithms depending on the DNSSEC crypto algorithm used,
+   * but since one of them is for Algorithm 1 (RSA/MD5) -- which we don't support on purpose --
+   * we're only supporting one key tag algorithm.
+   */
+  public calculateKeyTag(): number {
+    // Algorithm pretty much copy/pasted from https://www.rfc-editor.org/rfc/rfc4034#appendix-B
+    const rdata = this.serialise();
+    let accumulator = 0;
+    for (let index = 0; index < rdata.byteLength; ++index) {
+      accumulator += index & 1 ? rdata[index] : rdata[index] << 8;
+    }
+    accumulator += (accumulator >> 16) & 0xffff;
+    return accumulator & 0xffff;
+  }
+
   public verifyRrsig(rrsigData: RrsigData, referenceDate: Date): SecurityStatus {
     if (this.algorithm !== rrsigData.algorithm) {
       return SecurityStatus.BOGUS;

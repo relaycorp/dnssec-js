@@ -7,6 +7,7 @@ import { InvalidRdataError } from '../errors';
 import { RECORD, RECORD_TLD } from '../../testUtils/stubs';
 import { SecurityStatus } from '../verification/SecurityStatus';
 import { RRSet } from '../dns/RRSet';
+import { DNSSEC_ROOT_DNSKEY_DATA, DNSSEC_ROOT_DNSKEY_KEY_TAG } from '../../testUtils/dnssec';
 
 describe('DnskeyData', () => {
   const algorithm = DnssecAlgorithm.RSASHA256;
@@ -89,6 +90,14 @@ describe('DnskeyData', () => {
 
         expect(data.flags.secureEntryPoint).toBeFalse();
       });
+    });
+  });
+
+  describe('calculateKeyTag', () => {
+    test('Key tag should be calculated using algorithm in RFC 4034, Appendix B', () => {
+      const keyTag = DNSSEC_ROOT_DNSKEY_DATA.calculateKeyTag();
+
+      expect(keyTag).toEqual(DNSSEC_ROOT_DNSKEY_KEY_TAG);
     });
   });
 
