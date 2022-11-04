@@ -7,6 +7,7 @@ import { InvalidRdataError } from '../errors';
 import { RECORD, RECORD_TLD } from '../../testUtils/stubs';
 import { SecurityStatus } from '../verification/SecurityStatus';
 import { RRSet } from '../dns/RRSet';
+import { DNSSEC_ROOT_DNSKEY_DATA, DNSSEC_ROOT_DNSKEY_KEY_TAG } from '../../testUtils/dnssec';
 
 describe('DnskeyData', () => {
   const algorithm = DnssecAlgorithm.RSASHA256;
@@ -27,16 +28,6 @@ describe('DnskeyData', () => {
       expect(() => DnskeyData.deserialise(malformedDnskey)).toThrowWithMessage(
         InvalidRdataError,
         'DNSKEY data is malformed',
-      );
-    });
-
-    test('Serialisation should be refused if public key is missing', () => {
-      // 4 octets means that the public key is missing
-      const malformedDnskey = Buffer.allocUnsafe(4);
-
-      expect(() => DnskeyData.deserialise(malformedDnskey)).toThrowWithMessage(
-        InvalidRdataError,
-        'DNSKEY data is missing public key',
       );
     });
 
@@ -119,6 +110,7 @@ describe('DnskeyData', () => {
         privateKey,
         publicKey,
         tldSigner.zoneName,
+        differentAlgorithm,
       );
       const { data: rrsigData } = differentTldSigner.generateRrsig(rrset, now, signatureInception);
 

@@ -30,7 +30,7 @@ describe('ZoneSigner', () => {
 
     const digestAlgorithm = DigestType.SHA256;
     const dskey = signer.generateDs('com', 10, digestAlgorithm);
-    const rdata = lengthPrefixRdata(dskey.dataSerialised);
+    const rdata = lengthPrefixRdata(dskey.record.dataSerialised);
 
     const parsed = DS.decode(rdata);
 

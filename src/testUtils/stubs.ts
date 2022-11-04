@@ -2,8 +2,9 @@ import { DNSClass } from '../lib/dns/DNSClass';
 import { Record } from '../lib/dns/Record';
 
 export const RECORD_TLD = 'com.';
+export const RECORD_LABEL = 'example.';
 
-export const RECORD_NAME = `example.${RECORD_TLD}`;
+export const RECORD_NAME = `${RECORD_LABEL}${RECORD_TLD}`;
 export const RECORD_TYPE = 'TXT';
 export const RECORD_TYPE_ID = 16; // TXT
 export const RECORD_CLASS = DNSClass.IN;

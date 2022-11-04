@@ -6,7 +6,6 @@ import { DigestType } from '../DigestType';
 import { DnskeyData } from './DnskeyData';
 import { DnskeyFlags } from '../DnskeyFlags';
 import { hashPublicKey } from '../utils/crypto';
-import { SecurityStatus } from '../verification/SecurityStatus';
 
 describe('DsData', () => {
   const algorithm = DnssecAlgorithm.RSASHA256;
@@ -20,7 +19,7 @@ describe('DsData', () => {
   describe('deserialise', () => {
     let dsDataSerialised: Buffer;
     beforeAll(async () => {
-      dsDataSerialised = signer.generateDs('com', 5, digestType).dataSerialised;
+      dsDataSerialised = signer.generateDs('com', 5, digestType).record.dataSerialised;
     });
 
     test('Malformed value should be refused', () => {
@@ -85,20 +84,20 @@ describe('DsData', () => {
         zoneKey: false,
       });
 
-      expect(ds.verifyDnskey(dnskey)).toEqual(SecurityStatus.BOGUS);
+      expect(ds.verifyDnskey(dnskey)).toBeFalse();
     });
 
     test('Serialisation should be refused if protocol is not 3', () => {
       const protocol = 42;
       const dnskey = new DnskeyData(signer.publicKey, protocol, algorithm, dnskeyFlags);
 
-      expect(ds.verifyDnskey(dnskey)).toEqual(SecurityStatus.BOGUS);
+      expect(ds.verifyDnskey(dnskey)).toBeFalse();
     });
 
     test('Key should be refused if algorithm does not match', () => {
       const dnskey = new DnskeyData(signer.publicKey, 3, algorithm + 1, dnskeyFlags);
 
-      expect(ds.verifyDnskey(dnskey)).toEqual(SecurityStatus.BOGUS);
+      expect(ds.verifyDnskey(dnskey)).toBeFalse();
     });
 
     test('Key should be refused if digest does not match', () => {
@@ -110,13 +109,13 @@ describe('DsData', () => {
       );
       const dnskey = new DnskeyData(signer.publicKey, 3, algorithm, dnskeyFlags);
 
-      expect(anotherDs.verifyDnskey(dnskey)).toEqual(SecurityStatus.BOGUS);
+      expect(anotherDs.verifyDnskey(dnskey)).toBeFalse();
     });
 
     test('Key should be accepted if valid', () => {
       const dnskey = new DnskeyData(signer.publicKey, 3, algorithm, dnskeyFlags);
 
-      expect(ds.verifyDnskey(dnskey)).toEqual(SecurityStatus.SECURE);
+      expect(ds.verifyDnskey(dnskey)).toBeTrue();
     });
   });
 });

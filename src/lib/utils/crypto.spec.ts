@@ -1,13 +1,13 @@
-import { createHash, generateKeyPair, KeyObject } from 'node:crypto';
-import { promisify } from 'node:util';
+import { createHash, KeyObject } from 'node:crypto';
 
 import { DigestType } from '../DigestType';
-import { derSerialisePublicKey, getNodejsHashAlgo, hashPublicKey } from './crypto';
+import { getNodejsHashAlgo, hashPublicKey } from './crypto';
+import { generateRSAKeyPair } from '../../testUtils/crypto';
+import { serialisePublicKey } from './keySerialisation';
 
-const generateKeyPairAsync = promisify(generateKeyPair);
 let publicKey: KeyObject;
 beforeAll(async () => {
-  const keyPair = await generateKeyPairAsync('rsa-pss', { modulusLength: 2048 });
+  const keyPair = await generateRSAKeyPair();
   publicKey = keyPair.publicKey;
 });
 
@@ -31,12 +31,6 @@ describe('getNodejsHashAlgo', () => {
   });
 });
 
-test('derSerialisePublicKey', async () => {
-  expect(derSerialisePublicKey(publicKey)).toEqual(
-    publicKey.export({ format: 'der', type: 'spki' }),
-  );
-});
-
 describe('hashPublicKey', () => {
   test.each([
     ['sha1', DigestType.SHA1],
@@ -46,7 +40,7 @@ describe('hashPublicKey', () => {
     const digest = hashPublicKey(publicKey, dnssecHashAlgo);
 
     const hash = createHash(nodejsHashAlgo);
-    hash.update(derSerialisePublicKey(publicKey));
+    hash.update(serialisePublicKey(publicKey));
     const expectedDigest = hash.digest();
 
     expect(digest).toEqual(expectedDigest);

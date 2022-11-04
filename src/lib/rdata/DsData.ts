@@ -6,7 +6,6 @@ import { InvalidRdataError } from '../errors';
 import { DnskeyData } from './DnskeyData';
 import { hashPublicKey } from '../utils/crypto';
 import { DnssecRecordData } from './DnssecRecordData';
-import { SecurityStatus } from '../verification/SecurityStatus';
 
 const PARSER = new Parser()
   .endianness('big')
@@ -60,24 +59,20 @@ export class DsData implements DnssecRecordData {
    *
    * @param key
    */
-  public verifyDnskey(key: DnskeyData): SecurityStatus {
+  public verifyDnskey(key: DnskeyData): boolean {
     if (!key.flags.zoneKey) {
-      return SecurityStatus.BOGUS;
+      return false;
     }
 
     if (key.protocol !== 3) {
-      return SecurityStatus.BOGUS;
+      return false;
     }
 
     if (key.algorithm !== this.algorithm) {
-      return SecurityStatus.BOGUS;
+      return false;
     }
 
     const digest = hashPublicKey(key.publicKey, this.digestType);
-    if (!digest.equals(this.digest)) {
-      return SecurityStatus.BOGUS;
-    }
-
-    return SecurityStatus.SECURE;
+    return digest.equals(this.digest);
   }
 }

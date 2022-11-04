@@ -1,13 +1,13 @@
 import { Parser } from 'binary-parser';
-import { createPublicKey, KeyObject } from 'node:crypto';
+import { KeyObject } from 'node:crypto';
 
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { DnskeyFlags } from '../DnskeyFlags';
 import { InvalidRdataError } from '../errors';
 import { DnssecRecordData } from './DnssecRecordData';
-import { derSerialisePublicKey } from '../utils/crypto';
 import { SecurityStatus } from '../verification/SecurityStatus';
 import { RrsigData } from './RrsigData';
+import { deserialisePublicKey, serialisePublicKey } from '../utils/keySerialisation';
 
 const PARSER = new Parser()
   .endianness('big')
@@ -25,7 +25,7 @@ export class DnskeyData implements DnssecRecordData {
     } catch (_) {
       throw new InvalidRdataError('DNSKEY data is malformed');
     }
-    const publicKey = parsePublicKey(parsingResult.publicKey);
+    const publicKey = deserialisePublicKey(parsingResult.publicKey, parsingResult.algorithm);
     const flags: DnskeyFlags = {
       zoneKey: !!parsingResult.zoneKey,
       secureEntryPoint: !!parsingResult.secureEntryPoint,
@@ -41,7 +41,7 @@ export class DnskeyData implements DnssecRecordData {
   ) {}
 
   public serialise(): Buffer {
-    const publicKeyEncoded = derSerialisePublicKey(this.publicKey);
+    const publicKeyEncoded = serialisePublicKey(this.publicKey);
     const data = Buffer.alloc(4 + publicKeyEncoded.byteLength);
 
     if (this.flags.zoneKey) {
@@ -74,15 +74,4 @@ export class DnskeyData implements DnssecRecordData {
 
     return SecurityStatus.SECURE;
   }
-}
-
-function parsePublicKey(publicKeySerialized: Buffer): KeyObject {
-  if (publicKeySerialized.byteLength === 0) {
-    throw new InvalidRdataError('DNSKEY data is missing public key');
-  }
-  return createPublicKey({
-    key: publicKeySerialized,
-    format: 'der',
-    type: 'spki',
-  });
 }

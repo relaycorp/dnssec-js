@@ -10,36 +10,17 @@ interface KeyGenOptions {
   readonly options?: object;
 }
 
-const RSA_MODULUS = 2048;
-const RSA_PSS_TYPE = 'rsa-pss';
+const RSA_OPTIONS = {
+  type: 'rsa',
+  options: { modulusLength: 2048 },
+};
 const KEY_GEN_OPTIONS: { readonly [key in DnssecAlgorithm]: KeyGenOptions } = {
   [DnssecAlgorithm.DSA]: { type: 'dsa' },
   [DnssecAlgorithm.ECDSAP256SHA256]: { type: 'ec', options: { namedCurve: 'prime256v1' } },
   [DnssecAlgorithm.ECDSAP384SHA384]: { type: 'ec', options: { namedCurve: 'secp384r1' } },
-  [DnssecAlgorithm.RSASHA1]: {
-    type: RSA_PSS_TYPE,
-    options: {
-      modulusLength: RSA_MODULUS,
-      hashAlgorithm: 'sha1',
-      mgf1HashAlgorithm: 'sha1',
-    },
-  },
-  [DnssecAlgorithm.RSASHA256]: {
-    type: RSA_PSS_TYPE,
-    options: {
-      modulusLength: RSA_MODULUS,
-      hashAlgorithm: 'sha256',
-      mgf1HashAlgorithm: 'sha256',
-    },
-  },
-  [DnssecAlgorithm.RSASHA512]: {
-    type: RSA_PSS_TYPE,
-    options: {
-      modulusLength: RSA_MODULUS,
-      hashAlgorithm: 'sha512',
-      mgf1HashAlgorithm: 'sha512',
-    },
-  },
+  [DnssecAlgorithm.RSASHA1]: RSA_OPTIONS,
+  [DnssecAlgorithm.RSASHA256]: RSA_OPTIONS,
+  [DnssecAlgorithm.RSASHA512]: RSA_OPTIONS,
   [DnssecAlgorithm.ED25519]: { type: 'ed25519' },
   [DnssecAlgorithm.ED448]: { type: 'ed448' },
 };

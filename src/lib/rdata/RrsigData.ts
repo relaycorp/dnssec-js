@@ -7,7 +7,7 @@ import { NAME_PARSER_OPTIONS, serialiseName } from '../dns/name';
 import { InvalidRdataError } from '../errors';
 import { DnssecRecordData } from './DnssecRecordData';
 import { RRSet } from '../dns/RRSet';
-import { getDNSSECAlgoFromKey, getNodejsHashAlgoFromKey } from '../signing/utils';
+import { getNodejsHashAlgorithmFromDnssecAlgo } from '../signing/utils';
 import { SecurityStatus } from '../verification/SecurityStatus';
 
 const PARSER = new Parser()
@@ -55,20 +55,20 @@ export class RrsigData implements DnssecRecordData {
     signerPrivateKey: KeyObject,
     signerName: string,
     signerKeyTag: number,
+    dnssecAlgorithm: DnssecAlgorithm,
   ): RrsigData {
     const rdataFirstPart = generateRdataFirstPart(
       signatureExpiry,
       signatureInception,
       signerKeyTag,
-      signerPrivateKey,
+      dnssecAlgorithm,
       rrset,
     );
     const plaintext = Buffer.concat([rdataFirstPart, serialiseRrset(rrset)]);
-    const signature = sign(plaintext, signerPrivateKey);
-    const algorithm = getDNSSECAlgoFromKey(signerPrivateKey);
+    const signature = sign(plaintext, signerPrivateKey, dnssecAlgorithm);
     return new RrsigData(
       rrset.type,
-      algorithm,
+      dnssecAlgorithm,
       countLabels(rrset.name),
       rrset.ttl,
       signatureExpiry,
@@ -138,13 +138,13 @@ function generateRdataFirstPart(
   signatureExpiry: Date,
   signatureInception: Date,
   signerKeyTag: number,
-  signerPrivateKey: KeyObject,
+  algorithm: DnssecAlgorithm,
   rrset: RRSet,
 ): Buffer {
   const partialRrsigRdata = Buffer.allocUnsafe(18);
 
   partialRrsigRdata.writeUInt16BE(rrset.type, 0);
-  partialRrsigRdata.writeUInt8(getDNSSECAlgoFromKey(signerPrivateKey), 2);
+  partialRrsigRdata.writeUInt8(algorithm, 2);
   partialRrsigRdata.writeUInt8(countLabels(rrset.name), 3);
   partialRrsigRdata.writeUInt32BE(rrset.ttl, 4);
   partialRrsigRdata.writeUInt32BE(getUnixTime(signatureExpiry), 8);
@@ -158,9 +158,9 @@ function serialiseRrset(rrset: RRSet): Buffer {
   return Buffer.concat(rrset.records.map((r) => r.serialise()));
 }
 
-function sign(plaintext: Buffer, privateKey: KeyObject): Buffer {
-  const hashAlgorithm = getNodejsHashAlgoFromKey(privateKey);
-  return cryptoSign(hashAlgorithm, plaintext, privateKey);
+function sign(plaintext: Buffer, privateKey: KeyObject, dnssecAlgorithm: DnssecAlgorithm): Buffer {
+  const nodejsHashAlgorithm = getNodejsHashAlgorithmFromDnssecAlgo(dnssecAlgorithm);
+  return cryptoSign(nodejsHashAlgorithm, plaintext, privateKey);
 }
 
 function countLabels(name: string): number {

@@ -1,6 +1,7 @@
 import { createHash, KeyObject } from 'node:crypto';
 
 import { DigestType } from '../DigestType';
+import { serialisePublicKey } from './keySerialisation';
 
 export function getNodejsHashAlgo(algorithm: DigestType): string {
   switch (algorithm) {
@@ -15,13 +16,9 @@ export function getNodejsHashAlgo(algorithm: DigestType): string {
   }
 }
 
-export function derSerialisePublicKey(publicKey: KeyObject): Buffer {
-  return publicKey.export({ format: 'der', type: 'spki' });
-}
-
 export function hashPublicKey(publicKey: KeyObject, digestAlgorithm: DigestType): Buffer {
   const hashName = getNodejsHashAlgo(digestAlgorithm);
   const hash = createHash(hashName);
-  hash.update(derSerialisePublicKey(publicKey));
+  hash.update(serialisePublicKey(publicKey));
   return hash.digest();
 }
