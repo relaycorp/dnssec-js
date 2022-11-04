@@ -1,15 +1,7 @@
-import { createHash, KeyObject } from 'node:crypto';
+import { createHash } from 'node:crypto';
 
 import { DigestType } from '../DigestType';
-import { getNodejsHashAlgo, hashPublicKey } from './crypto';
-import { generateRSAKeyPair } from '../../testUtils/crypto';
-import { serialisePublicKey } from './keySerialisation';
-
-let publicKey: KeyObject;
-beforeAll(async () => {
-  const keyPair = await generateRSAKeyPair();
-  publicKey = keyPair.publicKey;
-});
+import { getNodejsHashAlgo, generateDigest } from './crypto';
 
 describe('getNodejsHashAlgo', () => {
   test.each([
@@ -31,16 +23,18 @@ describe('getNodejsHashAlgo', () => {
   });
 });
 
-describe('hashPublicKey', () => {
+describe('generateDigest', () => {
+  const PLAINTEXT = Buffer.from('hello world');
+
   test.each([
     ['sha1', DigestType.SHA1],
     ['sha256', DigestType.SHA256],
     ['sha384', DigestType.SHA384],
   ])('%s', (nodejsHashAlgo, dnssecHashAlgo) => {
-    const digest = hashPublicKey(publicKey, dnssecHashAlgo);
+    const digest = generateDigest(PLAINTEXT, dnssecHashAlgo);
 
     const hash = createHash(nodejsHashAlgo);
-    hash.update(serialisePublicKey(publicKey));
+    hash.update(PLAINTEXT);
     const expectedDigest = hash.digest();
 
     expect(digest).toEqual(expectedDigest);

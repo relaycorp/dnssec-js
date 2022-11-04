@@ -114,20 +114,29 @@ describe('DnskeyData', () => {
       expect(differentAlgorithm).not.toEqual(algorithm); // In case we change fixture inadvertently
       const { privateKey, publicKey } = await ZoneSigner.generate(differentAlgorithm, RECORD_TLD);
       const differentTldSigner = new ZoneSigner(
-        tldSigner.keyTag,
         privateKey,
         publicKey,
         tldSigner.zoneName,
         differentAlgorithm,
       );
-      const { data: rrsigData } = differentTldSigner.generateRrsig(rrset, now, signatureInception);
+      const { data: rrsigData } = differentTldSigner.generateRrsig(
+        rrset,
+        dnskeyData.calculateKeyTag(),
+        now,
+        signatureInception,
+      );
 
       expect(dnskeyData.verifyRrsig(rrsigData, now)).toEqual(SecurityStatus.BOGUS);
     });
 
     describe('Validity period', () => {
       test('Expiry date equal to current time should be SECURE', () => {
-        const { data: rrsigData } = tldSigner.generateRrsig(rrset, now, signatureInception);
+        const { data: rrsigData } = tldSigner.generateRrsig(
+          rrset,
+          dnskeyData.calculateKeyTag(),
+          now,
+          signatureInception,
+        );
 
         expect(dnskeyData.verifyRrsig(rrsigData, now)).toEqual(SecurityStatus.SECURE);
       });
@@ -135,6 +144,7 @@ describe('DnskeyData', () => {
       test('Expiry date later than current time should be SECURE', () => {
         const { data: rrsigData } = tldSigner.generateRrsig(
           rrset,
+          dnskeyData.calculateKeyTag(),
           addSeconds(now, 1),
           signatureInception,
         );
@@ -145,6 +155,7 @@ describe('DnskeyData', () => {
       test('Expiry date earlier than current time should be BOGUS', () => {
         const { data: rrsigData } = tldSigner.generateRrsig(
           rrset,
+          dnskeyData.calculateKeyTag(),
           subSeconds(now, 1),
           signatureInception,
         );
@@ -153,7 +164,12 @@ describe('DnskeyData', () => {
       });
 
       test('Inception date equal to current time should be SECURE', () => {
-        const { data: rrsigData } = tldSigner.generateRrsig(rrset, signatureExpiry, now);
+        const { data: rrsigData } = tldSigner.generateRrsig(
+          rrset,
+          dnskeyData.calculateKeyTag(),
+          signatureExpiry,
+          now,
+        );
 
         expect(dnskeyData.verifyRrsig(rrsigData, now)).toEqual(SecurityStatus.SECURE);
       });
@@ -161,6 +177,7 @@ describe('DnskeyData', () => {
       test('Inception date earlier than current time should be SECURE', () => {
         const { data: rrsigData } = tldSigner.generateRrsig(
           rrset,
+          dnskeyData.calculateKeyTag(),
           signatureExpiry,
           subSeconds(now, 1),
         );
@@ -171,6 +188,7 @@ describe('DnskeyData', () => {
       test('Inception date later than current time should be BOGUS', () => {
         const { data: rrsigData } = tldSigner.generateRrsig(
           rrset,
+          dnskeyData.calculateKeyTag(),
           signatureExpiry,
           addSeconds(now, 1),
         );
@@ -182,6 +200,7 @@ describe('DnskeyData', () => {
     test('Valid RRSIg should be SECURE', () => {
       const { data: rrsigData } = tldSigner.generateRrsig(
         rrset,
+        dnskeyData.calculateKeyTag(),
         signatureExpiry,
         signatureInception,
       );

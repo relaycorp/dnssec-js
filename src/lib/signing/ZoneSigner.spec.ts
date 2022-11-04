@@ -13,6 +13,8 @@ import {
   RECORD_TYPE_ID,
 } from '../../testUtils/stubs';
 import { Record } from '../dns/Record';
+import { generateDigest } from '../utils/crypto';
+import { serialiseName } from '../dns/name';
 
 describe('ZoneSigner', () => {
   test('generateDnskey', async () => {
@@ -27,17 +29,21 @@ describe('ZoneSigner', () => {
 
   test('generateDs', async () => {
     const signer = await ZoneSigner.generate(DnssecAlgorithm.RSASHA256, '.');
-
     const digestAlgorithm = DigestType.SHA256;
-    const dskey = signer.generateDs('com', 10, digestAlgorithm);
+    const dnskey = signer.generateDnskey(42);
+
+    const dskey = signer.generateDs(dnskey, 'com', 10, digestAlgorithm);
+
     const rdata = lengthPrefixRdata(dskey.record.dataSerialised);
-
     const parsed = DS.decode(rdata);
-
     expect(parsed).toMatchObject({
       algorithm: DnssecAlgorithm.RSASHA256,
+      digest: generateDigest(
+        Buffer.concat([serialiseName(signer.zoneName), dnskey.record.dataSerialised]),
+        digestAlgorithm,
+      ),
       digestType: digestAlgorithm,
-      keyTag: signer.keyTag,
+      keyTag: dnskey.data.calculateKeyTag(),
     });
   });
 
@@ -45,25 +51,24 @@ describe('ZoneSigner', () => {
     const dnssecAlgorithm = DnssecAlgorithm.RSASHA256;
     const signer = await ZoneSigner.generate(dnssecAlgorithm, '.');
     const recordName = 'com.';
-
     const rrset = new RRSet([
       new Record(recordName, RECORD_TYPE_ID, RECORD_CLASS, RECORD_TTL, RECORD_DATA),
     ]);
-
     const signatureExpiry = setMilliseconds(addHours(new Date(), 3), 5);
     const signatureInception = setMilliseconds(new Date(), 5);
-    const rrsig = signer.generateRrsig(rrset, signatureExpiry, signatureInception);
+    const keyTag = 12345;
+
+    const rrsig = signer.generateRrsig(rrset, keyTag, signatureExpiry, signatureInception);
+
     const rdata = lengthPrefixRdata(rrsig.record.dataSerialised);
-
     const parsed = RRSIG.decode(rdata);
-
     expect(parsed.typeCovered).toEqual(RECORD_TYPE);
     expect(parsed.algorithm).toEqual(dnssecAlgorithm);
     expect(parsed.labels).toEqual(1);
     expect(parsed.originalTTL).toEqual(rrset.ttl);
     expect(parsed.expiration).toEqual(getUnixTime(setMilliseconds(signatureExpiry, 0)));
     expect(parsed.inception).toEqual(getUnixTime(setMilliseconds(signatureInception, 0)));
-    expect(parsed.keyTag).toEqual(signer.keyTag);
+    expect(parsed.keyTag).toEqual(keyTag);
     expect(parsed.signersName).toEqual(signer.zoneName);
   });
 
@@ -76,7 +81,7 @@ describe('ZoneSigner', () => {
       new Record(recordName, RECORD_TYPE_ID, RECORD_CLASS, RECORD_TTL, RECORD_DATA),
     ]);
 
-    const rrsig = signer.generateRrsig(rrset, addHours(new Date(), 3));
+    const rrsig = signer.generateRrsig(rrset, 42, addHours(new Date(), 3));
     const rdata = lengthPrefixRdata(rrsig.record.dataSerialised);
 
     const parsed = RRSIG.decode(rdata);

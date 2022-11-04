@@ -4,6 +4,8 @@ import { RrsigRecord } from '../dnssecRecords';
 import { DnssecValidationError } from '../errors';
 import { DnssecRecordType } from '../DnssecRecordType';
 import { RrsigData } from '../rdata/RrsigData';
+import { DnskeyData } from '../rdata/DnskeyData';
+import { SecurityStatus } from './SecurityStatus';
 
 /**
  * RRSet with one or more corresponding RRSigs.

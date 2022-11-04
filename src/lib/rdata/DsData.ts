@@ -3,9 +3,10 @@ import { Parser } from 'binary-parser';
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { DigestType } from '../DigestType';
 import { InvalidRdataError } from '../errors';
-import { DnskeyData } from './DnskeyData';
-import { hashPublicKey } from '../utils/crypto';
+import { generateDigest } from '../utils/crypto';
 import { DnssecRecordData } from './DnssecRecordData';
+import { DnskeyRecord } from '../dnssecRecords';
+import { serialiseName } from '../dns/name';
 
 const PARSER = new Parser()
   .endianness('big')
@@ -31,6 +32,12 @@ export class DsData implements DnssecRecordData {
       parsingResult.digestType,
       parsingResult.digest,
     );
+  }
+
+  static calculateDnskeyDigest(dnskey: DnskeyRecord, digestType: DigestType): Buffer {
+    const nameSerialised = serialiseName(dnskey.record.name);
+    const plaintext = Buffer.concat([nameSerialised, dnskey.record.dataSerialised]);
+    return generateDigest(plaintext, digestType);
   }
 
   constructor(
@@ -59,20 +66,20 @@ export class DsData implements DnssecRecordData {
    *
    * @param key
    */
-  public verifyDnskey(key: DnskeyData): boolean {
-    if (!key.flags.zoneKey) {
+  public verifyDnskey(key: DnskeyRecord): boolean {
+    if (!key.data.flags.zoneKey) {
       return false;
     }
 
-    if (key.protocol !== 3) {
+    if (key.data.protocol !== 3) {
       return false;
     }
 
-    if (key.algorithm !== this.algorithm) {
+    if (key.data.algorithm !== this.algorithm) {
       return false;
     }
 
-    const digest = hashPublicKey(key.publicKey, this.digestType);
+    const digest = DsData.calculateDnskeyDigest(key, this.digestType);
     return digest.equals(this.digest);
   }
 }

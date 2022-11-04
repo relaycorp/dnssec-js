@@ -1,6 +1,8 @@
 import { DnskeyData } from '../lib/rdata/DnskeyData';
 import { DnssecAlgorithm } from '../lib/DnssecAlgorithm';
 import { deserialisePublicKey } from '../lib/utils/keySerialisation';
+import { DnssecRecord } from '../lib/dnssecRecords';
+import { DnssecRecordData } from '../lib/rdata/DnssecRecordData';
 
 const DNSSEC_ROOT_DNSKEY_SERIALISATION = Buffer.from(
   'AwEAAaz/tAm8yTn4Mfeh5eyI96WSVexTBAvkMgJzkKTOiW1vkIbzxeF3+/4RgWOq7HrxRixHlFlExOLAJr5emLvN7SWXgnLh4+B5xQlNVz8Og8kvArMtNROxVQuCaSnIDdD5LKyWbRd2n9WGe2R8PzgCmr3EgVLrjyBxWezF0jLHwVN8efS3rCj/EWgvIWgb9tarpVUDK/b58Da+sqqls3eNbuv7pr+eoZG+SrDK6nWeL3c6H5Apxz7LjVc1uTIdsIXxuOLYA4/ilBmSVIzuDWfdRUfhHdY6+cn8HFRm+2hM8AnXGXws9555KrUB5qihylGa8subX2Nn6UwNR1AkUTV74bU=',
@@ -27,3 +29,13 @@ export const DNSSEC_ROOT_DNSKEY_DATA = new DnskeyData(
  * @see {DNSSEC_ROOT_DNSKEY_DATA}
  */
 export const DNSSEC_ROOT_DNSKEY_KEY_TAG = 20326;
+
+export function copyDnssecRecordData<D extends DnssecRecordData, R extends DnssecRecord<D>>(
+  originalRecord: R,
+  newData: D,
+): R {
+  return {
+    data: newData,
+    record: originalRecord.record.shallowCopy({ dataSerialised: newData.serialise() }),
+  } as R;
+}

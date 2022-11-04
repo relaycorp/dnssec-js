@@ -10,13 +10,15 @@ import { RECORD, RECORD_TLD } from '../../testUtils/stubs';
 import { SecurityStatus } from '../verification/SecurityStatus';
 
 describe('RrsigData', () => {
-  const algorithm = DnssecAlgorithm.RSASHA256;
+  const ALGORITHM = DnssecAlgorithm.RSASHA256;
+  const STUB_KEY_TAG = 12345;
+
   const signatureInception = setMilliseconds(new Date(), 0);
   const signatureExpiry = addMinutes(signatureInception, 10);
 
   let tldSigner: ZoneSigner;
   beforeAll(async () => {
-    tldSigner = await ZoneSigner.generate(algorithm, RECORD_TLD);
+    tldSigner = await ZoneSigner.generate(ALGORITHM, RECORD_TLD);
   });
 
   describe('deserialise', () => {
@@ -44,7 +46,7 @@ describe('RrsigData', () => {
     });
 
     test('Record type should be extracted', () => {
-      const rrsig = tldSigner.generateRrsig(rrset, signatureExpiry);
+      const rrsig = tldSigner.generateRrsig(rrset, STUB_KEY_TAG, signatureExpiry);
 
       const rrsigData = RrsigData.deserialise(rrsig.record.dataSerialised);
 
@@ -52,15 +54,15 @@ describe('RrsigData', () => {
     });
 
     test('Algorithm should be extracted', () => {
-      const rrsig = tldSigner.generateRrsig(rrset, signatureExpiry);
+      const rrsig = tldSigner.generateRrsig(rrset, STUB_KEY_TAG, signatureExpiry);
 
       const rrsigData = RrsigData.deserialise(rrsig.record.dataSerialised);
 
-      expect(rrsigData.algorithm).toEqual(algorithm);
+      expect(rrsigData.algorithm).toEqual(ALGORITHM);
     });
 
     test('Labels should be extracted', () => {
-      const rrsig = tldSigner.generateRrsig(rrset, signatureExpiry);
+      const rrsig = tldSigner.generateRrsig(rrset, STUB_KEY_TAG, signatureExpiry);
 
       const rrsigData = RrsigData.deserialise(rrsig.record.dataSerialised);
 
@@ -69,7 +71,7 @@ describe('RrsigData', () => {
     });
 
     test('TTL should be extracted', () => {
-      const rrsig = tldSigner.generateRrsig(rrset, signatureExpiry);
+      const rrsig = tldSigner.generateRrsig(rrset, STUB_KEY_TAG, signatureExpiry);
 
       const rrsigData = RrsigData.deserialise(rrsig.record.dataSerialised);
 
@@ -77,7 +79,7 @@ describe('RrsigData', () => {
     });
 
     test('Signature expiry date should be extracted', () => {
-      const rrsig = tldSigner.generateRrsig(rrset, signatureExpiry);
+      const rrsig = tldSigner.generateRrsig(rrset, STUB_KEY_TAG, signatureExpiry);
 
       const rrsigData = RrsigData.deserialise(rrsig.record.dataSerialised);
 
@@ -85,7 +87,12 @@ describe('RrsigData', () => {
     });
 
     test('Signature inception date should be extracted', () => {
-      const rrsig = tldSigner.generateRrsig(rrset, signatureExpiry, signatureInception);
+      const rrsig = tldSigner.generateRrsig(
+        rrset,
+        STUB_KEY_TAG,
+        signatureExpiry,
+        signatureInception,
+      );
 
       const rrsigData = RrsigData.deserialise(rrsig.record.dataSerialised);
 
@@ -93,15 +100,25 @@ describe('RrsigData', () => {
     });
 
     test('Key tag should be extracted', () => {
-      const rrsig = tldSigner.generateRrsig(rrset, signatureExpiry, signatureInception);
+      const rrsig = tldSigner.generateRrsig(
+        rrset,
+        STUB_KEY_TAG,
+        signatureExpiry,
+        signatureInception,
+      );
 
       const rrsigData = RrsigData.deserialise(rrsig.record.dataSerialised);
 
-      expect(rrsigData.keyTag).toEqual(tldSigner.keyTag);
+      expect(rrsigData.keyTag).toEqual(STUB_KEY_TAG);
     });
 
     test('Signer name should be extracted', () => {
-      const rrsig = tldSigner.generateRrsig(rrset, signatureExpiry, signatureInception);
+      const rrsig = tldSigner.generateRrsig(
+        rrset,
+        STUB_KEY_TAG,
+        signatureExpiry,
+        signatureInception,
+      );
 
       const rrsigData = RrsigData.deserialise(rrsig.record.dataSerialised);
 
@@ -109,7 +126,12 @@ describe('RrsigData', () => {
     });
 
     test('Signature should be extracted', () => {
-      const rrsig = tldSigner.generateRrsig(rrset, signatureExpiry, signatureInception);
+      const rrsig = tldSigner.generateRrsig(
+        rrset,
+        STUB_KEY_TAG,
+        signatureExpiry,
+        signatureInception,
+      );
 
       const rrsigData = RrsigData.deserialise(rrsig.record.dataSerialised);
 
@@ -122,22 +144,37 @@ describe('RrsigData', () => {
 
     describe('Signer name', () => {
       test('Signer name matching RRset parent zone should be SECURE', async () => {
-        const { data } = tldSigner.generateRrsig(rrset, signatureExpiry, signatureInception);
+        const { data } = tldSigner.generateRrsig(
+          rrset,
+          STUB_KEY_TAG,
+          signatureExpiry,
+          signatureInception,
+        );
 
         expect(data.verifyRrset(rrset)).toEqual(SecurityStatus.SECURE);
       });
 
       test('Signer name mismatching RRset parent zone should be BOGUS', async () => {
-        const differentParent = await ZoneSigner.generate(algorithm, `not-${RECORD_TLD}`);
-        const { data } = differentParent.generateRrsig(rrset, signatureExpiry, signatureInception);
+        const differentParent = await ZoneSigner.generate(ALGORITHM, `not-${RECORD_TLD}`);
+        const { data } = differentParent.generateRrsig(
+          rrset,
+          STUB_KEY_TAG,
+          signatureExpiry,
+          signatureInception,
+        );
 
         expect(data.verifyRrset(rrset)).toEqual(SecurityStatus.BOGUS);
       });
 
       test('TLD RRset should be supported', async () => {
-        const rootSigner = await ZoneSigner.generate(algorithm, '.');
+        const rootSigner = await ZoneSigner.generate(ALGORITHM, '.');
         const tldRrset = new RRSet([RECORD.shallowCopy({ name: RECORD_TLD })]);
-        const { data } = rootSigner.generateRrsig(tldRrset, signatureExpiry, signatureInception);
+        const { data } = rootSigner.generateRrsig(
+          tldRrset,
+          STUB_KEY_TAG,
+          signatureExpiry,
+          signatureInception,
+        );
 
         expect(data.verifyRrset(tldRrset)).toEqual(SecurityStatus.SECURE);
       });
@@ -145,14 +182,24 @@ describe('RrsigData', () => {
 
     test('Covered type should match RRset type', () => {
       const invalidRrset = new RRSet([RECORD.shallowCopy({ type: RECORD.type + 1 })]);
-      const { data } = tldSigner.generateRrsig(invalidRrset, signatureExpiry, signatureInception);
+      const { data } = tldSigner.generateRrsig(
+        invalidRrset,
+        STUB_KEY_TAG,
+        signatureExpiry,
+        signatureInception,
+      );
 
       expect(data.verifyRrset(rrset)).toEqual(SecurityStatus.BOGUS);
     });
 
     test('Original TTL should match RRset TTL', () => {
       const invalidRrset = new RRSet([RECORD.shallowCopy({ ttl: RECORD.ttl + 1 })]);
-      const { data } = tldSigner.generateRrsig(invalidRrset, signatureExpiry, signatureInception);
+      const { data } = tldSigner.generateRrsig(
+        invalidRrset,
+        STUB_KEY_TAG,
+        signatureExpiry,
+        signatureInception,
+      );
 
       expect(data.verifyRrset(rrset)).toEqual(SecurityStatus.BOGUS);
     });
@@ -162,8 +209,13 @@ describe('RrsigData', () => {
         const differentRrset = new RRSet([
           RECORD.shallowCopy({ name: `subdomain.${RECORD.name}` }),
         ]);
-        const signer = await ZoneSigner.generate(algorithm, RECORD.name);
-        const { data } = signer.generateRrsig(differentRrset, signatureExpiry, signatureInception);
+        const signer = await ZoneSigner.generate(ALGORITHM, RECORD.name);
+        const { data } = signer.generateRrsig(
+          differentRrset,
+          STUB_KEY_TAG,
+          signatureExpiry,
+          signatureInception,
+        );
 
         expect(data.verifyRrset(differentRrset)).toEqual(SecurityStatus.SECURE);
       });
@@ -172,6 +224,7 @@ describe('RrsigData', () => {
         const differentRrset = new RRSet([RECORD]);
         const { data } = tldSigner.generateRrsig(
           differentRrset,
+          STUB_KEY_TAG,
           signatureExpiry,
           signatureInception,
         );
@@ -183,6 +236,7 @@ describe('RrsigData', () => {
         const differentRrset = new RRSet([RECORD]);
         const { data } = tldSigner.generateRrsig(
           differentRrset,
+          STUB_KEY_TAG,
           signatureExpiry,
           signatureInception,
         );
@@ -203,7 +257,12 @@ describe('RrsigData', () => {
     });
 
     test('Valid RRset should be SECURE', () => {
-      const { data } = tldSigner.generateRrsig(rrset, signatureExpiry, signatureInception);
+      const { data } = tldSigner.generateRrsig(
+        rrset,
+        STUB_KEY_TAG,
+        signatureExpiry,
+        signatureInception,
+      );
 
       expect(data.verifyRrset(rrset)).toEqual(SecurityStatus.SECURE);
     });

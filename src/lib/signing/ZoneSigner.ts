@@ -11,26 +11,17 @@ import { RRSet } from '../dns/RRSet';
 import { DnskeyFlags } from '../DnskeyFlags';
 import { DnskeyData } from '../rdata/DnskeyData';
 import { DsData } from '../rdata/DsData';
-import { hashPublicKey } from '../utils/crypto';
 import { RrsigData } from '../rdata/RrsigData';
 import { DnskeyRecord, DsRecord, RrsigRecord } from '../dnssecRecords';
 
-const MAX_KEY_TAG = 2 ** 16 - 1; // 2 octets (16 bits) per RFC4034 (Section 5.1)
-
-function generateKeyTag(): number {
-  return Math.floor(Math.random() * MAX_KEY_TAG);
-}
-
 export class ZoneSigner {
   public static async generate(algorithm: DnssecAlgorithm, zoneName: string): Promise<ZoneSigner> {
-    const keyTag = generateKeyTag();
     const keyGenOptions = getKeyGenOptions(algorithm);
     const keyPair = await generateKeyPairAsync(keyGenOptions.type as any, keyGenOptions.options);
-    return new ZoneSigner(keyTag, keyPair.privateKey, keyPair.publicKey, zoneName, algorithm);
+    return new ZoneSigner(keyPair.privateKey, keyPair.publicKey, zoneName, algorithm);
   }
 
   constructor(
-    public readonly keyTag: number,
     public readonly privateKey: KeyObject,
     public readonly publicKey: KeyObject,
     public readonly zoneName: string,
@@ -55,12 +46,18 @@ export class ZoneSigner {
   }
 
   public generateDs(
+    dnskey: DnskeyRecord,
     childLabel: string,
     ttl: number,
     digestType: DigestType = DigestType.SHA256,
   ): DsRecord {
-    const digest = hashPublicKey(this.publicKey, digestType);
-    const data = new DsData(this.keyTag, this.algorithm, digestType, digest);
+    const digest = DsData.calculateDnskeyDigest(dnskey, digestType);
+    const data = new DsData(
+      dnskey.data.calculateKeyTag(),
+      dnskey.data.algorithm,
+      digestType,
+      digest,
+    );
     const record = new Record(
       `${childLabel}.${this.zoneName}`,
       DnssecRecordType.DS,
@@ -73,6 +70,7 @@ export class ZoneSigner {
 
   public generateRrsig(
     rrset: RRSet,
+    keyTag: number,
     signatureExpiry: Date,
     signatureInception: Date = new Date(),
   ): RrsigRecord {
@@ -82,7 +80,7 @@ export class ZoneSigner {
       setMilliseconds(signatureInception, 0),
       this.privateKey,
       this.zoneName,
-      this.keyTag,
+      keyTag,
       this.algorithm,
     );
     const record = new Record(

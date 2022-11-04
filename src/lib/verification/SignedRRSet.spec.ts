@@ -14,6 +14,7 @@ describe('SignedRRSet', () => {
   });
 
   describe('initFromRecords', () => {
+    const STUB_KEY_TAG = 12345;
     const RRSIG_EXPIRY = addMinutes(setMilliseconds(new Date(), 0), 1);
 
     test('Empty RRSIGs should be allowed', () => {
@@ -24,7 +25,7 @@ describe('SignedRRSet', () => {
 
     test('Malformed RRSig should be refused', () => {
       const rrset = new RRSet([RECORD]);
-      const rrsig = signer.generateRrsig(rrset, RRSIG_EXPIRY);
+      const rrsig = signer.generateRrsig(rrset, STUB_KEY_TAG, RRSIG_EXPIRY);
       const malformedRrsigRecord = rrsig.record.shallowCopy({ dataSerialised: Buffer.alloc(2) });
 
       expect(() => SignedRRSet.initFromRecords([RECORD, malformedRrsigRecord])).toThrowWithMessage(
@@ -35,7 +36,11 @@ describe('SignedRRSet', () => {
 
     test('RRSIG for different owner should be ignored', async () => {
       const differentRecord = RECORD.shallowCopy({ name: `not-${RECORD.name}` });
-      const differentRrsig = signer.generateRrsig(new RRSet([differentRecord]), RRSIG_EXPIRY);
+      const differentRrsig = signer.generateRrsig(
+        new RRSet([differentRecord]),
+        STUB_KEY_TAG,
+        RRSIG_EXPIRY,
+      );
 
       const signedRrset = SignedRRSet.initFromRecords([RECORD, differentRrsig.record]);
 
@@ -43,7 +48,7 @@ describe('SignedRRSet', () => {
     });
 
     test('RRSIG for different class should be ignored', async () => {
-      const rrsig = signer.generateRrsig(new RRSet([RECORD]), RRSIG_EXPIRY);
+      const rrsig = signer.generateRrsig(new RRSet([RECORD]), STUB_KEY_TAG, RRSIG_EXPIRY);
       const differentRrsigRecord = rrsig.record.shallowCopy({ class: 'foobar' as any });
 
       const signedRrset = SignedRRSet.initFromRecords([RECORD, differentRrsigRecord]);
@@ -53,7 +58,11 @@ describe('SignedRRSet', () => {
 
     test('RRSIG with mismatching type field should be accepted', async () => {
       const differentRecord = RECORD.shallowCopy({ type: RECORD.type + 1 });
-      const differentRrsig = signer.generateRrsig(new RRSet([differentRecord]), RRSIG_EXPIRY);
+      const differentRrsig = signer.generateRrsig(
+        new RRSet([differentRecord]),
+        STUB_KEY_TAG,
+        RRSIG_EXPIRY,
+      );
 
       const signedRrset = SignedRRSet.initFromRecords([RECORD, differentRrsig.record]);
 
@@ -62,7 +71,11 @@ describe('SignedRRSet', () => {
 
     test('RRSIG with mismatching TTL should be accepted', async () => {
       const differentRecord = RECORD.shallowCopy({ ttl: RECORD.ttl + 1 });
-      const differentRrsig = signer.generateRrsig(new RRSet([differentRecord]), RRSIG_EXPIRY);
+      const differentRrsig = signer.generateRrsig(
+        new RRSet([differentRecord]),
+        STUB_KEY_TAG,
+        RRSIG_EXPIRY,
+      );
 
       const signedRrset = SignedRRSet.initFromRecords([RECORD, differentRrsig.record]);
 
@@ -71,7 +84,7 @@ describe('SignedRRSet', () => {
 
     test('Valid records should be split into RRSet and RRSig', () => {
       const rrset = new RRSet([RECORD]);
-      const rrsig = signer.generateRrsig(rrset, RRSIG_EXPIRY);
+      const rrsig = signer.generateRrsig(rrset, STUB_KEY_TAG, RRSIG_EXPIRY);
 
       const signedRrset = SignedRRSet.initFromRecords([RECORD, rrsig.record]);
 
