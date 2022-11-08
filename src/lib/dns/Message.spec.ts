@@ -13,15 +13,12 @@ import { Record } from './Record';
 import { DNSClass } from './DNSClass';
 import {
   RECORD,
-  RECORD_CLASS,
   RECORD_CLASS_STR,
   RECORD_DATA,
   RECORD_DATA_TXT_DATA,
   RECORD_NAME,
-  RECORD_TTL,
-  RECORD_TYPE,
-  RECORD_TYPE_ID,
-} from '../../testUtils/stubs';
+  RECORD_TYPE_STR,
+} from '../../testUtils/dnsStubs';
 import { Header } from './Header';
 import { RCode } from './RCode';
 
@@ -131,9 +128,9 @@ describe('Message', () => {
         const answers = decode(serialisation).answers;
         expect(answers).toHaveLength(1);
         expect(answers![0].name).toEqual(RECORD_NAME.replace(/\.$/, ''));
-        expect(answers![0].type).toEqual(RECORD_TYPE);
+        expect(answers![0].type).toEqual(RECORD_TYPE_STR);
         expect(answers![0].class).toEqual('IN');
-        expect(answers![0].ttl).toEqual(RECORD_TTL);
+        expect(answers![0].ttl).toEqual(RECORD.ttl);
         expect(answers![0].data).toHaveLength(1);
         expect((answers![0].data as TxtData)[0]).toEqual(RECORD_DATA_TXT_DATA);
       });
@@ -142,13 +139,7 @@ describe('Message', () => {
         const answer2Rdata = Buffer.alloc(2);
         answer2Rdata.writeUInt8(1);
         answer2Rdata.writeUInt8(42, 1);
-        const answer2 = new Record(
-          RECORD_NAME,
-          RECORD_TYPE_ID,
-          DNSClass.IN,
-          RECORD_TTL,
-          answer2Rdata,
-        );
+        const answer2 = RECORD.shallowCopy({ dataSerialised: answer2Rdata });
         const message = new Message(STUB_HEADER, [RECORD, answer2]);
 
         const serialisation = message.serialise();
@@ -183,10 +174,10 @@ describe('Message', () => {
 
   describe('deserialise', () => {
     const record: DPAnswer = {
-      type: RECORD_TYPE,
+      type: RECORD_TYPE_STR,
       class: RECORD_CLASS_STR,
-      name: RECORD_NAME,
-      ttl: RECORD_TTL,
+      name: RECORD.name,
+      ttl: RECORD.ttl,
       data: RECORD_DATA.toString(),
     };
 
@@ -225,10 +216,10 @@ describe('Message', () => {
 
         expect(message.answers).toHaveLength(1);
         expect(message.answers[0]).toMatchObject<Partial<Record>>({
-          name: RECORD_NAME,
-          type: RECORD_TYPE_ID,
-          class_: RECORD_CLASS,
-          ttl: RECORD_TTL,
+          name: RECORD.name,
+          type: RECORD.type,
+          class_: RECORD.class_,
+          ttl: RECORD.ttl,
         });
         expect(Buffer.from(message.answers[0].dataSerialised)).toEqual(RECORD_DATA);
       });
@@ -238,7 +229,7 @@ describe('Message', () => {
           data: 'foo',
           name: 'foo.example.com.',
           type: 'TXT',
-          ttl: RECORD_TTL,
+          ttl: RECORD.ttl,
         };
         const messageSerialised = encode({
           type: 'response',
@@ -249,10 +240,10 @@ describe('Message', () => {
 
         expect(message.answers).toHaveLength(2);
         expect(message.answers[0]).toMatchObject<Partial<Record>>({
-          name: RECORD_NAME,
-          type: RECORD_TYPE_ID,
+          name: RECORD.name,
+          type: RECORD.type,
           class_: DNSClass.IN,
-          ttl: RECORD_TTL,
+          ttl: RECORD.ttl,
         });
         expect(Buffer.from(message.answers[0].dataSerialised)).toEqual(RECORD_DATA);
         expect(message.answers[1]).toMatchObject<Partial<Record>>({
@@ -267,7 +258,11 @@ describe('Message', () => {
       });
 
       test('Questions should be ignored', () => {
-        const question: Question = { type: RECORD_TYPE, class: 'IN', name: `not-${RECORD_NAME}` };
+        const question: Question = {
+          type: RECORD_TYPE_STR,
+          class: 'IN',
+          name: `not-${RECORD_NAME}`,
+        };
         const messageSerialised = encode({
           type: 'response',
           answers: [record],

@@ -8,7 +8,6 @@ import { InvalidRdataError } from '../errors';
 import { DnssecRecordData } from './DnssecRecordData';
 import { RRSet } from '../dns/RRSet';
 import { getNodejsHashAlgorithmFromDnssecAlgo } from '../signing/utils';
-import { SecurityStatus } from '../verification/SecurityStatus';
 
 const PARSER = new Parser()
   .endianness('big')
@@ -111,25 +110,20 @@ export class RrsigData implements DnssecRecordData {
     return serialisation;
   }
 
-  public verifyRrset(rrset: RRSet): SecurityStatus {
-    const parentZoneName = getParentZoneName(rrset.name);
-    if (parentZoneName !== this.signerName) {
-      return SecurityStatus.BOGUS;
+  public verifyRrset(rrset: RRSet): boolean {
+    if (rrset.name !== this.signerName) {
+      return false;
     }
 
     if (rrset.type !== this.type) {
-      return SecurityStatus.BOGUS;
+      return false;
     }
 
     if (rrset.ttl !== this.ttl) {
-      return SecurityStatus.BOGUS;
+      return false;
     }
 
-    if (this.labels < countLabels(rrset.name)) {
-      return SecurityStatus.BOGUS;
-    }
-
-    return SecurityStatus.SECURE;
+    return countLabels(rrset.name) <= this.labels;
   }
 }
 
@@ -167,9 +161,4 @@ function countLabels(name: string): number {
   const nameWithoutTrailingDot = name.replace(/\.$/, '');
   const labels = nameWithoutTrailingDot.split('.').filter((label) => label !== '*');
   return labels.length;
-}
-
-function getParentZoneName(name: string): string {
-  const parent = name.replace(/^[^.]+\./, '');
-  return parent === '' ? '.' : parent;
 }

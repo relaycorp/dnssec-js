@@ -1,6 +1,6 @@
 import { name as NAME } from '@leichtgewicht/dns-packet';
 
-import { RECORD_NAME } from '../../testUtils/stubs';
+import { RECORD_NAME } from '../../testUtils/dnsStubs';
 import { serialiseName } from './name';
 
 describe('serialiseName', () => {

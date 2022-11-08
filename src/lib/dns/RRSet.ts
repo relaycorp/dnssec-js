@@ -1,43 +1,41 @@
 import { Record } from './Record';
 import { RRSetError } from '../errors';
 import { DNSClass } from './DNSClass';
+import { Question } from './Question';
 
 /**
  * A set of Resource Records (aka `RRset`).
  */
 export class RRSet {
-  public readonly name: string;
-  public readonly class_: DNSClass;
-  public readonly type: number;
-  public readonly ttl: number;
+  /**
+   * Return the RRset for the subset of `records` that match the `question`.
+   *
+   * @param question
+   * @param records
+   */
+  public static init(question: Question, records: readonly Record[]): RRSet {
+    const matchingRecords = records.filter(
+      (r) => r.name === question.name && r.class_ === question.class && r.type === question.type,
+    );
 
-  constructor(public readonly records: readonly Record[]) {
-    if (records.length === 0) {
-      throw new RRSetError('At least one record should be specified');
+    if (matchingRecords.length === 0) {
+      throw new RRSetError('At least one matching record should be specified');
     }
 
-    const [firstRecord, ...remainingRecords] = records;
-
-    for (const record of remainingRecords) {
-      if (record.name !== firstRecord.name) {
-        throw new RRSetError(`Record names don't match (${firstRecord.name}, ${record.name})`);
-      }
-      if (record.class_ !== firstRecord.class_) {
-        throw new RRSetError(
-          `Record classes don't match (${firstRecord.class_}, ${record.class_})`,
-        );
-      }
-      if (record.type !== firstRecord.type) {
-        throw new RRSetError(`Record types don't match (${firstRecord.type}, ${record.type})`);
-      }
-      if (record.ttl !== firstRecord.ttl) {
-        throw new RRSetError(`Record TTLs don't match (${firstRecord.ttl}, ${record.ttl})`);
-      }
+    const ttl = records[0].ttl;
+    const mismatchingTtlRecord = matchingRecords.find((r) => r.ttl !== ttl);
+    if (mismatchingTtlRecord) {
+      throw new RRSetError(`Record TTLs don't match (${ttl}, ${mismatchingTtlRecord.ttl})`);
     }
 
-    this.name = firstRecord.name;
-    this.type = firstRecord.type;
-    this.class_ = firstRecord.class_;
-    this.ttl = firstRecord.ttl;
+    return new RRSet(question.name, question.class, question.type, ttl, matchingRecords);
   }
+
+  protected constructor(
+    public readonly name: string,
+    public readonly class_: DNSClass,
+    public readonly type: number,
+    public readonly ttl: number,
+    public readonly records: readonly Record[],
+  ) {}
 }

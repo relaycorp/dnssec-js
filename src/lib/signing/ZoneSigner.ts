@@ -74,12 +74,15 @@ export class ZoneSigner {
     signatureExpiry: Date,
     signatureInception: Date = new Date(),
   ): RrsigRecord {
+    if (!this.isSameOrChildZone(rrset.name)) {
+      throw new Error(`RRset for ${rrset.name} isn't a child of ${this.zoneName}`);
+    }
     const data = RrsigData.generate(
       rrset,
       setMilliseconds(signatureExpiry, 0),
       setMilliseconds(signatureInception, 0),
       this.privateKey,
-      this.zoneName,
+      rrset.name,
       keyTag,
       this.algorithm,
     );
@@ -91,5 +94,15 @@ export class ZoneSigner {
       data.serialise(),
     );
     return { record, data };
+  }
+
+  private isSameOrChildZone(zoneName: string): boolean {
+    if (zoneName === this.zoneName) {
+      return true;
+    }
+    if (this.zoneName === '.') {
+      return true;
+    }
+    return zoneName.endsWith(`.${this.zoneName}`);
   }
 }

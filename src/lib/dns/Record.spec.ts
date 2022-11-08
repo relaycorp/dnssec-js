@@ -1,6 +1,11 @@
 import { answer as ANSWER, TxtAnswer } from '@leichtgewicht/dns-packet';
 
-import { RECORD, RECORD_CLASS_STR, RECORD_DATA_TXT_DATA, RECORD_TYPE } from '../../testUtils/stubs';
+import {
+  RECORD,
+  RECORD_CLASS_STR,
+  RECORD_DATA_TXT_DATA,
+  RECORD_TYPE_STR,
+} from '../../testUtils/dnsStubs';
 
 describe('Record', () => {
   describe('serialise', () => {
@@ -15,7 +20,7 @@ describe('Record', () => {
     test('Record type should be serialised', () => {
       const serialisation = RECORD.serialise();
 
-      expect(ANSWER.decode(serialisation)).toHaveProperty('type', RECORD_TYPE);
+      expect(ANSWER.decode(serialisation)).toHaveProperty('type', RECORD_TYPE_STR);
     });
 
     test('Record class should be serialised', () => {

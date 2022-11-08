@@ -5,7 +5,6 @@ import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { DnskeyFlags } from '../DnskeyFlags';
 import { InvalidRdataError } from '../errors';
 import { DnssecRecordData } from './DnssecRecordData';
-import { SecurityStatus } from '../verification/SecurityStatus';
 import { RrsigData } from './RrsigData';
 import { deserialisePublicKey, serialisePublicKey } from '../utils/keySerialisation';
 
@@ -30,7 +29,14 @@ export class DnskeyData implements DnssecRecordData {
       zoneKey: !!parsingResult.zoneKey,
       secureEntryPoint: !!parsingResult.secureEntryPoint,
     };
-    return new DnskeyData(publicKey, parsingResult.protocol, parsingResult.algorithm, flags);
+    const keyTag = calculateKeyTag(serialisation);
+    return new DnskeyData(
+      publicKey,
+      parsingResult.protocol,
+      parsingResult.algorithm,
+      flags,
+      keyTag,
+    );
   }
 
   constructor(
@@ -38,6 +44,7 @@ export class DnskeyData implements DnssecRecordData {
     public readonly protocol: number,
     public readonly algorithm: DnssecAlgorithm,
     public readonly flags: DnskeyFlags,
+    public readonly keyTag: number | null = null,
   ) {}
 
   public serialise(): Buffer {
@@ -59,37 +66,46 @@ export class DnskeyData implements DnssecRecordData {
     return data;
   }
 
-  /**
-   * Return key tag for DNSKEY.
-   *
-   * RFC 4034 requires using one of two algorithms depending on the DNSSEC crypto algorithm used,
-   * but since one of them is for Algorithm 1 (RSA/MD5) -- which we don't support on purpose --
-   * we're only supporting one key tag algorithm.
-   */
   public calculateKeyTag(): number {
-    // Algorithm pretty much copy/pasted from https://www.rfc-editor.org/rfc/rfc4034#appendix-B
-    const rdata = this.serialise();
-    let accumulator = 0;
-    for (let index = 0; index < rdata.byteLength; ++index) {
-      accumulator += index & 1 ? rdata[index] : rdata[index] << 8;
+    if (this.keyTag !== null) {
+      return this.keyTag;
     }
-    accumulator += (accumulator >> 16) & 0xffff;
-    return accumulator & 0xffff;
+    // We should probably cache the calculation, but that'd only help in situations where we're
+    // *generating* DNSKEYs (e.g., in test suites).
+    const rdata = this.serialise();
+    return calculateKeyTag(rdata);
   }
 
-  public verifyRrsig(rrsigData: RrsigData, referenceDate: Date): SecurityStatus {
+  public verifyRrsig(rrsigData: RrsigData, referenceDate: Date): boolean {
+    if (this.calculateKeyTag() !== rrsigData.keyTag) {
+      return false;
+    }
+
     if (this.algorithm !== rrsigData.algorithm) {
-      return SecurityStatus.BOGUS;
+      return false;
     }
 
     if (rrsigData.signatureExpiry < referenceDate) {
-      return SecurityStatus.BOGUS;
+      return false;
     }
 
-    if (referenceDate < rrsigData.signatureInception) {
-      return SecurityStatus.BOGUS;
-    }
-
-    return SecurityStatus.SECURE;
+    return referenceDate >= rrsigData.signatureInception;
   }
+}
+
+/**
+ * Return key tag for DNSKEY.
+ *
+ * RFC 4034 (Appendix B) requires using one of two algorithms depending on the DNSSEC crypto
+ * algorithm used, but since one of them is for Algorithm 1 (RSA/MD5) -- which we won't
+ * support -- we're only supporting one key tag algorithm.
+ */
+function calculateKeyTag(rdata: Buffer) {
+  // Algorithm pretty much copy/pasted from https://www.rfc-editor.org/rfc/rfc4034#appendix-B
+  let accumulator = 0;
+  for (let index = 0; index < rdata.byteLength; ++index) {
+    accumulator += index & 1 ? rdata[index] : rdata[index] << 8;
+  }
+  accumulator += (accumulator >> 16) & 0xffff;
+  return accumulator & 0xffff;
 }

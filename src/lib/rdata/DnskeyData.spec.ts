@@ -4,8 +4,7 @@ import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { ZoneSigner } from '../signing/ZoneSigner';
 import { DnskeyData } from './DnskeyData';
 import { InvalidRdataError } from '../errors';
-import { RECORD, RECORD_TLD } from '../../testUtils/stubs';
-import { SecurityStatus } from '../verification/SecurityStatus';
+import { QUESTION, RECORD, RECORD_TLD } from '../../testUtils/dnsStubs';
 import { RRSet } from '../dns/RRSet';
 import { DNSSEC_ROOT_DNSKEY_DATA, DNSSEC_ROOT_DNSKEY_KEY_TAG } from '../../testUtils/dnssec';
 
@@ -91,18 +90,40 @@ describe('DnskeyData', () => {
         expect(data.flags.secureEntryPoint).toBeFalse();
       });
     });
+
+    test('Key tag should be cached', () => {
+      const record = tldSigner.generateDnskey(0, { secureEntryPoint: false }).record;
+
+      const data = DnskeyData.deserialise(record.dataSerialised);
+
+      expect(data.keyTag).not.toBeNull();
+    });
   });
 
   describe('calculateKeyTag', () => {
     test('Key tag should be calculated using algorithm in RFC 4034, Appendix B', () => {
+      expect(DNSSEC_ROOT_DNSKEY_DATA.keyTag).toBeNull(); // Ensure it'll actually be calculated
       const keyTag = DNSSEC_ROOT_DNSKEY_DATA.calculateKeyTag();
 
       expect(keyTag).toEqual(DNSSEC_ROOT_DNSKEY_KEY_TAG);
     });
+
+    test('Any value set at construction time should be honoured', () => {
+      const customKeyTag = DNSSEC_ROOT_DNSKEY_DATA.calculateKeyTag() + 1;
+      const dnskeyData = new DnskeyData(
+        DNSSEC_ROOT_DNSKEY_DATA.publicKey,
+        DNSSEC_ROOT_DNSKEY_DATA.protocol,
+        DNSSEC_ROOT_DNSKEY_DATA.algorithm,
+        DNSSEC_ROOT_DNSKEY_DATA.flags,
+        customKeyTag,
+      );
+
+      expect(dnskeyData.calculateKeyTag()).toEqual(customKeyTag);
+    });
   });
 
   describe('verifyRrsig', () => {
-    const rrset = new RRSet([RECORD]);
+    const rrset = RRSet.init(QUESTION, [RECORD]);
 
     let dnskeyData: DnskeyData;
     beforeAll(() => {
@@ -126,7 +147,19 @@ describe('DnskeyData', () => {
         signatureInception,
       );
 
-      expect(dnskeyData.verifyRrsig(rrsigData, now)).toEqual(SecurityStatus.BOGUS);
+      expect(dnskeyData.verifyRrsig(rrsigData, now)).toBeFalse();
+    });
+
+    test('Key tag should match', async () => {
+      const differentKeyTag = dnskeyData.calculateKeyTag() + 1;
+      const { data: rrsigData } = tldSigner.generateRrsig(
+        rrset,
+        differentKeyTag,
+        now,
+        signatureInception,
+      );
+
+      expect(dnskeyData.verifyRrsig(rrsigData, now)).toBeFalse();
     });
 
     describe('Validity period', () => {
@@ -138,7 +171,7 @@ describe('DnskeyData', () => {
           signatureInception,
         );
 
-        expect(dnskeyData.verifyRrsig(rrsigData, now)).toEqual(SecurityStatus.SECURE);
+        expect(dnskeyData.verifyRrsig(rrsigData, now)).toBeTrue();
       });
 
       test('Expiry date later than current time should be SECURE', () => {
@@ -149,7 +182,7 @@ describe('DnskeyData', () => {
           signatureInception,
         );
 
-        expect(dnskeyData.verifyRrsig(rrsigData, now)).toEqual(SecurityStatus.SECURE);
+        expect(dnskeyData.verifyRrsig(rrsigData, now)).toBeTrue();
       });
 
       test('Expiry date earlier than current time should be BOGUS', () => {
@@ -160,7 +193,7 @@ describe('DnskeyData', () => {
           signatureInception,
         );
 
-        expect(dnskeyData.verifyRrsig(rrsigData, now)).toEqual(SecurityStatus.BOGUS);
+        expect(dnskeyData.verifyRrsig(rrsigData, now)).toBeFalse();
       });
 
       test('Inception date equal to current time should be SECURE', () => {
@@ -171,7 +204,7 @@ describe('DnskeyData', () => {
           now,
         );
 
-        expect(dnskeyData.verifyRrsig(rrsigData, now)).toEqual(SecurityStatus.SECURE);
+        expect(dnskeyData.verifyRrsig(rrsigData, now)).toBeTrue();
       });
 
       test('Inception date earlier than current time should be SECURE', () => {
@@ -182,7 +215,7 @@ describe('DnskeyData', () => {
           subSeconds(now, 1),
         );
 
-        expect(dnskeyData.verifyRrsig(rrsigData, now)).toEqual(SecurityStatus.SECURE);
+        expect(dnskeyData.verifyRrsig(rrsigData, now)).toBeTrue();
       });
 
       test('Inception date later than current time should be BOGUS', () => {
@@ -193,7 +226,7 @@ describe('DnskeyData', () => {
           addSeconds(now, 1),
         );
 
-        expect(dnskeyData.verifyRrsig(rrsigData, now)).toEqual(SecurityStatus.BOGUS);
+        expect(dnskeyData.verifyRrsig(rrsigData, now)).toBeFalse();
       });
     });
 
@@ -205,7 +238,7 @@ describe('DnskeyData', () => {
         signatureInception,
       );
 
-      expect(dnskeyData.verifyRrsig(rrsigData, now)).toEqual(SecurityStatus.SECURE);
+      expect(dnskeyData.verifyRrsig(rrsigData, now)).toBeTrue();
     });
   });
 });

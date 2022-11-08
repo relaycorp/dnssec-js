@@ -5,14 +5,7 @@ import { ZoneSigner } from './ZoneSigner';
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { DigestType } from '../DigestType';
 import { RRSet } from '../dns/RRSet';
-import {
-  RECORD_CLASS,
-  RECORD_DATA,
-  RECORD_TTL,
-  RECORD_TYPE,
-  RECORD_TYPE_ID,
-} from '../../testUtils/stubs';
-import { Record } from '../dns/Record';
+import { QUESTION, RECORD, RECORD_TYPE_STR } from '../../testUtils/dnsStubs';
 import { generateDigest } from '../utils/crypto';
 import { serialiseName } from '../dns/name';
 
@@ -51,8 +44,8 @@ describe('ZoneSigner', () => {
     const dnssecAlgorithm = DnssecAlgorithm.RSASHA256;
     const signer = await ZoneSigner.generate(dnssecAlgorithm, '.');
     const recordName = 'com.';
-    const rrset = new RRSet([
-      new Record(recordName, RECORD_TYPE_ID, RECORD_CLASS, RECORD_TTL, RECORD_DATA),
+    const rrset = RRSet.init({ ...QUESTION, name: recordName }, [
+      RECORD.shallowCopy({ name: recordName }),
     ]);
     const signatureExpiry = setMilliseconds(addHours(new Date(), 3), 5);
     const signatureInception = setMilliseconds(new Date(), 5);
@@ -62,14 +55,14 @@ describe('ZoneSigner', () => {
 
     const rdata = lengthPrefixRdata(rrsig.record.dataSerialised);
     const parsed = RRSIG.decode(rdata);
-    expect(parsed.typeCovered).toEqual(RECORD_TYPE);
+    expect(parsed.typeCovered).toEqual(RECORD_TYPE_STR);
     expect(parsed.algorithm).toEqual(dnssecAlgorithm);
     expect(parsed.labels).toEqual(1);
     expect(parsed.originalTTL).toEqual(rrset.ttl);
     expect(parsed.expiration).toEqual(getUnixTime(setMilliseconds(signatureExpiry, 0)));
     expect(parsed.inception).toEqual(getUnixTime(setMilliseconds(signatureInception, 0)));
     expect(parsed.keyTag).toEqual(keyTag);
-    expect(parsed.signersName).toEqual(signer.zoneName);
+    expect(`${parsed.signersName}.`).toEqual(recordName);
   });
 
   test('generateRrsig with ED448', async () => {
@@ -77,8 +70,8 @@ describe('ZoneSigner', () => {
     const signer = await ZoneSigner.generate(dnssecAlgorithm, '.');
     const recordName = 'com.';
 
-    const rrset = new RRSet([
-      new Record(recordName, RECORD_TYPE_ID, RECORD_CLASS, RECORD_TTL, RECORD_DATA),
+    const rrset = RRSet.init({ ...QUESTION, name: recordName }, [
+      RECORD.shallowCopy({ name: recordName }),
     ]);
 
     const rrsig = signer.generateRrsig(rrset, 42, addHours(new Date(), 3));

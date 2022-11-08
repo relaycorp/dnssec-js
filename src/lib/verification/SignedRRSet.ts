@@ -1,17 +1,18 @@
 import { RRSet } from '../dns/RRSet';
 import { Record } from '../dns/Record';
-import { RrsigRecord } from '../dnssecRecords';
+import { DnskeyRecord, RrsigRecord } from '../dnssecRecords';
 import { DnssecValidationError } from '../errors';
 import { DnssecRecordType } from '../DnssecRecordType';
 import { RrsigData } from '../rdata/RrsigData';
+import { Question } from '../dns/Question';
 
 /**
  * RRSet with one or more corresponding RRSigs.
  */
 export class SignedRRSet {
-  static initFromRecords(records: readonly Record[]): SignedRRSet {
+  static initFromRecords(question: Question, records: readonly Record[]): SignedRRSet {
     const rrsetRecords = records.filter((r) => r.type !== DnssecRecordType.RRSIG);
-    const rrset = new RRSet(rrsetRecords);
+    const rrset = RRSet.init(question, rrsetRecords);
 
     const rrsigRecords = records
       .filter(
@@ -37,4 +38,15 @@ export class SignedRRSet {
     public readonly rrset: RRSet,
     public readonly rrsigs: readonly RrsigRecord[],
   ) {}
+
+  public verify(dnsKeys: readonly DnskeyRecord[], referenceDate: Date): boolean {
+    const validRrsigs = this.rrsigs.filter((rrsig) =>
+      dnsKeys.some(
+        (dnskey) =>
+          dnskey.data.verifyRrsig(rrsig.data, referenceDate) &&
+          dnskey.record.name === rrsig.record.name,
+      ),
+    );
+    return validRrsigs.some((rrsig) => rrsig.data.verifyRrset(this.rrset));
+  }
 }

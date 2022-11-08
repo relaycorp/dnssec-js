@@ -62,7 +62,7 @@ export class DsData implements DnssecRecordData {
   }
 
   /**
-   * Verify that the `key` corresponds to the current DS data.
+   * Verify that the `key` is a ZSK and corresponds to the current DS data and.
    *
    * @param key
    */
