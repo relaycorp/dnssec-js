@@ -9,6 +9,9 @@ import { DnskeyRecord } from '../dnssecRecords';
 import { SignedRRSet } from './SignedRRSet';
 import { DNSClass } from '../dns/DNSClass';
 
+/**
+ * A secure zone (in DNSSEC terms).
+ */
 export class Zone {
   /**
    * Initialise zone.
@@ -39,16 +42,16 @@ export class Zone {
       dnskeyMessage.answers,
     );
 
-    let parsedDnskeys: readonly DnskeyRecord[];
+    let dnskeys: readonly DnskeyRecord[];
     try {
-      parsedDnskeys = dnskeySignedRrset.rrset.records.map((record) => ({
+      dnskeys = dnskeySignedRrset.rrset.records.map((record) => ({
         data: DnskeyData.deserialise(record.dataSerialised),
         record,
       }));
     } catch (_) {
       return { status: SecurityStatus.BOGUS, reasonChain: ['Found malformed DNSKEY'] };
     }
-    const zskDnskeys = parsedDnskeys.filter((k) => dsData.some((ds) => ds.verifyDnskey(k)));
+    const zskDnskeys = dnskeys.filter((k) => dsData.some((ds) => ds.verifyDnskey(k)));
 
     if (zskDnskeys.length === 0) {
       return { status: SecurityStatus.BOGUS, reasonChain: ['No DNSKEY matched specified DS(s)'] };
@@ -62,7 +65,7 @@ export class Zone {
       status: SecurityStatus.SECURE,
       result: new Zone(
         zoneName,
-        parsedDnskeys.map((r) => r.data),
+        dnskeys.map((r) => r.data),
       ),
     };
   }
