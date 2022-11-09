@@ -1,14 +1,13 @@
 import { addSeconds, setMilliseconds, subSeconds } from 'date-fns';
 
 import { SignedRRSet } from './SignedRRSet';
-import { QUESTION, RECORD } from '../../testUtils/dnsStubs';
+import { QUESTION, RECORD, RRSET } from '../../testUtils/dnsStubs';
 import { ZoneSigner } from '../signing/ZoneSigner';
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { RRSet } from '../dns/RRSet';
 import { DnskeyRecord } from '../dnssecRecords';
 
 describe('SignedRRSet', () => {
-  const RRSET = RRSet.init(QUESTION, [RECORD]);
   const RRSIG_EXPIRY = addSeconds(setMilliseconds(new Date(), 0), 60);
 
   let signer: ZoneSigner;
@@ -47,11 +46,7 @@ describe('SignedRRSet', () => {
     });
 
     test('RRSIG for different class should be ignored', async () => {
-      const rrsig = signer.generateRrsig(
-        RRSet.init(QUESTION, [RECORD]),
-        STUB_KEY_TAG,
-        RRSIG_EXPIRY,
-      );
+      const rrsig = signer.generateRrsig(RRSET, STUB_KEY_TAG, RRSIG_EXPIRY);
       const differentRrsigRecord = rrsig.record.shallowCopy({ class: 'foobar' as any });
 
       const signedRrset = SignedRRSet.initFromRecords(QUESTION, [RECORD, differentRrsigRecord]);

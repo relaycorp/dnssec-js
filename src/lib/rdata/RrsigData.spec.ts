@@ -6,7 +6,7 @@ import { RrsigData } from './RrsigData';
 import { InvalidRdataError } from '../errors';
 import { serialiseName } from '../dns/name';
 import { RRSet } from '../dns/RRSet';
-import { QUESTION, RECORD } from '../../testUtils/dnsStubs';
+import { QUESTION, RECORD, RRSET } from '../../testUtils/dnsStubs';
 
 describe('RrsigData', () => {
   const ALGORITHM = DnssecAlgorithm.RSASHA256;
@@ -19,8 +19,6 @@ describe('RrsigData', () => {
   beforeAll(async () => {
     signer = await ZoneSigner.generate(ALGORITHM, RECORD.name);
   });
-
-  const RRSET = RRSet.init(QUESTION, [RECORD]);
 
   describe('deserialise', () => {
     test('Malformed value should be refused', () => {

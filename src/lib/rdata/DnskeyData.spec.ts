@@ -4,8 +4,7 @@ import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { ZoneSigner } from '../signing/ZoneSigner';
 import { DnskeyData } from './DnskeyData';
 import { InvalidRdataError } from '../errors';
-import { QUESTION, RECORD, RECORD_TLD } from '../../testUtils/dnsStubs';
-import { RRSet } from '../dns/RRSet';
+import { RECORD_TLD, RRSET } from '../../testUtils/dnsStubs';
 import { DNSSEC_ROOT_DNSKEY_DATA, DNSSEC_ROOT_DNSKEY_KEY_TAG } from '../../testUtils/dnssec';
 
 describe('DnskeyData', () => {
@@ -123,8 +122,6 @@ describe('DnskeyData', () => {
   });
 
   describe('verifyRrsig', () => {
-    const rrset = RRSet.init(QUESTION, [RECORD]);
-
     let dnskeyData: DnskeyData;
     beforeAll(() => {
       dnskeyData = tldSigner.generateDnskey(42).data;
@@ -141,7 +138,7 @@ describe('DnskeyData', () => {
         differentAlgorithm,
       );
       const { data: rrsigData } = differentTldSigner.generateRrsig(
-        rrset,
+        RRSET,
         dnskeyData.calculateKeyTag(),
         now,
         signatureInception,
@@ -153,7 +150,7 @@ describe('DnskeyData', () => {
     test('Key tag should match', async () => {
       const differentKeyTag = dnskeyData.calculateKeyTag() + 1;
       const { data: rrsigData } = tldSigner.generateRrsig(
-        rrset,
+        RRSET,
         differentKeyTag,
         now,
         signatureInception,
@@ -165,7 +162,7 @@ describe('DnskeyData', () => {
     describe('Validity period', () => {
       test('Expiry date equal to current time should be SECURE', () => {
         const { data: rrsigData } = tldSigner.generateRrsig(
-          rrset,
+          RRSET,
           dnskeyData.calculateKeyTag(),
           now,
           signatureInception,
@@ -176,7 +173,7 @@ describe('DnskeyData', () => {
 
       test('Expiry date later than current time should be SECURE', () => {
         const { data: rrsigData } = tldSigner.generateRrsig(
-          rrset,
+          RRSET,
           dnskeyData.calculateKeyTag(),
           addSeconds(now, 1),
           signatureInception,
@@ -187,7 +184,7 @@ describe('DnskeyData', () => {
 
       test('Expiry date earlier than current time should be BOGUS', () => {
         const { data: rrsigData } = tldSigner.generateRrsig(
-          rrset,
+          RRSET,
           dnskeyData.calculateKeyTag(),
           subSeconds(now, 1),
           signatureInception,
@@ -198,7 +195,7 @@ describe('DnskeyData', () => {
 
       test('Inception date equal to current time should be SECURE', () => {
         const { data: rrsigData } = tldSigner.generateRrsig(
-          rrset,
+          RRSET,
           dnskeyData.calculateKeyTag(),
           signatureExpiry,
           now,
@@ -209,7 +206,7 @@ describe('DnskeyData', () => {
 
       test('Inception date earlier than current time should be SECURE', () => {
         const { data: rrsigData } = tldSigner.generateRrsig(
-          rrset,
+          RRSET,
           dnskeyData.calculateKeyTag(),
           signatureExpiry,
           subSeconds(now, 1),
@@ -220,7 +217,7 @@ describe('DnskeyData', () => {
 
       test('Inception date later than current time should be BOGUS', () => {
         const { data: rrsigData } = tldSigner.generateRrsig(
-          rrset,
+          RRSET,
           dnskeyData.calculateKeyTag(),
           signatureExpiry,
           addSeconds(now, 1),
@@ -232,7 +229,7 @@ describe('DnskeyData', () => {
 
     test('Valid RRSIg should be SECURE', () => {
       const { data: rrsigData } = tldSigner.generateRrsig(
-        rrset,
+        RRSET,
         dnskeyData.calculateKeyTag(),
         signatureExpiry,
         signatureInception,

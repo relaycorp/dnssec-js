@@ -13,6 +13,15 @@ import { DnskeyData } from '../rdata/DnskeyData';
 import { DsData } from '../rdata/DsData';
 import { RrsigData } from '../rdata/RrsigData';
 import { DnskeyRecord, DsRecord, RrsigRecord } from '../dnssecRecords';
+import { Zone } from '../verification/Zone';
+import { RCode } from '../dns/RCode';
+import { Message } from '../dns/Message';
+import { SuccessfulResult } from '../verification/VerificationResult';
+
+interface ZoneGenerationOptions {
+  readonly parent: ZoneSigner;
+  readonly additionalDnskeys: readonly Record[];
+}
 
 export class ZoneSigner {
   public static async generate(algorithm: DnssecAlgorithm, zoneName: string): Promise<ZoneSigner> {
@@ -47,10 +56,14 @@ export class ZoneSigner {
 
   public generateDs(
     dnskey: DnskeyRecord,
-    childLabel: string,
+    childZoneName: string,
     ttl: number,
     digestType: DigestType = DigestType.SHA256,
   ): DsRecord {
+    const isRootZone = childZoneName === this.zoneName && this.zoneName === '.';
+    if (!isRootZone && !this.isChildZone(childZoneName)) {
+      throw new Error(`${childZoneName} isn't a child of ${this.zoneName}`);
+    }
     const digest = DsData.calculateDnskeyDigest(dnskey, digestType);
     const data = new DsData(
       dnskey.data.calculateKeyTag(),
@@ -59,7 +72,7 @@ export class ZoneSigner {
       digest,
     );
     const record = new Record(
-      this.zoneName === '.' ? childLabel : `${childLabel}${this.zoneName}`,
+      childZoneName,
       DnssecRecordType.DS,
       DNSClass.IN,
       ttl,
@@ -74,7 +87,7 @@ export class ZoneSigner {
     signatureExpiry: Date,
     signatureInception: Date = new Date(),
   ): RrsigRecord {
-    if (!this.isSameOrChildZone(rrset.name)) {
+    if (rrset.name !== this.zoneName && !this.isChildZone(rrset.name)) {
       throw new Error(`RRset for ${rrset.name} isn't a child of ${this.zoneName}`);
     }
     const data = RrsigData.generate(
@@ -96,10 +109,27 @@ export class ZoneSigner {
     return { record, data };
   }
 
-  private isSameOrChildZone(zoneName: string): boolean {
-    if (zoneName === this.zoneName) {
-      return true;
-    }
+  public generateZone(rrsigExpiryDate: Date, options: Partial<ZoneGenerationOptions> = {}): Zone {
+    const dnskey = this.generateDnskey(42, { zoneKey: true });
+    const dnskeyRecords = [...(options.additionalDnskeys ?? []), dnskey.record];
+    const dnskeyRrsig = this.generateRrsig(
+      RRSet.init(
+        { class: DNSClass.IN, name: this.zoneName, type: DnssecRecordType.DNSKEY },
+        dnskeyRecords,
+      ),
+      dnskey.data.calculateKeyTag(),
+      rrsigExpiryDate,
+    );
+    const dnskeyMessage = new Message({ rcode: RCode.NoError }, [
+      ...dnskeyRecords,
+      dnskeyRrsig.record,
+    ]);
+    const ds = (options.parent ?? this).generateDs(dnskey, this.zoneName, 42);
+    const zoneResult = Zone.init(this.zoneName, dnskeyMessage, [ds.data], new Date());
+    return (zoneResult as SuccessfulResult<Zone>).result;
+  }
+
+  private isChildZone(zoneName: string): boolean {
     if (this.zoneName === '.') {
       return true;
     }

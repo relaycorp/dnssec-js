@@ -2,7 +2,7 @@ import { addSeconds } from 'date-fns';
 
 import { ZoneSigner } from '../signing/ZoneSigner';
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
-import { RECORD_TLD } from '../../testUtils/dnsStubs';
+import { QUESTION, RECORD, RECORD_TLD } from '../../testUtils/dnsStubs';
 import { Zone } from './Zone';
 import { Message } from '../dns/Message';
 import { SecurityStatus } from './SecurityStatus';
@@ -17,6 +17,7 @@ import { Question } from '../dns/Question';
 import { DNSClass } from '../dns/DNSClass';
 import { DnssecRecordType } from '../DnssecRecordType';
 import { RCode } from '../dns/RCode';
+import { SignedRRSet } from './SignedRRSet';
 
 describe('Zone', () => {
   const TLD_DNSKEY_QUESTION: Question = {
@@ -216,7 +217,7 @@ describe('Zone', () => {
       const zone = (result as SuccessfulResult<Zone>).result;
       expect(zone.name).toEqual(RECORD_TLD);
       expect(zone.dnskeys).toHaveLength(1);
-      expect(zone.dnskeys[0].calculateKeyTag()).toEqual(tldDnskey.data.calculateKeyTag());
+      expect(zone.dnskeys[0].record).toEqual(tldDnskey.record);
     });
 
     test('Other DNSKEYs should also be stored if a valid ZSK is found', async () => {
@@ -242,7 +243,7 @@ describe('Zone', () => {
 
       expect(result.status).toEqual(SecurityStatus.SECURE);
       const zone = (result as SuccessfulResult<Zone>).result;
-      const dnskeyTags = zone.dnskeys.map((k) => k.calculateKeyTag());
+      const dnskeyTags = zone.dnskeys.map((k) => k.data.calculateKeyTag());
       expect(dnskeyTags).toContainAllValues([
         tldDnskey.data.calculateKeyTag(),
         nonZskDnskey.data.calculateKeyTag(),
@@ -295,7 +296,7 @@ describe('Zone', () => {
 
       expect(result.status).toEqual(SecurityStatus.SECURE);
       const zone = (result as SuccessfulResult<Zone>).result;
-      const dnskeyTags = zone.dnskeys.map((k) => k.calculateKeyTag());
+      const dnskeyTags = zone.dnskeys.map((k) => k.data.calculateKeyTag());
       expect(dnskeyTags).toEqual([rootDnskey.data.calculateKeyTag()]);
     });
 
@@ -338,11 +339,58 @@ describe('Zone', () => {
     });
   });
 
-  // describe('verifyRrset', () => {
-  //   test.todo('RRSig signer name must match zone name');
-  //
-  //   test.todo('RRSig key tag should match a DNSKEY');
-  //
-  //   test.todo('Non-ZSK should be allowed to sign RRset');
-  // });
+  describe('verifyRrset', () => {
+    const STUB_QUESTION = { ...QUESTION, name: '.' };
+    const STUB_RRSET = RRSet.init(STUB_QUESTION, [RECORD.shallowCopy({ name: '.' })]);
+
+    test('Invalid SignedRRset should be refused as BOGUS', () => {
+      const zone = rootSigner.generateZone(addSeconds(new Date(), 60));
+      const rrsig = rootSigner.generateRrsig(
+        STUB_RRSET,
+        zone.dnskeys[0].data.calculateKeyTag(),
+        addSeconds(new Date(), 60),
+      );
+      const signedRrset = SignedRRSet.initFromRecords(STUB_QUESTION, [
+        ...STUB_RRSET.records,
+        rrsig.record,
+      ]);
+
+      expect(zone.verifyRrset(signedRrset, addSeconds(rrsig.data.signatureExpiry, 1))).toBeFalse();
+    });
+
+    test('ZSK should be allowed to sign RRset', () => {
+      const zone = rootSigner.generateZone(addSeconds(new Date(), 60));
+      const zskData = zone.dnskeys[0].data;
+      expect(zskData.flags.zoneKey).toBeTrue();
+      const rrsig = rootSigner.generateRrsig(
+        STUB_RRSET,
+        zskData.calculateKeyTag(),
+        addSeconds(new Date(), 60),
+      );
+      const signedRrset = SignedRRSet.initFromRecords(STUB_QUESTION, [
+        ...STUB_RRSET.records,
+        rrsig.record,
+      ]);
+
+      expect(zone.verifyRrset(signedRrset, new Date())).toBeTrue();
+    });
+
+    test('Non-ZSK should be allowed to sign RRset', () => {
+      const nonZsk = rootSigner.generateDnskey(42, { zoneKey: false });
+      const zone = rootSigner.generateZone(addSeconds(new Date(), 60), {
+        additionalDnskeys: [nonZsk.record],
+      });
+      const rrsig = rootSigner.generateRrsig(
+        STUB_RRSET,
+        nonZsk.data.calculateKeyTag(),
+        addSeconds(new Date(), 60),
+      );
+      const signedRrset = SignedRRSet.initFromRecords(STUB_QUESTION, [
+        ...STUB_RRSET.records,
+        rrsig.record,
+      ]);
+
+      expect(zone.verifyRrset(signedRrset, new Date())).toBeTrue();
+    });
+  });
 });

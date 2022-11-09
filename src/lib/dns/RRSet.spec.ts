@@ -1,5 +1,5 @@
 import { RRSet } from './RRSet';
-import { QUESTION, RECORD } from '../../testUtils/dnsStubs';
+import { QUESTION, RECORD, RRSET } from '../../testUtils/dnsStubs';
 import { RRSetError } from '../errors';
 import { DNSClass } from './DNSClass';
 
@@ -57,27 +57,19 @@ describe('RRSet', () => {
     });
 
     test('Name property should be set', () => {
-      const rrset = RRSet.init(QUESTION, [RECORD]);
-
-      expect(rrset.name).toEqual(RECORD.name);
+      expect(RRSET.name).toEqual(RECORD.name);
     });
 
     test('Class property should be set', () => {
-      const rrset = RRSet.init(QUESTION, [RECORD]);
-
-      expect(rrset.class_).toEqual(RECORD.class_);
+      expect(RRSET.class_).toEqual(RECORD.class_);
     });
 
     test('Type property should be set', () => {
-      const rrset = RRSet.init(QUESTION, [RECORD]);
-
-      expect(rrset.type).toEqual(RECORD.type);
+      expect(RRSET.type).toEqual(RECORD.type);
     });
 
     test('TTL property should be set', () => {
-      const rrset = RRSet.init(QUESTION, [RECORD]);
-
-      expect(rrset.ttl).toEqual(RECORD.ttl);
+      expect(RRSET.ttl).toEqual(RECORD.ttl);
     });
   });
 });

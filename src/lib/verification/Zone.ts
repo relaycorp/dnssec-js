@@ -63,10 +63,7 @@ export class Zone {
 
     return {
       status: SecurityStatus.SECURE,
-      result: new Zone(
-        zoneName,
-        dnskeys.map((r) => r.data),
-      ),
+      result: new Zone(zoneName, dnskeys),
     };
   }
 
@@ -80,14 +77,19 @@ export class Zone {
 
   protected constructor(
     public readonly name: string,
-    public readonly dnskeys: readonly DnskeyData[],
+    public readonly dnskeys: readonly DnskeyRecord[],
   ) {}
 
-  // public initChild(...): VerificationResult<Zone> {
+  // public initChild(
+  //   _zoneName: string,
+  //   _dnskeyMessage: Message,
+  //   _dsMessage: Message,
+  //   _referenceDate: Date,
+  // ): VerificationResult<Zone> {
   //   throw new Error('asd');
   // }
 
-  // public verifyRrset(_rrset: SignedRRSet): SecurityStatus {
-  //   throw new Error('asd');
-  // }
+  public verifyRrset(rrset: SignedRRSet, referenceDate: Date): boolean {
+    return rrset.verify(this.dnskeys, referenceDate);
+  }
 }

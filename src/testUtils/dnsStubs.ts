@@ -1,6 +1,7 @@
 import { DNSClass } from '../lib/dns/DNSClass';
 import { Record } from '../lib/dns/Record';
 import { Question } from '../lib/dns/Question';
+import { RRSet } from '../lib/dns/RRSet';
 
 export const RECORD_TLD = 'com.';
 
@@ -26,3 +27,5 @@ export const QUESTION: Question = {
   name: RECORD.name,
   type: RECORD.type,
 };
+
+export const RRSET = RRSet.init(QUESTION, [RECORD]);
