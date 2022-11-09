@@ -41,7 +41,7 @@ export class SignedRRSet {
       dnsKeys.some(
         (dnskey) =>
           dnskey.data.verifyRrsig(rrsig.data, referenceDate) &&
-          dnskey.record.name === rrsig.record.name,
+          dnskey.record.name === rrsig.data.signerName,
       ),
     );
     return validRrsigs.some((rrsig) => rrsig.data.verifyRrset(this.rrset));
