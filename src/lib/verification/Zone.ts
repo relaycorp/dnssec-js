@@ -10,10 +10,17 @@ import { SignedRRSet } from './SignedRRSet';
 import { DNSClass } from '../dns/DNSClass';
 
 export class Zone {
-  // public static init(_dnskeyMessage: Message, _dsMessage: Message): VerificationResult<Zone> {
-  //   throw new Error('implement');
-  // }
-
+  /**
+   * Initialise zone.
+   *
+   * This is an internal utility that would normally be `protected`/`private` but we're making
+   * `public` so that it can be unit-tested directly.
+   *
+   * @param zoneName
+   * @param dnskeyMessage
+   * @param dsData
+   * @param referenceDate
+   */
   public static init(
     zoneName: string,
     dnskeyMessage: Message,

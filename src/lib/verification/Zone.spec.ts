@@ -2,7 +2,7 @@ import { addSeconds } from 'date-fns';
 
 import { ZoneSigner } from '../signing/ZoneSigner';
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
-import { RECORD, RECORD_LABEL, RECORD_TLD } from '../../testUtils/dnsStubs';
+import { RECORD_TLD } from '../../testUtils/dnsStubs';
 import { Zone } from './Zone';
 import { Message } from '../dns/Message';
 import { SecurityStatus } from './SecurityStatus';
@@ -18,41 +18,40 @@ import { DNSClass } from '../dns/DNSClass';
 import { DnssecRecordType } from '../DnssecRecordType';
 
 describe('Zone', () => {
-  const ZONE_NAME = RECORD.name;
   const DNSKEY_QUESTION: Question = {
     class: DNSClass.IN,
-    name: ZONE_NAME,
+    name: RECORD_TLD,
     type: DnssecRecordType.DNSKEY,
   };
 
-  let apexSigner: ZoneSigner;
-  let dnskey: DnskeyRecord;
-  let dnskeyRrsig: RrsigRecord;
+  let rootSigner: ZoneSigner;
   beforeAll(async () => {
-    apexSigner = await ZoneSigner.generate(DnssecAlgorithm.RSASHA256, RECORD.name);
-
-    dnskey = apexSigner.generateDnskey(60);
-    dnskeyRrsig = apexSigner.generateRrsig(
-      RRSet.init(DNSKEY_QUESTION, [dnskey.record]),
-      dnskey.data.calculateKeyTag(),
-      addSeconds(new Date(), 60),
-    );
+    rootSigner = await ZoneSigner.generate(DnssecAlgorithm.RSASHA256, '.');
   });
 
   let tldSigner: ZoneSigner;
-  let ds: DsRecord;
+  let tldDnskey: DnskeyRecord;
+  let tldDnskeyRrsig: RrsigRecord;
+  let tldDs: DsRecord;
   beforeAll(async () => {
     tldSigner = await ZoneSigner.generate(DnssecAlgorithm.RSASHA256, RECORD_TLD);
 
-    ds = tldSigner.generateDs(dnskey, RECORD_LABEL, 60);
+    tldDnskey = tldSigner.generateDnskey(60);
+    tldDnskeyRrsig = tldSigner.generateRrsig(
+      RRSet.init(DNSKEY_QUESTION, [tldDnskey.record]),
+      tldDnskey.data.calculateKeyTag(),
+      addSeconds(new Date(), 60),
+    );
+
+    tldDs = rootSigner.generateDs(tldDnskey, RECORD_TLD, 60);
   });
 
   describe('init', () => {
     test('Message with rcode other than NOERROR should be BOGUS', () => {
       const rcode = 1;
-      const dnskeyMessage = new Message({ rcode }, [dnskey.record, dnskeyRrsig.record]);
+      const dnskeyMessage = new Message({ rcode }, [tldDnskey.record, tldDnskeyRrsig.record]);
 
-      const result = Zone.init(ZONE_NAME, dnskeyMessage, [ds.data], new Date());
+      const result = Zone.init(RECORD_TLD, dnskeyMessage, [tldDs.data], new Date());
 
       expect(result).toEqual<FailureResult>({
         status: SecurityStatus.BOGUS,
@@ -61,15 +60,15 @@ describe('Zone', () => {
     });
 
     test('Malformed DNSKEY should be BOGUS', () => {
-      const malformedDnskey = dnskey.record.shallowCopy({ dataSerialised: Buffer.from('hi') });
-      const newRrsig = apexSigner.generateRrsig(
+      const malformedDnskey = tldDnskey.record.shallowCopy({ dataSerialised: Buffer.from('hi') });
+      const newRrsig = tldSigner.generateRrsig(
         RRSet.init(DNSKEY_QUESTION, [malformedDnskey]),
-        dnskeyRrsig.data.keyTag,
-        dnskeyRrsig.data.signatureExpiry,
+        tldDnskeyRrsig.data.keyTag,
+        tldDnskeyRrsig.data.signatureExpiry,
       );
       const dnskeyMessage = new Message({ rcode: 0 }, [malformedDnskey, newRrsig.record]);
 
-      const result = Zone.init(ZONE_NAME, dnskeyMessage, [ds.data], new Date());
+      const result = Zone.init(RECORD_TLD, dnskeyMessage, [tldDs.data], new Date());
 
       expect(result).toEqual<FailureResult>({
         status: SecurityStatus.BOGUS,
@@ -79,15 +78,15 @@ describe('Zone', () => {
 
     test('DNSKEY without matching DS should be BOGUS', () => {
       const mismatchingDsData = new DsData(
-        ds.data.keyTag,
-        ds.data.algorithm + 1,
-        ds.data.digestType,
-        ds.data.digest,
+        tldDs.data.keyTag,
+        tldDs.data.algorithm + 1,
+        tldDs.data.digestType,
+        tldDs.data.digest,
       );
 
       const result = Zone.init(
-        ZONE_NAME,
-        new Message({ rcode: 0 }, [dnskey.record, dnskeyRrsig.record]),
+        RECORD_TLD,
+        new Message({ rcode: 0 }, [tldDnskey.record, tldDnskeyRrsig.record]),
         [mismatchingDsData],
         new Date(),
       );
@@ -100,23 +99,23 @@ describe('Zone', () => {
 
     test('Valid RRSig for non-matching DNSKEY should be BOGUS', () => {
       const mismatchingDnskeyRrsigData = new RrsigData(
-        dnskeyRrsig.data.type,
-        dnskeyRrsig.data.algorithm + 1,
-        dnskeyRrsig.data.labels,
-        dnskeyRrsig.data.ttl,
-        dnskeyRrsig.data.signatureExpiry,
-        dnskeyRrsig.data.signatureInception,
-        dnskeyRrsig.data.keyTag,
-        dnskeyRrsig.data.signerName,
-        dnskeyRrsig.data.signature,
+        tldDnskeyRrsig.data.type,
+        tldDnskeyRrsig.data.algorithm + 1,
+        tldDnskeyRrsig.data.labels,
+        tldDnskeyRrsig.data.ttl,
+        tldDnskeyRrsig.data.signatureExpiry,
+        tldDnskeyRrsig.data.signatureInception,
+        tldDnskeyRrsig.data.keyTag,
+        tldDnskeyRrsig.data.signerName,
+        tldDnskeyRrsig.data.signature,
       );
-      const mismatchingDnskeyRrsig = dnskeyRrsig.record.shallowCopy({
+      const mismatchingDnskeyRrsig = tldDnskeyRrsig.record.shallowCopy({
         dataSerialised: mismatchingDnskeyRrsigData.serialise(),
       });
       const result = Zone.init(
-        ZONE_NAME,
-        new Message({ rcode: 0 }, [dnskey.record, mismatchingDnskeyRrsig]),
-        [ds.data],
+        RECORD_TLD,
+        new Message({ rcode: 0 }, [tldDnskey.record, mismatchingDnskeyRrsig]),
+        [tldDs.data],
         new Date(),
       );
 
@@ -128,23 +127,23 @@ describe('Zone', () => {
 
     test('Invalid RRSig for matching DNSKEY should be BOGUS', () => {
       const mismatchingDnskeyRrsigData = new RrsigData(
-        dnskeyRrsig.data.type,
-        dnskeyRrsig.data.algorithm,
-        dnskeyRrsig.data.labels,
-        dnskeyRrsig.data.ttl,
-        dnskeyRrsig.data.signatureExpiry,
-        dnskeyRrsig.data.signatureInception,
-        dnskeyRrsig.data.keyTag + 1,
-        dnskeyRrsig.data.signerName,
-        dnskeyRrsig.data.signature,
+        tldDnskeyRrsig.data.type,
+        tldDnskeyRrsig.data.algorithm,
+        tldDnskeyRrsig.data.labels,
+        tldDnskeyRrsig.data.ttl,
+        tldDnskeyRrsig.data.signatureExpiry,
+        tldDnskeyRrsig.data.signatureInception,
+        tldDnskeyRrsig.data.keyTag + 1,
+        tldDnskeyRrsig.data.signerName,
+        tldDnskeyRrsig.data.signature,
       );
-      const mismatchingDnskeyRrsig = dnskeyRrsig.record.shallowCopy({
+      const mismatchingDnskeyRrsig = tldDnskeyRrsig.record.shallowCopy({
         dataSerialised: mismatchingDnskeyRrsigData.serialise(),
       });
       const result = Zone.init(
-        ZONE_NAME,
-        new Message({ rcode: 0 }, [dnskey.record, mismatchingDnskeyRrsig]),
-        [ds.data],
+        RECORD_TLD,
+        new Message({ rcode: 0 }, [tldDnskey.record, mismatchingDnskeyRrsig]),
+        [tldDs.data],
         new Date(),
       );
 
@@ -156,10 +155,10 @@ describe('Zone', () => {
 
     test('Expired RRSig should be BOGUS', () => {
       const result = Zone.init(
-        ZONE_NAME,
-        new Message({ rcode: 0 }, [dnskey.record, dnskeyRrsig.record]),
-        [ds.data],
-        addSeconds(dnskeyRrsig.data.signatureExpiry, 1),
+        RECORD_TLD,
+        new Message({ rcode: 0 }, [tldDnskey.record, tldDnskeyRrsig.record]),
+        [tldDs.data],
+        addSeconds(tldDnskeyRrsig.data.signatureExpiry, 1),
       );
 
       expect(result).toEqual<FailureResult>({
@@ -170,26 +169,26 @@ describe('Zone', () => {
 
     test('DNSKEY should be BOGUS if it is not a ZSK', () => {
       const nonZskDnskeyData = new DnskeyData(
-        dnskey.data.publicKey,
-        dnskey.data.protocol,
-        dnskey.data.algorithm,
-        { ...dnskey.data.flags, zoneKey: false },
+        tldDnskey.data.publicKey,
+        tldDnskey.data.protocol,
+        tldDnskey.data.algorithm,
+        { ...tldDnskey.data.flags, zoneKey: false },
       );
-      const nonZskDnskeyRecord = copyDnssecRecordData(dnskey, nonZskDnskeyData);
-      const rrsig = apexSigner.generateRrsig(
+      const nonZskDnskeyRecord = copyDnssecRecordData(tldDnskey, nonZskDnskeyData);
+      const rrsig = tldSigner.generateRrsig(
         RRSet.init(DNSKEY_QUESTION, [nonZskDnskeyRecord.record]),
         nonZskDnskeyData.calculateKeyTag(),
-        dnskeyRrsig.data.signatureExpiry,
-        dnskeyRrsig.data.signatureInception,
+        tldDnskeyRrsig.data.signatureExpiry,
+        tldDnskeyRrsig.data.signatureInception,
       );
-      const nonZskDs = tldSigner.generateDs(
+      const nonZskDs = rootSigner.generateDs(
         nonZskDnskeyRecord,
-        RECORD_LABEL,
-        ds.record.ttl,
-        ds.data.digestType,
+        RECORD_TLD,
+        tldDs.record.ttl,
+        tldDs.data.digestType,
       );
       const result = Zone.init(
-        ZONE_NAME,
+        RECORD_TLD,
         new Message({ rcode: 0 }, [nonZskDnskeyRecord.record, rrsig.record]),
         [nonZskDs.data],
         new Date(),
@@ -203,33 +202,33 @@ describe('Zone', () => {
 
     test('Zone should be initialised if ZSK is found', () => {
       const result = Zone.init(
-        ZONE_NAME,
-        new Message({ rcode: 0 }, [dnskey.record, dnskeyRrsig.record]),
-        [ds.data],
+        RECORD_TLD,
+        new Message({ rcode: 0 }, [tldDnskey.record, tldDnskeyRrsig.record]),
+        [tldDs.data],
         new Date(),
       );
 
       expect(result.status).toEqual(SecurityStatus.SECURE);
       const zone = (result as SuccessfulResult<Zone>).result;
-      expect(zone.name).toEqual(RECORD.name);
+      expect(zone.name).toEqual(RECORD_TLD);
       expect(zone.dnskeys).toHaveLength(1);
-      expect(zone.dnskeys[0].calculateKeyTag()).toEqual(dnskey.data.calculateKeyTag());
+      expect(zone.dnskeys[0].calculateKeyTag()).toEqual(tldDnskey.data.calculateKeyTag());
     });
 
     test('Other DNSKEYs should also be stored if a valid ZSK is found', async () => {
-      const newApexSigner = await ZoneSigner.generate(DnssecAlgorithm.RSASHA1, apexSigner.zoneName);
-      const nonZskDnskey = newApexSigner.generateDnskey(dnskey.record.ttl, { zoneKey: false });
-      const newRrsig = apexSigner.generateRrsig(
-        RRSet.init(DNSKEY_QUESTION, [dnskey.record, nonZskDnskey.record]),
-        dnskey.data.calculateKeyTag(),
-        dnskeyRrsig.data.signatureExpiry,
-        dnskeyRrsig.data.signatureInception,
+      const newApexSigner = await ZoneSigner.generate(DnssecAlgorithm.RSASHA1, tldSigner.zoneName);
+      const nonZskDnskey = newApexSigner.generateDnskey(tldDnskey.record.ttl, { zoneKey: false });
+      const newRrsig = tldSigner.generateRrsig(
+        RRSet.init(DNSKEY_QUESTION, [tldDnskey.record, nonZskDnskey.record]),
+        tldDnskey.data.calculateKeyTag(),
+        tldDnskeyRrsig.data.signatureExpiry,
+        tldDnskeyRrsig.data.signatureInception,
       );
 
       const result = Zone.init(
-        ZONE_NAME,
-        new Message({ rcode: 0 }, [dnskey.record, nonZskDnskey.record, newRrsig.record]),
-        [ds.data],
+        RECORD_TLD,
+        new Message({ rcode: 0 }, [tldDnskey.record, nonZskDnskey.record, newRrsig.record]),
+        [tldDs.data],
         new Date(),
       );
 
@@ -237,7 +236,7 @@ describe('Zone', () => {
       const zone = (result as SuccessfulResult<Zone>).result;
       const dnskeyTags = zone.dnskeys.map((k) => k.calculateKeyTag());
       expect(dnskeyTags).toContainAllValues([
-        dnskey.data.calculateKeyTag(),
+        tldDnskey.data.calculateKeyTag(),
         nonZskDnskey.data.calculateKeyTag(),
       ]);
     });
