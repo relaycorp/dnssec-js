@@ -19,13 +19,19 @@ export class RRSet {
     );
 
     if (matchingRecords.length === 0) {
-      throw new RRSetError('At least one matching record should be specified');
+      throw new RRSetError(
+        `RRset for ${question.name}/${question.type} should have at least one matching record`,
+      );
     }
 
-    const ttl = records[0].ttl;
-    const mismatchingTtlRecord = matchingRecords.find((r) => r.ttl !== ttl);
+    const [firstRecord, ...remainingRecords] = records;
+    const ttl = firstRecord.ttl;
+    const mismatchingTtlRecord = remainingRecords.find((r) => r.ttl !== ttl);
     if (mismatchingTtlRecord) {
-      throw new RRSetError(`Record TTLs don't match (${ttl}, ${mismatchingTtlRecord.ttl})`);
+      throw new RRSetError(
+        `RRset for ${question.name}/${question.type} contains different TTLs ` +
+          `(e.g., ${ttl}, ${mismatchingTtlRecord.ttl})`,
+      );
     }
 
     return new RRSet(question.name, question.class, question.type, ttl, matchingRecords);

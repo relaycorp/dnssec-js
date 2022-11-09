@@ -10,7 +10,7 @@ describe('RRSet', () => {
 
       expect(() => RRSet.init(QUESTION, [nonMatchingRecord])).toThrowWithMessage(
         RRSetError,
-        'At least one matching record should be specified',
+        `RRset for ${QUESTION.name}/${QUESTION.type} should have at least one matching record`,
       );
     });
 
@@ -43,7 +43,8 @@ describe('RRSet', () => {
 
       expect(() => RRSet.init(QUESTION, [RECORD, record2])).toThrowWithMessage(
         RRSetError,
-        `Record TTLs don't match (${RECORD.ttl}, ${record2.ttl})`,
+        `RRset for ${QUESTION.name}/${QUESTION.type} contains different TTLs ` +
+          `(e.g., ${RECORD.ttl}, ${record2.ttl})`,
       );
     });
 

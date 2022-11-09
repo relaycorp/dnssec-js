@@ -1,7 +1,6 @@
-import { addMinutes, setMilliseconds, subSeconds } from 'date-fns';
+import { addSeconds, setMilliseconds, subSeconds } from 'date-fns';
 
 import { SignedRRSet } from './SignedRRSet';
-import { DnssecValidationError } from '../errors';
 import { QUESTION, RECORD } from '../../testUtils/dnsStubs';
 import { ZoneSigner } from '../signing/ZoneSigner';
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
@@ -10,7 +9,7 @@ import { DnskeyRecord } from '../dnssecRecords';
 
 describe('SignedRRSet', () => {
   const RRSET = RRSet.init(QUESTION, [RECORD]);
-  const RRSIG_EXPIRY = addMinutes(setMilliseconds(new Date(), 0), 1);
+  const RRSIG_EXPIRY = addSeconds(setMilliseconds(new Date(), 0), 60);
 
   let signer: ZoneSigner;
   beforeAll(async () => {
@@ -26,16 +25,12 @@ describe('SignedRRSet', () => {
       expect(signedRrset.rrsigs).toBeEmpty();
     });
 
-    test('Malformed RRSig should be refused', () => {
+    test('Malformed RRSig should be ignored', () => {
       const rrsig = signer.generateRrsig(RRSET, STUB_KEY_TAG, RRSIG_EXPIRY);
       const malformedRrsigRecord = rrsig.record.shallowCopy({ dataSerialised: Buffer.alloc(2) });
 
-      expect(() =>
-        SignedRRSet.initFromRecords(QUESTION, [RECORD, malformedRrsigRecord]),
-      ).toThrowWithMessage(
-        DnssecValidationError,
-        `RRSig data for ${malformedRrsigRecord.name}/${malformedRrsigRecord.type} is malformed`,
-      );
+      const signedRRSet = SignedRRSet.initFromRecords(QUESTION, [RECORD, malformedRrsigRecord]);
+      expect(signedRRSet.rrsigs).toBeEmpty();
     });
 
     test('RRSIG for different owner should be ignored', async () => {

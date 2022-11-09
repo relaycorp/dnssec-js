@@ -1,7 +1,6 @@
 import { RRSet } from '../dns/RRSet';
 import { Record } from '../dns/Record';
 import { DnskeyRecord, RrsigRecord } from '../dnssecRecords';
-import { DnssecValidationError } from '../errors';
 import { DnssecRecordType } from '../DnssecRecordType';
 import { RrsigData } from '../rdata/RrsigData';
 import { Question } from '../dns/Question';
@@ -19,17 +18,15 @@ export class SignedRRSet {
         (r) =>
           r.type === DnssecRecordType.RRSIG && r.name === rrset.name && r.class_ === rrset.class_,
       )
-      .map(function (record): RrsigRecord {
+      .reduce(function (acc, record): readonly RrsigRecord[] {
         let data: RrsigData;
         try {
           data = RrsigData.deserialise(record.dataSerialised);
-        } catch (err) {
-          throw new DnssecValidationError(
-            `RRSig data for ${record.name}/${record.type} is malformed`,
-          );
+        } catch (_) {
+          return acc;
         }
-        return { record, data };
-      });
+        return [...acc, { record, data }];
+      }, [] as readonly RrsigRecord[]);
 
     return new SignedRRSet(rrset, rrsigRecords);
   }
