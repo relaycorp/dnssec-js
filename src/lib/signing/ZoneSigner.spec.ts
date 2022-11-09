@@ -5,7 +5,7 @@ import { ZoneSigner } from './ZoneSigner';
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { DigestType } from '../DigestType';
 import { RRSet } from '../dns/RRSet';
-import { QUESTION, RECORD, RECORD_TYPE_STR } from '../../testUtils/dnsStubs';
+import { QUESTION, RECORD, RECORD_TLD, RECORD_TYPE_STR } from '../../testUtils/dnsStubs';
 import { generateDigest } from '../utils/crypto';
 import { serialiseName } from '../dns/name';
 
@@ -25,9 +25,10 @@ describe('ZoneSigner', () => {
     const digestAlgorithm = DigestType.SHA256;
     const dnskey = signer.generateDnskey(42);
 
-    const dskey = signer.generateDs(dnskey, 'com', 10, digestAlgorithm);
+    const ds = signer.generateDs(dnskey, RECORD_TLD, 10, digestAlgorithm);
 
-    const rdata = lengthPrefixRdata(dskey.record.dataSerialised);
+    expect(ds.record.name).toEqual(RECORD_TLD);
+    const rdata = lengthPrefixRdata(ds.record.dataSerialised);
     const parsed = DS.decode(rdata);
     expect(parsed).toMatchObject({
       algorithm: DnssecAlgorithm.RSASHA256,

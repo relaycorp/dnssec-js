@@ -67,16 +67,24 @@ export class Zone {
     };
   }
 
+  public static initRoot(
+    dnskeyMessage: Message,
+    dsData: readonly DsData[],
+    referenceDate: Date,
+  ): VerificationResult<Zone> {
+    return Zone.init('.', dnskeyMessage, dsData, referenceDate);
+  }
+
   protected constructor(
     public readonly name: string,
     public readonly dnskeys: readonly DnskeyData[],
   ) {}
 
-  // public verifyRrset(_rrset: SignedRRSet): SecurityStatus {
+  // public initChild(...): VerificationResult<Zone> {
   //   throw new Error('asd');
   // }
 
-  // public verifyChildZone(_child: Zone): SecurityStatus {
+  // public verifyRrset(_rrset: SignedRRSet): SecurityStatus {
   //   throw new Error('asd');
   // }
 }

@@ -59,7 +59,7 @@ export class ZoneSigner {
       digest,
     );
     const record = new Record(
-      `${childLabel}.${this.zoneName}`,
+      this.zoneName === '.' ? childLabel : `${childLabel}${this.zoneName}`,
       DnssecRecordType.DS,
       DNSClass.IN,
       ttl,
