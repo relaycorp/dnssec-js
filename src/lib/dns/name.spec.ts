@@ -1,10 +1,10 @@
 import { name as NAME } from '@leichtgewicht/dns-packet';
 
-import { RECORD_NAME } from '../../testUtils/dnsStubs';
+import { RECORD } from '../../testUtils/dnsStubs';
 import { serialiseName } from './name';
 
 describe('serialiseName', () => {
-  const recordNameWithoutDot = RECORD_NAME.replace(/\.$/, '');
+  const recordNameWithoutDot = RECORD.name.replace(/\.$/, '');
 
   test('Trailing dot in record name should be ignored', () => {
     const name = recordNameWithoutDot + '.';

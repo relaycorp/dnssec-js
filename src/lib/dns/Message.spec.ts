@@ -16,7 +16,6 @@ import {
   RECORD_CLASS_STR,
   RECORD_DATA,
   RECORD_DATA_TXT_DATA,
-  RECORD_NAME,
   RECORD_TYPE_STR,
 } from '../../testUtils/dnsStubs';
 import { Header } from './Header';
@@ -127,7 +126,7 @@ describe('Message', () => {
 
         const answers = decode(serialisation).answers;
         expect(answers).toHaveLength(1);
-        expect(answers![0].name).toEqual(RECORD_NAME.replace(/\.$/, ''));
+        expect(answers![0].name).toEqual(RECORD.name.replace(/\.$/, ''));
         expect(answers![0].type).toEqual(RECORD_TYPE_STR);
         expect(answers![0].class).toEqual('IN');
         expect(answers![0].ttl).toEqual(RECORD.ttl);
@@ -261,7 +260,7 @@ describe('Message', () => {
         const question: Question = {
           type: RECORD_TYPE_STR,
           class: 'IN',
-          name: `not-${RECORD_NAME}`,
+          name: `not-${RECORD.name}`,
         };
         const messageSerialised = encode({
           type: 'response',
@@ -272,7 +271,7 @@ describe('Message', () => {
         const message = Message.deserialise(messageSerialised);
 
         expect(message.answers).toHaveLength(1);
-        expect(message.answers[0].name).toEqual(RECORD_NAME);
+        expect(message.answers[0].name).toEqual(RECORD.name);
       });
 
       test('Answers should be capped at the length prefix', () => {
