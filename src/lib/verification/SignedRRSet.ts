@@ -18,7 +18,7 @@ export class SignedRRSet {
         (r) =>
           r.type === DnssecRecordType.RRSIG && r.name === rrset.name && r.class_ === rrset.class_,
       )
-      .reduce(function (acc, record): readonly RrsigRecord[] {
+      .reduce(function deserialise(acc, record): readonly RrsigRecord[] {
         let data: RrsigData;
         try {
           data = RrsigData.deserialise(record.dataSerialised);
@@ -36,12 +36,16 @@ export class SignedRRSet {
     public readonly rrsigs: readonly RrsigRecord[],
   ) {}
 
-  public verify(dnsKeys: readonly DnskeyRecord[], referenceDate: Date): boolean {
+  public verify(
+    dnsKeys: readonly DnskeyRecord[],
+    referenceDate: Date,
+    expectedSigner?: string,
+  ): boolean {
     const validRrsigs = this.rrsigs.filter((rrsig) =>
       dnsKeys.some(
         (dnskey) =>
           dnskey.data.verifyRrsig(rrsig.data, referenceDate) &&
-          dnskey.record.name === rrsig.data.signerName,
+          (expectedSigner ?? dnskey.record.name) === rrsig.data.signerName,
       ),
     );
     return validRrsigs.some((rrsig) => rrsig.data.verifyRrset(this.rrset));

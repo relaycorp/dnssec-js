@@ -20,6 +20,12 @@ describe('serialiseName', () => {
 
     expect(NAME.decode(serialisation)).toEqual(recordNameWithoutDot);
   });
+
+  test('Root name (dot) should be supported', () => {
+    const serialisation = serialiseName('.');
+
+    expect(NAME.decode(serialisation)).toEqual('.');
+  });
 });
 
 describe('Parser', () => {

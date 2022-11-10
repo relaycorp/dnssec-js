@@ -111,10 +111,6 @@ export class RrsigData implements DnssecRecordData {
   }
 
   public verifyRrset(rrset: RRSet): boolean {
-    if (rrset.name !== this.signerName) {
-      return false;
-    }
-
     if (rrset.type !== this.type) {
       return false;
     }
@@ -123,7 +119,8 @@ export class RrsigData implements DnssecRecordData {
       return false;
     }
 
-    return countLabels(rrset.name) <= this.labels;
+    const rrsetNameLabelCount = countLabels(rrset.name);
+    return this.labels <= rrsetNameLabelCount;
   }
 }
 

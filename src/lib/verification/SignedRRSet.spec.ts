@@ -112,6 +112,14 @@ describe('SignedRRSet', () => {
       expect(signedRrset.verify([invalidDnskey], new Date())).toBeFalse();
     });
 
+    test('Verification should fail if RRSig signer does not match explicit one', () => {
+      const dnskey = signer.generateDnskey(42);
+      const rrsig = signer.generateRrsig(RRSET, dnskey.data.calculateKeyTag(), RRSIG_EXPIRY);
+      const signedRrset = SignedRRSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
+
+      expect(signedRrset.verify([dnskey], new Date(), `not-${QUESTION.name}`)).toBeFalse();
+    });
+
     test('Verification should fail if not deemed valid by any RRSig', () => {
       const dnskey = signer.generateDnskey(42);
       const rrsig = signer.generateRrsig(RRSET, dnskey.data.calculateKeyTag(), RRSIG_EXPIRY);

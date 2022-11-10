@@ -117,35 +117,6 @@ describe('RrsigData', () => {
   });
 
   describe('verifyRrset', () => {
-    describe('Signer name', () => {
-      test('Signer name matching RRset owner should be SECURE', async () => {
-        const { data } = signer.generateRrsig(
-          RRSET,
-          STUB_KEY_TAG,
-          signatureExpiry,
-          signatureInception,
-        );
-
-        expect(data.verifyRrset(RRSET)).toBeTrue();
-      });
-
-      test('Signer name mismatching RRset parent zone should be BOGUS', async () => {
-        const differentName = `not-${RECORD.name}`;
-        const differentParent = await ZoneSigner.generate(ALGORITHM, differentName);
-        const rrset = RRSet.init({ ...QUESTION, name: differentName }, [
-          RECORD.shallowCopy({ name: differentName }),
-        ]);
-        const { data } = differentParent.generateRrsig(
-          rrset,
-          STUB_KEY_TAG,
-          signatureExpiry,
-          signatureInception,
-        );
-
-        expect(data.verifyRrset(RRSET)).toBeFalse();
-      });
-    });
-
     test('Covered type should match RRset type', () => {
       const type = RECORD.type + 1;
       const invalidRrset = RRSet.init({ ...QUESTION, type }, [RECORD.shallowCopy({ type })]);
@@ -172,7 +143,7 @@ describe('RrsigData', () => {
     });
 
     describe('Label count', () => {
-      test('Count greater than actual number should be SECURE', async () => {
+      test('RRset owner labels greater than RRSig count should be SECURE', async () => {
         const name = `subdomain.${RECORD.name}`;
         const differentRrset = RRSet.init({ ...QUESTION, name }, [RECORD.shallowCopy({ name })]);
         const { data } = signer.generateRrsig(
@@ -185,7 +156,7 @@ describe('RrsigData', () => {
         expect(data.verifyRrset(differentRrset)).toBeTrue();
       });
 
-      test('Count equal to actual number should be SECURE', () => {
+      test('RRset owner labels equal to RRSig count should be SECURE', () => {
         const { data } = signer.generateRrsig(
           RRSET,
           STUB_KEY_TAG,
@@ -196,7 +167,7 @@ describe('RrsigData', () => {
         expect(data.verifyRrset(RRSET)).toBeTrue();
       });
 
-      test('Count less than actual number should be BOGUS', async () => {
+      test('RRset owner labels less than RRSig count should be BOGUS', async () => {
         const { data } = signer.generateRrsig(
           RRSET,
           STUB_KEY_TAG,
@@ -206,7 +177,7 @@ describe('RrsigData', () => {
         const mismatchingData = new RrsigData(
           data.type,
           data.algorithm,
-          data.labels - 1,
+          data.labels + 1,
           data.ttl,
           data.signatureExpiry,
           data.signatureInception,

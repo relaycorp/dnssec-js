@@ -27,8 +27,24 @@ describe('Zone', () => {
   };
 
   let rootSigner: ZoneSigner;
+  let rootDnskey: DnskeyRecord;
+  let rootDnskeyRrsig: RrsigRecord;
+  let rootDs: DsRecord;
   beforeAll(async () => {
     rootSigner = await ZoneSigner.generate(DnssecAlgorithm.RSASHA256, '.');
+
+    rootDnskey = rootSigner.generateDnskey(42, { zoneKey: true });
+    const rootDnskeyRrset = RRSet.init(
+      { class: DNSClass.IN, name: '.', type: DnssecRecordType.DNSKEY },
+      [rootDnskey.record],
+    );
+    rootDnskeyRrsig = rootSigner.generateRrsig(
+      rootDnskeyRrset,
+      rootDnskey.data.calculateKeyTag(),
+      addSeconds(new Date(), 60),
+    );
+
+    rootDs = rootSigner.generateDs(rootDnskey, '.', 42);
   });
 
   let tldSigner: ZoneSigner;
@@ -61,7 +77,7 @@ describe('Zone', () => {
       });
     });
 
-    test('Malformed DNSKEY should be BOGUS', () => {
+    test('Malformed DNSKEY data should be BOGUS', () => {
       const malformedDnskey = tldDnskey.record.shallowCopy({ dataSerialised: Buffer.from('hi') });
       const newRrsig = tldSigner.generateRrsig(
         RRSet.init(TLD_DNSKEY_QUESTION, [malformedDnskey]),
@@ -77,7 +93,7 @@ describe('Zone', () => {
 
       expect(result).toEqual<FailureResult>({
         status: SecurityStatus.BOGUS,
-        reasonChain: ['Found malformed DNSKEY'],
+        reasonChain: ['Found malformed DNSKEY rdata'],
       });
     });
 
@@ -158,7 +174,7 @@ describe('Zone', () => {
       });
     });
 
-    test('Expired RRSig should be BOGUS', () => {
+    test('Expired RRSig for matching DNSKEY should be BOGUS', () => {
       const result = Zone.init(
         RECORD_TLD,
         new Message({ rcode: RCode.NoError }, [tldDnskey.record, tldDnskeyRrsig.record]),
@@ -220,7 +236,7 @@ describe('Zone', () => {
       expect(zone.dnskeys[0].record).toEqual(tldDnskey.record);
     });
 
-    test('Other DNSKEYs should also be stored if a valid ZSK is found', async () => {
+    test('Additional DNSKEYs should also be stored if a valid ZSK is found', async () => {
       const newApexSigner = await ZoneSigner.generate(DnssecAlgorithm.RSASHA1, tldSigner.zoneName);
       const nonZskDnskey = newApexSigner.generateDnskey(tldDnskey.record.ttl, { zoneKey: false });
       const newRrsig = tldSigner.generateRrsig(
@@ -252,26 +268,6 @@ describe('Zone', () => {
   });
 
   describe('initRoot', () => {
-    const ROOT_DNSKEY_QUESTION: Question = {
-      class: DNSClass.IN,
-      name: '.',
-      type: DnssecRecordType.DNSKEY,
-    };
-
-    let rootDnskey: DnskeyRecord;
-    let rootDnskeyRrsig: RrsigRecord;
-    let rootDs: DsRecord;
-    beforeAll(() => {
-      rootDnskey = rootSigner.generateDnskey(42, { zoneKey: true });
-      rootDnskeyRrsig = rootSigner.generateRrsig(
-        RRSet.init(ROOT_DNSKEY_QUESTION, [rootDnskey.record]),
-        rootDnskey.data.calculateKeyTag(),
-        addSeconds(new Date(), 60),
-      );
-
-      rootDs = rootSigner.generateDs(rootDnskey, '.', 42);
-    });
-
     test('Dot should be used as zone name', () => {
       const dnskeyMessage = new Message({ rcode: RCode.NoError }, [
         rootDnskey.record,
@@ -335,6 +331,168 @@ describe('Zone', () => {
       expect(result).toEqual<FailureResult>({
         status: SecurityStatus.BOGUS,
         reasonChain: ['No valid RRSig was found'],
+      });
+    });
+  });
+
+  describe('initChild', () => {
+    let rootZone: Zone;
+    let tldDnskeyMessage: Message;
+    let tldDsRrsig: RrsigRecord;
+    let tldDsMessage: Message;
+    beforeAll(() => {
+      rootZone = rootSigner.generateZone(addSeconds(new Date(), 60));
+
+      tldDnskeyMessage = new Message({ rcode: RCode.NoError }, [
+        tldDnskey.record,
+        tldDnskeyRrsig.record,
+      ]);
+
+      tldDsRrsig = rootSigner.generateRrsig(
+        RRSet.init({ ...TLD_DNSKEY_QUESTION, type: DnssecRecordType.DS }, [tldDs.record]),
+        rootDnskey.data.calculateKeyTag(),
+        addSeconds(new Date(), 60),
+      );
+      tldDsMessage = new Message({ rcode: RCode.NoError }, [tldDs.record, tldDsRrsig.record]);
+    });
+
+    describe('Zone name', () => {
+      test('Directly-descending name should be supported', () => {
+        const result = rootZone.initChild(RECORD_TLD, tldDnskeyMessage, tldDsMessage, new Date());
+
+        expect(result).toMatchObject<SuccessfulResult<Zone>>({
+          status: SecurityStatus.SECURE,
+          result: expect.objectContaining({ name: RECORD_TLD }),
+        });
+      });
+
+      test('Indirectly-descending name should be supported', async () => {
+        const apexSigner = await ZoneSigner.generate(tldSigner.algorithm, RECORD.name);
+        const apexDnskey = apexSigner.generateDnskey(42);
+        const apexDnskeyRrsig = apexSigner.generateRrsig(
+          RRSet.init({ ...QUESTION, type: DnssecRecordType.DNSKEY }, [apexDnskey.record]),
+          apexDnskey.data.calculateKeyTag(),
+          addSeconds(new Date(), 60),
+        );
+        const dnskeyMessage = new Message({ rcode: RCode.NoError }, [
+          apexDnskey.record,
+          apexDnskeyRrsig.record,
+        ]);
+        const apexDs = rootSigner.generateDs(apexDnskey, RECORD.name, 42);
+        const apexDsRrsig = rootSigner.generateRrsig(
+          RRSet.init({ ...QUESTION, type: DnssecRecordType.DS }, [apexDs.record]),
+          rootDnskey.data.calculateKeyTag(),
+          addSeconds(new Date(), 60),
+        );
+        const dsMessage = new Message({ rcode: RCode.NoError }, [
+          apexDs.record,
+          apexDsRrsig.record,
+        ]);
+
+        const result = rootZone.initChild(RECORD.name, dnskeyMessage, dsMessage, new Date());
+
+        expect(result).toMatchObject<SuccessfulResult<Zone>>({
+          status: SecurityStatus.SECURE,
+          result: expect.objectContaining({ name: RECORD.name }),
+        });
+      });
+    });
+
+    test('DNSKEY response message should be used', () => {
+      const result = rootZone.initChild(RECORD_TLD, tldDnskeyMessage, tldDsMessage, new Date());
+
+      expect(result.status).toEqual(SecurityStatus.SECURE);
+      const zone = (result as SuccessfulResult<Zone>).result;
+      expect(zone.dnskeys.map((k) => k.data.calculateKeyTag())).toEqual([
+        tldDnskey.data.calculateKeyTag(),
+      ]);
+    });
+
+    describe('DS', () => {
+      test('DS message with rcode other than NOERROR should be BOGUS', () => {
+        const invalidDsMessage = new Message(
+          { ...tldDsMessage.header, rcode: 1 },
+          tldDsMessage.answers,
+        );
+
+        const result = rootZone.initChild(
+          RECORD_TLD,
+          tldDnskeyMessage,
+          invalidDsMessage,
+          new Date(),
+        );
+
+        expect(result).toEqual<FailureResult>({
+          status: SecurityStatus.BOGUS,
+          reasonChain: [
+            `Expected DS rcode to be NOERROR (0; got ${invalidDsMessage.header.rcode})`,
+          ],
+        });
+      });
+
+      test('Malformed DS data should be BOGUS', () => {
+        const malformedDsRecord = tldDs.record.shallowCopy({
+          dataSerialised: Buffer.allocUnsafe(2),
+        });
+        const dsRrsig = rootSigner.generateRrsig(
+          RRSet.init({ ...TLD_DNSKEY_QUESTION, type: DnssecRecordType.DS }, [malformedDsRecord]),
+          rootDnskey.data.calculateKeyTag(),
+          addSeconds(new Date(), 60),
+        );
+        const invalidDsMessage = new Message(tldDnskeyMessage.header, [
+          malformedDsRecord,
+          dsRrsig.record,
+        ]);
+
+        const result = rootZone.initChild(
+          RECORD_TLD,
+          tldDnskeyMessage,
+          invalidDsMessage,
+          new Date(),
+        );
+
+        expect(result).toEqual<FailureResult>({
+          status: SecurityStatus.BOGUS,
+          reasonChain: ['Found malformed DS rdata'],
+        });
+      });
+
+      test('Expired DS should be BOGUS', () => {
+        const result = rootZone.initChild(
+          RECORD_TLD,
+          tldDnskeyMessage,
+          tldDsMessage,
+          addSeconds(tldDsRrsig.data.signatureExpiry, 1),
+        );
+
+        expect(result).toEqual<FailureResult>({
+          status: SecurityStatus.BOGUS,
+          reasonChain: ['Could not find at least one valid DS record'],
+        });
+      });
+
+      test('DS not signed by parent zone should be BOGUS', async () => {
+        const invalidDsRrsig = rootSigner.generateRrsig(
+          RRSet.init({ ...TLD_DNSKEY_QUESTION, type: DnssecRecordType.DS }, [tldDs.record]),
+          tldDnskey.data.calculateKeyTag() + 1, // This is what makes it invalid
+          addSeconds(new Date(), 60),
+        );
+        const invaliDsMessage = new Message(tldDsMessage.header, [
+          tldDs.record,
+          invalidDsRrsig.record,
+        ]);
+
+        const result = rootZone.initChild(
+          RECORD_TLD,
+          tldDnskeyMessage,
+          invaliDsMessage,
+          new Date(),
+        );
+
+        expect(result).toEqual<FailureResult>({
+          status: SecurityStatus.BOGUS,
+          reasonChain: ['Could not find at least one valid DS record'],
+        });
       });
     });
   });

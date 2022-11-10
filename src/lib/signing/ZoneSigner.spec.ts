@@ -63,7 +63,7 @@ describe('ZoneSigner', () => {
     expect(parsed.expiration).toEqual(getUnixTime(setMilliseconds(signatureExpiry, 0)));
     expect(parsed.inception).toEqual(getUnixTime(setMilliseconds(signatureInception, 0)));
     expect(parsed.keyTag).toEqual(keyTag);
-    expect(`${parsed.signersName}.`).toEqual(recordName);
+    expect(parsed.signersName).toEqual(signer.zoneName);
   });
 
   test('generateRrsig with ED448', async () => {

@@ -5,7 +5,7 @@ import { DnskeyData } from '../rdata/DnskeyData';
 import { SecurityStatus } from './SecurityStatus';
 import { RCode } from '../dns/RCode';
 import { DnssecRecordType } from '../DnssecRecordType';
-import { DnskeyRecord } from '../dnssecRecords';
+import { DnskeyRecord, DsRecord } from '../dnssecRecords';
 import { SignedRRSet } from './SignedRRSet';
 import { DNSClass } from '../dns/DNSClass';
 
@@ -49,7 +49,7 @@ export class Zone {
         record,
       }));
     } catch (_) {
-      return { status: SecurityStatus.BOGUS, reasonChain: ['Found malformed DNSKEY'] };
+      return { status: SecurityStatus.BOGUS, reasonChain: ['Found malformed DNSKEY rdata'] };
     }
     const zskDnskeys = dnskeys.filter((k) => dsData.some((ds) => ds.verifyDnskey(k)));
 
@@ -80,16 +80,46 @@ export class Zone {
     public readonly dnskeys: readonly DnskeyRecord[],
   ) {}
 
-  // public initChild(
-  //   _zoneName: string,
-  //   _dnskeyMessage: Message,
-  //   _dsMessage: Message,
-  //   _referenceDate: Date,
-  // ): VerificationResult<Zone> {
-  //   throw new Error('asd');
-  // }
-
   public verifyRrset(rrset: SignedRRSet, referenceDate: Date): boolean {
     return rrset.verify(this.dnskeys, referenceDate);
+  }
+
+  public initChild(
+    zoneName: string,
+    dnskeyMessage: Message,
+    dsMessage: Message,
+    referenceDate: Date,
+  ): VerificationResult<Zone> {
+    if (dsMessage.header.rcode !== RCode.NoError) {
+      return {
+        status: SecurityStatus.BOGUS,
+        reasonChain: [`Expected DS rcode to be NOERROR (0; got ${dsMessage.header.rcode})`],
+      };
+    }
+
+    const dsSignedRrset = SignedRRSet.initFromRecords(
+      { name: zoneName, class: DNSClass.IN, type: DnssecRecordType.DS },
+      dsMessage.answers,
+    );
+
+    if (!dsSignedRrset.verify(this.dnskeys, referenceDate, this.name)) {
+      return {
+        status: SecurityStatus.BOGUS,
+        reasonChain: ['Could not find at least one valid DS record'],
+      };
+    }
+
+    let dsRecords: readonly DsRecord[];
+    try {
+      dsRecords = dsSignedRrset.rrset.records.map((record) => ({
+        data: DsData.deserialise(record.dataSerialised),
+        record,
+      }));
+    } catch (_) {
+      return { status: SecurityStatus.BOGUS, reasonChain: ['Found malformed DS rdata'] };
+    }
+
+    const dsData = dsRecords.map((r) => r.data);
+    return Zone.init(zoneName, dnskeyMessage, dsData, referenceDate);
   }
 }

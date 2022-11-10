@@ -95,7 +95,7 @@ export class ZoneSigner {
       setMilliseconds(signatureExpiry, 0),
       setMilliseconds(signatureInception, 0),
       this.privateKey,
-      rrset.name,
+      this.zoneName,
       keyTag,
       this.algorithm,
     );
