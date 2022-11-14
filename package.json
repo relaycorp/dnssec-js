@@ -38,7 +38,7 @@
   },
   "devDependencies": {
     "@leichtgewicht/dns-packet": "^6.0.3",
-    "@relaycorp/eslint-config": "^1.0.1",
+    "@relaycorp/eslint-config": "^1.0.4",
     "@relaycorp/shared-config": "^1.9.2",
     "@types/jest": "^27.5.0",
     "@typescript-eslint/eslint-plugin": "^5.42.0",
