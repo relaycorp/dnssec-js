@@ -7,6 +7,7 @@ import { InvalidRdataError } from '../errors';
 import { DnssecRecordData } from './DnssecRecordData';
 import { RrsigData } from './RrsigData';
 import { deserialisePublicKey, serialisePublicKey } from '../utils/keySerialisation';
+import { DatePeriod } from '../verification/DatePeriod';
 
 const PARSER = new Parser()
   .endianness('big')
@@ -76,7 +77,7 @@ export class DnskeyData implements DnssecRecordData {
     return calculateKeyTag(rdata);
   }
 
-  public verifyRrsig(rrsigData: RrsigData, referenceDate: Date): boolean {
+  public verifyRrsig(rrsigData: RrsigData, datePeriod: DatePeriod): boolean {
     if (this.calculateKeyTag() !== rrsigData.keyTag) {
       return false;
     }
@@ -85,11 +86,7 @@ export class DnskeyData implements DnssecRecordData {
       return false;
     }
 
-    if (rrsigData.signatureExpiry < referenceDate) {
-      return false;
-    }
-
-    return referenceDate >= rrsigData.signatureInception;
+    return datePeriod.overlaps(rrsigData.signatureInception, rrsigData.signatureExpiry);
   }
 }
 

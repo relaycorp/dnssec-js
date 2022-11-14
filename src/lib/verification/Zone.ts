@@ -8,6 +8,7 @@ import { DnssecRecordType } from '../DnssecRecordType';
 import { DnskeyRecord, DsRecord } from '../dnssecRecords';
 import { SignedRRSet } from './SignedRRSet';
 import { DNSClass } from '../dns/DNSClass';
+import { DatePeriod } from './DatePeriod';
 
 /**
  * A secure zone (in DNSSEC terms).
@@ -22,13 +23,13 @@ export class Zone {
    * @param zoneName
    * @param dnskeyMessage
    * @param dsData
-   * @param referenceDate
+   * @param datePeriod
    */
   public static init(
     zoneName: string,
     dnskeyMessage: Message,
     dsData: readonly DsData[],
-    referenceDate: Date,
+    datePeriod: DatePeriod,
   ): VerificationResult<Zone> {
     if (dnskeyMessage.header.rcode !== RCode.NoError) {
       return {
@@ -57,7 +58,7 @@ export class Zone {
       return { status: SecurityStatus.BOGUS, reasonChain: ['No DNSKEY matched specified DS(s)'] };
     }
 
-    if (!dnskeySignedRrset.verify(zskDnskeys, referenceDate)) {
+    if (!dnskeySignedRrset.verify(zskDnskeys, datePeriod)) {
       return { status: SecurityStatus.BOGUS, reasonChain: ['No valid RRSig was found'] };
     }
 
@@ -70,9 +71,9 @@ export class Zone {
   public static initRoot(
     dnskeyMessage: Message,
     dsData: readonly DsData[],
-    referenceDate: Date,
+    datePeriod: DatePeriod,
   ): VerificationResult<Zone> {
-    return Zone.init('.', dnskeyMessage, dsData, referenceDate);
+    return Zone.init('.', dnskeyMessage, dsData, datePeriod);
   }
 
   protected constructor(
@@ -80,15 +81,15 @@ export class Zone {
     public readonly dnskeys: readonly DnskeyRecord[],
   ) {}
 
-  public verifyRrset(rrset: SignedRRSet, referenceDate: Date): boolean {
-    return rrset.verify(this.dnskeys, referenceDate);
+  public verifyRrset(rrset: SignedRRSet, datePeriod: DatePeriod): boolean {
+    return rrset.verify(this.dnskeys, datePeriod);
   }
 
   public initChild(
     zoneName: string,
     dnskeyMessage: Message,
     dsMessage: Message,
-    referenceDate: Date,
+    datePeriod: DatePeriod,
   ): VerificationResult<Zone> {
     if (dsMessage.header.rcode !== RCode.NoError) {
       return {
@@ -102,7 +103,7 @@ export class Zone {
       dsMessage.answers,
     );
 
-    if (!dsSignedRrset.verify(this.dnskeys, referenceDate, this.name)) {
+    if (!dsSignedRrset.verify(this.dnskeys, datePeriod, this.name)) {
       return {
         status: SecurityStatus.BOGUS,
         reasonChain: ['Could not find at least one valid DS record'],
@@ -120,6 +121,6 @@ export class Zone {
     }
 
     const dsData = dsRecords.map((r) => r.data);
-    return Zone.init(zoneName, dnskeyMessage, dsData, referenceDate);
+    return Zone.init(zoneName, dnskeyMessage, dsData, datePeriod);
   }
 }

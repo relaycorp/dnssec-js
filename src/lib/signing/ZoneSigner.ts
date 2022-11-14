@@ -17,6 +17,7 @@ import { Zone } from '../verification/Zone';
 import { RCode } from '../dns/RCode';
 import { Message } from '../dns/Message';
 import { SuccessfulResult } from '../verification/VerificationResult';
+import { DatePeriod } from '../verification/DatePeriod';
 
 interface ZoneGenerationOptions {
   readonly parent: ZoneSigner;
@@ -125,7 +126,8 @@ export class ZoneSigner {
       dnskeyRrsig.record,
     ]);
     const ds = (options.parent ?? this).generateDs(dnskey, this.zoneName, 42);
-    const zoneResult = Zone.init(this.zoneName, dnskeyMessage, [ds.data], new Date());
+    const datePeriod = DatePeriod.init(dnskeyRrsig.data.signatureInception, rrsigExpiryDate);
+    const zoneResult = Zone.init(this.zoneName, dnskeyMessage, [ds.data], datePeriod);
     return (zoneResult as SuccessfulResult<Zone>).result;
   }
 

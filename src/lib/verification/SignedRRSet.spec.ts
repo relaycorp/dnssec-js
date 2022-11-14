@@ -6,6 +6,7 @@ import { ZoneSigner } from '../signing/ZoneSigner';
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { RRSet } from '../dns/RRSet';
 import { DnskeyRecord } from '../dnssecRecords';
+import { DatePeriod } from './DatePeriod';
 
 describe('SignedRRSet', () => {
   const RRSIG_EXPIRY = addSeconds(setMilliseconds(new Date(), 0), 60);
@@ -91,13 +92,15 @@ describe('SignedRRSet', () => {
   });
 
   describe('verify', () => {
+    const VALIDITY_PERIOD = DatePeriod.init(subSeconds(RRSIG_EXPIRY, 1), RRSIG_EXPIRY);
+
     test('Verification should fail if no RRSig is deemed valid by any DNSKEY', () => {
       const dnskey1 = signer.generateDnskey(42, { secureEntryPoint: true });
       const dnskey2 = signer.generateDnskey(42, { secureEntryPoint: false });
       const rrsig = signer.generateRrsig(RRSET, dnskey1.data.calculateKeyTag(), RRSIG_EXPIRY);
       const signedRrset = SignedRRSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
 
-      expect(signedRrset.verify([dnskey2], new Date())).toBeFalse();
+      expect(signedRrset.verify([dnskey2], VALIDITY_PERIOD)).toBeFalse();
     });
 
     test('Verification should fail if RRSig signer does not match DNSKEY RR owner', async () => {
@@ -109,7 +112,7 @@ describe('SignedRRSet', () => {
         record: dnskey.record.shallowCopy({ name: `not-${dnskey.record.name}` }),
       };
 
-      expect(signedRrset.verify([invalidDnskey], new Date())).toBeFalse();
+      expect(signedRrset.verify([invalidDnskey], VALIDITY_PERIOD)).toBeFalse();
     });
 
     test('Verification should fail if RRSig signer does not match explicit one', () => {
@@ -117,7 +120,7 @@ describe('SignedRRSet', () => {
       const rrsig = signer.generateRrsig(RRSET, dnskey.data.calculateKeyTag(), RRSIG_EXPIRY);
       const signedRrset = SignedRRSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
 
-      expect(signedRrset.verify([dnskey], new Date(), `not-${QUESTION.name}`)).toBeFalse();
+      expect(signedRrset.verify([dnskey], VALIDITY_PERIOD, `not-${QUESTION.name}`)).toBeFalse();
     });
 
     test('Verification should fail if not deemed valid by any RRSig', () => {
@@ -126,15 +129,19 @@ describe('SignedRRSet', () => {
       const invalidRecords = RRSET.records.map((r) => r.shallowCopy({ ttl: r.ttl + 1 }));
       const signedRrset = SignedRRSet.initFromRecords(QUESTION, [...invalidRecords, rrsig.record]);
 
-      expect(signedRrset.verify([dnskey], new Date())).toBeFalse();
+      expect(signedRrset.verify([dnskey], VALIDITY_PERIOD)).toBeFalse();
     });
 
     test('Verification should fail if RRSig expired', () => {
       const dnskey = signer.generateDnskey(42);
       const rrsig = signer.generateRrsig(RRSET, dnskey.data.calculateKeyTag(), RRSIG_EXPIRY);
       const signedRrset = SignedRRSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
+      const invalidPeriod = DatePeriod.init(
+        subSeconds(rrsig.data.signatureInception, 2),
+        subSeconds(rrsig.data.signatureInception, 1),
+      );
 
-      expect(signedRrset.verify([dnskey], subSeconds(new Date(), 1))).toBeFalse();
+      expect(signedRrset.verify([dnskey], invalidPeriod)).toBeFalse();
     });
 
     test('Verification should succeed if deemed valid by a valid RRSig', () => {
@@ -142,7 +149,7 @@ describe('SignedRRSet', () => {
       const rrsig = signer.generateRrsig(RRSET, dnskey.data.calculateKeyTag(), RRSIG_EXPIRY);
       const signedRrset = SignedRRSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
 
-      expect(signedRrset.verify([dnskey], new Date())).toBeTrue();
+      expect(signedRrset.verify([dnskey], VALIDITY_PERIOD)).toBeTrue();
     });
   });
 });

@@ -6,16 +6,16 @@ import { DnskeyData } from './DnskeyData';
 import { InvalidRdataError } from '../errors';
 import { RECORD_TLD, RRSET } from '../../testUtils/dnsStubs';
 import { DNSSEC_ROOT_DNSKEY_DATA, DNSSEC_ROOT_DNSKEY_KEY_TAG } from '../../testUtils/dnssec';
+import { DatePeriod } from '../verification/DatePeriod';
 
 describe('DnskeyData', () => {
-  const algorithm = DnssecAlgorithm.RSASHA256;
-  const now = setMilliseconds(new Date(), 0);
-  const signatureInception = subSeconds(now, 1);
-  const signatureExpiry = addMinutes(signatureInception, 10);
+  const NOW = setMilliseconds(new Date(), 0);
+  const SIGNATURE_INCEPTION = subSeconds(NOW, 1);
+  const SIGNATURE_EXPIRY = addMinutes(SIGNATURE_INCEPTION, 10);
 
   let tldSigner: ZoneSigner;
   beforeAll(async () => {
-    tldSigner = await ZoneSigner.generate(algorithm, RECORD_TLD);
+    tldSigner = await ZoneSigner.generate(DnssecAlgorithm.RSASHA256, RECORD_TLD);
   });
 
   describe('deserialise', () => {
@@ -44,7 +44,7 @@ describe('DnskeyData', () => {
 
       const data = DnskeyData.deserialise(record.dataSerialised);
 
-      expect(data.algorithm).toEqual(algorithm);
+      expect(data.algorithm).toEqual(tldSigner.algorithm);
     });
 
     test('Protocol should be extracted', () => {
@@ -122,6 +122,8 @@ describe('DnskeyData', () => {
   });
 
   describe('verifyRrsig', () => {
+    const VALIDITY_PERIOD = DatePeriod.init(subSeconds(NOW, 1), addSeconds(NOW, 1));
+
     let dnskeyData: DnskeyData;
     beforeAll(() => {
       dnskeyData = tldSigner.generateDnskey(42).data;
@@ -129,7 +131,7 @@ describe('DnskeyData', () => {
 
     test('Algorithm should match', async () => {
       const differentAlgorithm = DnssecAlgorithm.RSASHA512;
-      expect(differentAlgorithm).not.toEqual(algorithm); // In case we change fixture inadvertently
+      expect(differentAlgorithm).not.toEqual(tldSigner.algorithm); // In case we change fixture
       const { privateKey, publicKey } = await ZoneSigner.generate(differentAlgorithm, RECORD_TLD);
       const differentTldSigner = new ZoneSigner(
         privateKey,
@@ -140,11 +142,11 @@ describe('DnskeyData', () => {
       const { data: rrsigData } = differentTldSigner.generateRrsig(
         RRSET,
         dnskeyData.calculateKeyTag(),
-        now,
-        signatureInception,
+        NOW,
+        SIGNATURE_INCEPTION,
       );
 
-      expect(dnskeyData.verifyRrsig(rrsigData, now)).toBeFalse();
+      expect(dnskeyData.verifyRrsig(rrsigData, VALIDITY_PERIOD)).toBeFalse();
     });
 
     test('Key tag should match', async () => {
@@ -152,90 +154,33 @@ describe('DnskeyData', () => {
       const { data: rrsigData } = tldSigner.generateRrsig(
         RRSET,
         differentKeyTag,
-        now,
-        signatureInception,
+        NOW,
+        SIGNATURE_INCEPTION,
       );
 
-      expect(dnskeyData.verifyRrsig(rrsigData, now)).toBeFalse();
+      expect(dnskeyData.verifyRrsig(rrsigData, VALIDITY_PERIOD)).toBeFalse();
     });
 
-    describe('Validity period', () => {
-      test('Expiry date equal to current time should be SECURE', () => {
-        const { data: rrsigData } = tldSigner.generateRrsig(
-          RRSET,
-          dnskeyData.calculateKeyTag(),
-          now,
-          signatureInception,
-        );
+    test('Signature validity outside required period should be BOGUS', () => {
+      const { data: rrsigData } = tldSigner.generateRrsig(
+        RRSET,
+        dnskeyData.calculateKeyTag(),
+        subSeconds(VALIDITY_PERIOD.start, 1),
+        subSeconds(VALIDITY_PERIOD.start, 2),
+      );
 
-        expect(dnskeyData.verifyRrsig(rrsigData, now)).toBeTrue();
-      });
-
-      test('Expiry date later than current time should be SECURE', () => {
-        const { data: rrsigData } = tldSigner.generateRrsig(
-          RRSET,
-          dnskeyData.calculateKeyTag(),
-          addSeconds(now, 1),
-          signatureInception,
-        );
-
-        expect(dnskeyData.verifyRrsig(rrsigData, now)).toBeTrue();
-      });
-
-      test('Expiry date earlier than current time should be BOGUS', () => {
-        const { data: rrsigData } = tldSigner.generateRrsig(
-          RRSET,
-          dnskeyData.calculateKeyTag(),
-          subSeconds(now, 1),
-          signatureInception,
-        );
-
-        expect(dnskeyData.verifyRrsig(rrsigData, now)).toBeFalse();
-      });
-
-      test('Inception date equal to current time should be SECURE', () => {
-        const { data: rrsigData } = tldSigner.generateRrsig(
-          RRSET,
-          dnskeyData.calculateKeyTag(),
-          signatureExpiry,
-          now,
-        );
-
-        expect(dnskeyData.verifyRrsig(rrsigData, now)).toBeTrue();
-      });
-
-      test('Inception date earlier than current time should be SECURE', () => {
-        const { data: rrsigData } = tldSigner.generateRrsig(
-          RRSET,
-          dnskeyData.calculateKeyTag(),
-          signatureExpiry,
-          subSeconds(now, 1),
-        );
-
-        expect(dnskeyData.verifyRrsig(rrsigData, now)).toBeTrue();
-      });
-
-      test('Inception date later than current time should be BOGUS', () => {
-        const { data: rrsigData } = tldSigner.generateRrsig(
-          RRSET,
-          dnskeyData.calculateKeyTag(),
-          signatureExpiry,
-          addSeconds(now, 1),
-        );
-
-        expect(dnskeyData.verifyRrsig(rrsigData, now)).toBeFalse();
-      });
+      expect(dnskeyData.verifyRrsig(rrsigData, VALIDITY_PERIOD)).toBeFalse();
     });
 
     test('Valid RRSIg should be SECURE', () => {
       const { data: rrsigData } = tldSigner.generateRrsig(
         RRSET,
         dnskeyData.calculateKeyTag(),
-        signatureExpiry,
-        signatureInception,
+        SIGNATURE_EXPIRY,
+        SIGNATURE_INCEPTION,
       );
 
-      expect(dnskeyData.verifyRrsig(rrsigData, now)).toBeTrue();
+      expect(dnskeyData.verifyRrsig(rrsigData, VALIDITY_PERIOD)).toBeTrue();
     });
   });
 });

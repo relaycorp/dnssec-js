@@ -1,4 +1,4 @@
-import { addSeconds } from 'date-fns';
+import { addSeconds, subSeconds } from 'date-fns';
 
 import { ZoneSigner } from '../signing/ZoneSigner';
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
@@ -18,6 +18,10 @@ import { DNSClass } from '../dns/DNSClass';
 import { DnssecRecordType } from '../DnssecRecordType';
 import { RCode } from '../dns/RCode';
 import { SignedRRSet } from './SignedRRSet';
+import { DatePeriod } from './DatePeriod';
+
+const NOW = new Date();
+const VALIDITY_PERIOD = DatePeriod.init(subSeconds(NOW, 1), addSeconds(NOW, 1));
 
 describe('Zone', () => {
   const TLD_DNSKEY_QUESTION: Question = {
@@ -41,7 +45,8 @@ describe('Zone', () => {
     rootDnskeyRrsig = rootSigner.generateRrsig(
       rootDnskeyRrset,
       rootDnskey.data.calculateKeyTag(),
-      addSeconds(new Date(), 60),
+      addSeconds(NOW, 60),
+      NOW,
     );
 
     rootDs = rootSigner.generateDs(rootDnskey, '.', 42);
@@ -58,7 +63,8 @@ describe('Zone', () => {
     tldDnskeyRrsig = tldSigner.generateRrsig(
       RRSet.init(TLD_DNSKEY_QUESTION, [tldDnskey.record]),
       tldDnskey.data.calculateKeyTag(),
-      addSeconds(new Date(), 60),
+      addSeconds(NOW, 60),
+      NOW,
     );
 
     tldDs = rootSigner.generateDs(tldDnskey, RECORD_TLD, 60);
@@ -69,7 +75,7 @@ describe('Zone', () => {
       const rcode = 1;
       const dnskeyMessage = new Message({ rcode }, [tldDnskey.record, tldDnskeyRrsig.record]);
 
-      const result = Zone.init(RECORD_TLD, dnskeyMessage, [tldDs.data], new Date());
+      const result = Zone.init(RECORD_TLD, dnskeyMessage, [tldDs.data], VALIDITY_PERIOD);
 
       expect(result).toEqual<FailureResult>({
         status: SecurityStatus.BOGUS,
@@ -83,13 +89,14 @@ describe('Zone', () => {
         RRSet.init(TLD_DNSKEY_QUESTION, [malformedDnskey]),
         tldDnskeyRrsig.data.keyTag,
         tldDnskeyRrsig.data.signatureExpiry,
+        NOW,
       );
       const dnskeyMessage = new Message({ rcode: RCode.NoError }, [
         malformedDnskey,
         newRrsig.record,
       ]);
 
-      const result = Zone.init(RECORD_TLD, dnskeyMessage, [tldDs.data], new Date());
+      const result = Zone.init(RECORD_TLD, dnskeyMessage, [tldDs.data], VALIDITY_PERIOD);
 
       expect(result).toEqual<FailureResult>({
         status: SecurityStatus.BOGUS,
@@ -109,7 +116,7 @@ describe('Zone', () => {
         RECORD_TLD,
         new Message({ rcode: RCode.NoError }, [tldDnskey.record, tldDnskeyRrsig.record]),
         [mismatchingDsData],
-        new Date(),
+        VALIDITY_PERIOD,
       );
 
       expect(result).toEqual<FailureResult>({
@@ -137,7 +144,7 @@ describe('Zone', () => {
         RECORD_TLD,
         new Message({ rcode: RCode.NoError }, [tldDnskey.record, mismatchingDnskeyRrsig]),
         [tldDs.data],
-        new Date(),
+        VALIDITY_PERIOD,
       );
 
       expect(result).toEqual<FailureResult>({
@@ -165,7 +172,7 @@ describe('Zone', () => {
         RECORD_TLD,
         new Message({ rcode: RCode.NoError }, [tldDnskey.record, mismatchingDnskeyRrsig]),
         [tldDs.data],
-        new Date(),
+        VALIDITY_PERIOD,
       );
 
       expect(result).toEqual<FailureResult>({
@@ -175,11 +182,16 @@ describe('Zone', () => {
     });
 
     test('Expired RRSig for matching DNSKEY should be BOGUS', () => {
+      const invalidPeriod = DatePeriod.init(
+        addSeconds(tldDnskeyRrsig.data.signatureExpiry, 1),
+        addSeconds(tldDnskeyRrsig.data.signatureExpiry, 2),
+      );
+
       const result = Zone.init(
         RECORD_TLD,
         new Message({ rcode: RCode.NoError }, [tldDnskey.record, tldDnskeyRrsig.record]),
         [tldDs.data],
-        addSeconds(tldDnskeyRrsig.data.signatureExpiry, 1),
+        invalidPeriod,
       );
 
       expect(result).toEqual<FailureResult>({
@@ -212,7 +224,7 @@ describe('Zone', () => {
         RECORD_TLD,
         new Message({ rcode: RCode.NoError }, [nonZskDnskeyRecord.record, rrsig.record]),
         [nonZskDs.data],
-        new Date(),
+        VALIDITY_PERIOD,
       );
 
       expect(result).toEqual<FailureResult>({
@@ -226,7 +238,7 @@ describe('Zone', () => {
         RECORD_TLD,
         new Message({ rcode: RCode.NoError }, [tldDnskey.record, tldDnskeyRrsig.record]),
         [tldDs.data],
-        new Date(),
+        VALIDITY_PERIOD,
       );
 
       expect(result.status).toEqual(SecurityStatus.SECURE);
@@ -254,7 +266,7 @@ describe('Zone', () => {
           newRrsig.record,
         ]),
         [tldDs.data],
-        new Date(),
+        VALIDITY_PERIOD,
       );
 
       expect(result.status).toEqual(SecurityStatus.SECURE);
@@ -274,7 +286,7 @@ describe('Zone', () => {
         rootDnskeyRrsig.record,
       ]);
 
-      const result = Zone.initRoot(dnskeyMessage, [rootDs.data], new Date());
+      const result = Zone.initRoot(dnskeyMessage, [rootDs.data], VALIDITY_PERIOD);
 
       expect(result).toMatchObject<SuccessfulResult<Zone>>({
         status: SecurityStatus.SECURE,
@@ -288,7 +300,7 @@ describe('Zone', () => {
         rootDnskeyRrsig.record,
       ]);
 
-      const result = Zone.initRoot(dnskeyMessage, [rootDs.data], new Date());
+      const result = Zone.initRoot(dnskeyMessage, [rootDs.data], VALIDITY_PERIOD);
 
       expect(result.status).toEqual(SecurityStatus.SECURE);
       const zone = (result as SuccessfulResult<Zone>).result;
@@ -307,7 +319,7 @@ describe('Zone', () => {
         [
           tldDs.data, // Invalid
         ],
-        new Date(),
+        VALIDITY_PERIOD,
       );
 
       expect(result).toEqual<FailureResult>({
@@ -321,12 +333,12 @@ describe('Zone', () => {
         rootDnskey.record,
         rootDnskeyRrsig.record,
       ]);
-
-      const result = Zone.initRoot(
-        dnskeyMessage,
-        [rootDs.data],
+      const invalidPeriod = DatePeriod.init(
         addSeconds(rootDnskeyRrsig.data.signatureExpiry, 1),
+        addSeconds(rootDnskeyRrsig.data.signatureExpiry, 2),
       );
+
+      const result = Zone.initRoot(dnskeyMessage, [rootDs.data], invalidPeriod);
 
       expect(result).toEqual<FailureResult>({
         status: SecurityStatus.BOGUS,
@@ -341,7 +353,7 @@ describe('Zone', () => {
     let tldDsRrsig: RrsigRecord;
     let tldDsMessage: Message;
     beforeAll(() => {
-      rootZone = rootSigner.generateZone(addSeconds(new Date(), 60));
+      rootZone = rootSigner.generateZone(addSeconds(NOW, 60));
 
       tldDnskeyMessage = new Message({ rcode: RCode.NoError }, [
         tldDnskey.record,
@@ -351,14 +363,20 @@ describe('Zone', () => {
       tldDsRrsig = rootSigner.generateRrsig(
         RRSet.init({ ...TLD_DNSKEY_QUESTION, type: DnssecRecordType.DS }, [tldDs.record]),
         rootDnskey.data.calculateKeyTag(),
-        addSeconds(new Date(), 60),
+        addSeconds(NOW, 60),
+        NOW,
       );
       tldDsMessage = new Message({ rcode: RCode.NoError }, [tldDs.record, tldDsRrsig.record]);
     });
 
     describe('Zone name', () => {
       test('Directly-descending name should be supported', () => {
-        const result = rootZone.initChild(RECORD_TLD, tldDnskeyMessage, tldDsMessage, new Date());
+        const result = rootZone.initChild(
+          RECORD_TLD,
+          tldDnskeyMessage,
+          tldDsMessage,
+          VALIDITY_PERIOD,
+        );
 
         expect(result).toMatchObject<SuccessfulResult<Zone>>({
           status: SecurityStatus.SECURE,
@@ -372,7 +390,8 @@ describe('Zone', () => {
         const apexDnskeyRrsig = apexSigner.generateRrsig(
           RRSet.init({ ...QUESTION, type: DnssecRecordType.DNSKEY }, [apexDnskey.record]),
           apexDnskey.data.calculateKeyTag(),
-          addSeconds(new Date(), 60),
+          addSeconds(NOW, 60),
+          NOW,
         );
         const dnskeyMessage = new Message({ rcode: RCode.NoError }, [
           apexDnskey.record,
@@ -382,14 +401,15 @@ describe('Zone', () => {
         const apexDsRrsig = rootSigner.generateRrsig(
           RRSet.init({ ...QUESTION, type: DnssecRecordType.DS }, [apexDs.record]),
           rootDnskey.data.calculateKeyTag(),
-          addSeconds(new Date(), 60),
+          addSeconds(NOW, 60),
+          NOW,
         );
         const dsMessage = new Message({ rcode: RCode.NoError }, [
           apexDs.record,
           apexDsRrsig.record,
         ]);
 
-        const result = rootZone.initChild(RECORD.name, dnskeyMessage, dsMessage, new Date());
+        const result = rootZone.initChild(RECORD.name, dnskeyMessage, dsMessage, VALIDITY_PERIOD);
 
         expect(result).toMatchObject<SuccessfulResult<Zone>>({
           status: SecurityStatus.SECURE,
@@ -399,7 +419,12 @@ describe('Zone', () => {
     });
 
     test('DNSKEY response message should be used', () => {
-      const result = rootZone.initChild(RECORD_TLD, tldDnskeyMessage, tldDsMessage, new Date());
+      const result = rootZone.initChild(
+        RECORD_TLD,
+        tldDnskeyMessage,
+        tldDsMessage,
+        VALIDITY_PERIOD,
+      );
 
       expect(result.status).toEqual(SecurityStatus.SECURE);
       const zone = (result as SuccessfulResult<Zone>).result;
@@ -419,7 +444,7 @@ describe('Zone', () => {
           RECORD_TLD,
           tldDnskeyMessage,
           invalidDsMessage,
-          new Date(),
+          VALIDITY_PERIOD,
         );
 
         expect(result).toEqual<FailureResult>({
@@ -437,7 +462,8 @@ describe('Zone', () => {
         const dsRrsig = rootSigner.generateRrsig(
           RRSet.init({ ...TLD_DNSKEY_QUESTION, type: DnssecRecordType.DS }, [malformedDsRecord]),
           rootDnskey.data.calculateKeyTag(),
-          addSeconds(new Date(), 60),
+          addSeconds(NOW, 60),
+          NOW,
         );
         const invalidDsMessage = new Message(tldDnskeyMessage.header, [
           malformedDsRecord,
@@ -448,7 +474,7 @@ describe('Zone', () => {
           RECORD_TLD,
           tldDnskeyMessage,
           invalidDsMessage,
-          new Date(),
+          VALIDITY_PERIOD,
         );
 
         expect(result).toEqual<FailureResult>({
@@ -458,11 +484,16 @@ describe('Zone', () => {
       });
 
       test('Expired DS should be BOGUS', () => {
+        const invalidPeriod = DatePeriod.init(
+          addSeconds(tldDsRrsig.data.signatureExpiry, 1),
+          addSeconds(tldDsRrsig.data.signatureExpiry, 2),
+        );
+
         const result = rootZone.initChild(
           RECORD_TLD,
           tldDnskeyMessage,
           tldDsMessage,
-          addSeconds(tldDsRrsig.data.signatureExpiry, 1),
+          invalidPeriod,
         );
 
         expect(result).toEqual<FailureResult>({
@@ -475,7 +506,8 @@ describe('Zone', () => {
         const invalidDsRrsig = rootSigner.generateRrsig(
           RRSet.init({ ...TLD_DNSKEY_QUESTION, type: DnssecRecordType.DS }, [tldDs.record]),
           tldDnskey.data.calculateKeyTag() + 1, // This is what makes it invalid
-          addSeconds(new Date(), 60),
+          addSeconds(NOW, 60),
+          NOW,
         );
         const invaliDsMessage = new Message(tldDsMessage.header, [
           tldDs.record,
@@ -486,7 +518,7 @@ describe('Zone', () => {
           RECORD_TLD,
           tldDnskeyMessage,
           invaliDsMessage,
-          new Date(),
+          VALIDITY_PERIOD,
         );
 
         expect(result).toEqual<FailureResult>({
@@ -502,53 +534,60 @@ describe('Zone', () => {
     const STUB_RRSET = RRSet.init(STUB_QUESTION, [RECORD.shallowCopy({ name: '.' })]);
 
     test('Invalid SignedRRset should be refused as BOGUS', () => {
-      const zone = rootSigner.generateZone(addSeconds(new Date(), 60));
+      const zone = rootSigner.generateZone(addSeconds(NOW, 60));
       const rrsig = rootSigner.generateRrsig(
         STUB_RRSET,
         zone.dnskeys[0].data.calculateKeyTag(),
-        addSeconds(new Date(), 60),
+        addSeconds(NOW, 60),
+        NOW,
       );
       const signedRrset = SignedRRSet.initFromRecords(STUB_QUESTION, [
         ...STUB_RRSET.records,
         rrsig.record,
       ]);
+      const invalidPeriod = DatePeriod.init(
+        addSeconds(rrsig.data.signatureExpiry, 1),
+        addSeconds(rrsig.data.signatureExpiry, 2),
+      );
 
-      expect(zone.verifyRrset(signedRrset, addSeconds(rrsig.data.signatureExpiry, 1))).toBeFalse();
+      expect(zone.verifyRrset(signedRrset, invalidPeriod)).toBeFalse();
     });
 
     test('ZSK should be allowed to sign RRset', () => {
-      const zone = rootSigner.generateZone(addSeconds(new Date(), 60));
+      const zone = rootSigner.generateZone(addSeconds(NOW, 60));
       const zskData = zone.dnskeys[0].data;
       expect(zskData.flags.zoneKey).toBeTrue();
       const rrsig = rootSigner.generateRrsig(
         STUB_RRSET,
         zskData.calculateKeyTag(),
-        addSeconds(new Date(), 60),
+        addSeconds(NOW, 60),
+        NOW,
       );
       const signedRrset = SignedRRSet.initFromRecords(STUB_QUESTION, [
         ...STUB_RRSET.records,
         rrsig.record,
       ]);
 
-      expect(zone.verifyRrset(signedRrset, new Date())).toBeTrue();
+      expect(zone.verifyRrset(signedRrset, VALIDITY_PERIOD)).toBeTrue();
     });
 
     test('Non-ZSK should be allowed to sign RRset', () => {
       const nonZsk = rootSigner.generateDnskey(42, { zoneKey: false });
-      const zone = rootSigner.generateZone(addSeconds(new Date(), 60), {
+      const zone = rootSigner.generateZone(addSeconds(NOW, 60), {
         additionalDnskeys: [nonZsk.record],
       });
       const rrsig = rootSigner.generateRrsig(
         STUB_RRSET,
         nonZsk.data.calculateKeyTag(),
-        addSeconds(new Date(), 60),
+        addSeconds(NOW, 60),
+        NOW,
       );
       const signedRrset = SignedRRSet.initFromRecords(STUB_QUESTION, [
         ...STUB_RRSET.records,
         rrsig.record,
       ]);
 
-      expect(zone.verifyRrset(signedRrset, new Date())).toBeTrue();
+      expect(zone.verifyRrset(signedRrset, VALIDITY_PERIOD)).toBeTrue();
     });
   });
 });
