@@ -41,7 +41,7 @@
     "@relaycorp/eslint-config": "^1.0.1",
     "@relaycorp/shared-config": "^1.9.2",
     "@types/jest": "^27.5.0",
-    "@typescript-eslint/eslint-plugin": "^5.42.0",
+    "@typescript-eslint/eslint-plugin": "^5.42.1",
     "@typescript-eslint/parser": "^5.41.0",
     "del-cli": "^5.0.0",
     "dohdec": "^5.0.3",
