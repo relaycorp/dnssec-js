@@ -119,7 +119,9 @@ describe('RrsigData', () => {
   describe('verifyRrset', () => {
     test('Covered type should match RRset type', () => {
       const type = RECORD.type + 1;
-      const invalidRrset = RRSet.init({ ...QUESTION, type }, [RECORD.shallowCopy({ type })]);
+      const invalidRrset = RRSet.init(QUESTION.shallowCopy({ type }), [
+        RECORD.shallowCopy({ type }),
+      ]);
       const { data } = signer.generateRrsig(
         invalidRrset,
         STUB_KEY_TAG,
@@ -145,7 +147,9 @@ describe('RrsigData', () => {
     describe('Label count', () => {
       test('RRset owner labels greater than RRSig count should be SECURE', async () => {
         const name = `subdomain.${RECORD.name}`;
-        const differentRrset = RRSet.init({ ...QUESTION, name }, [RECORD.shallowCopy({ name })]);
+        const differentRrset = RRSet.init(QUESTION.shallowCopy({ name }), [
+          RECORD.shallowCopy({ name }),
+        ]);
         const { data } = signer.generateRrsig(
           differentRrset,
           STUB_KEY_TAG,

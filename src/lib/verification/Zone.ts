@@ -9,6 +9,7 @@ import { DnskeyRecord, DsRecord } from '../dnssecRecords';
 import { SignedRRSet } from './SignedRRSet';
 import { DNSClass } from '../dns/DNSClass';
 import { DatePeriod } from './DatePeriod';
+import { Question } from '../dns/Question';
 
 /**
  * A secure zone (in DNSSEC terms).
@@ -39,7 +40,7 @@ export class Zone {
     }
 
     const dnskeySignedRrset = SignedRRSet.initFromRecords(
-      { name: zoneName, class: DNSClass.IN, type: DnssecRecordType.DNSKEY },
+      new Question(zoneName, DnssecRecordType.DNSKEY, DNSClass.IN),
       dnskeyMessage.answers,
     );
 
@@ -99,7 +100,7 @@ export class Zone {
     }
 
     const dsSignedRrset = SignedRRSet.initFromRecords(
-      { name: zoneName, class: DNSClass.IN, type: DnssecRecordType.DS },
+      new Question(zoneName, DnssecRecordType.DS, DNSClass.IN),
       dsMessage.answers,
     );
 

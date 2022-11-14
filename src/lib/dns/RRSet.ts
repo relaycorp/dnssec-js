@@ -15,7 +15,7 @@ export class RRSet {
    */
   public static init(question: Question, records: readonly Record[]): RRSet {
     const matchingRecords = records.filter(
-      (r) => r.name === question.name && r.class_ === question.class && r.type === question.type,
+      (r) => r.name === question.name && r.class_ === question.class_ && r.type === question.type,
     );
 
     if (matchingRecords.length === 0) {
@@ -34,7 +34,7 @@ export class RRSet {
       );
     }
 
-    return new RRSet(question.name, question.class, question.type, ttl, matchingRecords);
+    return new RRSet(question.name, question.class_, question.type, ttl, matchingRecords);
   }
 
   protected constructor(

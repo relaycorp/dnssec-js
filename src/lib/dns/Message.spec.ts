@@ -2,7 +2,7 @@ import {
   Answer as DPAnswer,
   decode,
   encode,
-  Question,
+  Question as DPQuestion,
   TxtAnswer,
   TxtData,
 } from '@leichtgewicht/dns-packet';
@@ -12,6 +12,7 @@ import { MalformedMessage } from './MalformedMessage';
 import { Record } from './Record';
 import { DNSClass } from './DNSClass';
 import {
+  QUESTION,
   RECORD,
   RECORD_CLASS_STR,
   RECORD_DATA,
@@ -27,7 +28,7 @@ describe('Message', () => {
   describe('serialise', () => {
     describe('Header', () => {
       test('Id should be set to 0', () => {
-        const message = new Message(STUB_HEADER, []);
+        const message = new Message(STUB_HEADER, [], []);
 
         const serialisation = message.serialise();
 
@@ -35,7 +36,7 @@ describe('Message', () => {
       });
 
       test('QR flag should be on (response message)', () => {
-        const message = new Message(STUB_HEADER, []);
+        const message = new Message(STUB_HEADER, [], []);
 
         const serialisation = message.serialise();
 
@@ -43,7 +44,7 @@ describe('Message', () => {
       });
 
       test('OPCODE should be set to 0 (QUERY)', () => {
-        const message = new Message(STUB_HEADER, []);
+        const message = new Message(STUB_HEADER, [], []);
 
         const serialisation = message.serialise();
 
@@ -51,7 +52,7 @@ describe('Message', () => {
       });
 
       test('AA flag should be off', () => {
-        const message = new Message(STUB_HEADER, []);
+        const message = new Message(STUB_HEADER, [], []);
 
         const serialisation = message.serialise();
 
@@ -59,7 +60,7 @@ describe('Message', () => {
       });
 
       test('TC flag should be off', () => {
-        const message = new Message(STUB_HEADER, []);
+        const message = new Message(STUB_HEADER, [], []);
 
         const serialisation = message.serialise();
 
@@ -67,7 +68,7 @@ describe('Message', () => {
       });
 
       test('RD flag should be off', () => {
-        const message = new Message(STUB_HEADER, []);
+        const message = new Message(STUB_HEADER, [], []);
 
         const serialisation = message.serialise();
 
@@ -75,7 +76,7 @@ describe('Message', () => {
       });
 
       test('RA flag should be off', () => {
-        const message = new Message(STUB_HEADER, []);
+        const message = new Message(STUB_HEADER, [], []);
 
         const serialisation = message.serialise();
 
@@ -83,7 +84,7 @@ describe('Message', () => {
       });
 
       test('Z flag should be off', () => {
-        const message = new Message(STUB_HEADER, []);
+        const message = new Message(STUB_HEADER, [], []);
 
         const serialisation = message.serialise();
 
@@ -92,7 +93,7 @@ describe('Message', () => {
 
       test('RCODE should be honoured', () => {
         const rcode = 15;
-        const message = new Message({ ...STUB_HEADER, rcode }, []);
+        const message = new Message({ ...STUB_HEADER, rcode }, [], []);
 
         const serialisation = message.serialise();
 
@@ -101,18 +102,47 @@ describe('Message', () => {
     });
 
     describe('Question', () => {
-      test('There should be no question records', () => {
-        const message = new Message(STUB_HEADER, []);
+      test('No questions should be output if there are none', () => {
+        const message = new Message(STUB_HEADER, [], []);
 
         const serialisation = message.serialise();
 
         expect(decode(serialisation).questions).toHaveLength(0);
       });
+
+      test('One question should be output if there is one', () => {
+        const message = new Message(STUB_HEADER, [QUESTION], []);
+
+        const serialisation = message.serialise();
+
+        const deserialisedQuestions = decode(serialisation).questions;
+        expect(deserialisedQuestions).toHaveLength(1);
+        expect(deserialisedQuestions![0]).toEqual({
+          name: QUESTION.name.replace(/\.$/, ''),
+          type: RECORD_TYPE_STR,
+          class: RECORD_CLASS_STR,
+        });
+      });
+
+      test('Multiple questions should be output if there are multiple', () => {
+        const additionalQuestion = QUESTION.shallowCopy({ name: `sub.${QUESTION.name}` });
+        const message = new Message(STUB_HEADER, [QUESTION, additionalQuestion], []);
+
+        const serialisation = message.serialise();
+
+        const deserialisedQuestions = decode(serialisation).questions;
+        expect(deserialisedQuestions).toHaveLength(2);
+        expect(deserialisedQuestions![1]).toEqual({
+          name: additionalQuestion.name.replace(/\.$/, ''),
+          type: RECORD_TYPE_STR,
+          class: RECORD_CLASS_STR,
+        });
+      });
     });
 
     describe('Answer', () => {
       test('No records should be output if there are none', () => {
-        const message = new Message(STUB_HEADER, []);
+        const message = new Message(STUB_HEADER, [], []);
 
         const serialisation = message.serialise();
 
@@ -120,7 +150,7 @@ describe('Message', () => {
       });
 
       test('One record should be output if there is one', () => {
-        const message = new Message(STUB_HEADER, [RECORD]);
+        const message = new Message(STUB_HEADER, [], [RECORD]);
 
         const serialisation = message.serialise();
 
@@ -139,7 +169,7 @@ describe('Message', () => {
         answer2Rdata.writeUInt8(1);
         answer2Rdata.writeUInt8(42, 1);
         const answer2 = RECORD.shallowCopy({ dataSerialised: answer2Rdata });
-        const message = new Message(STUB_HEADER, [RECORD, answer2]);
+        const message = new Message(STUB_HEADER, [], [RECORD, answer2]);
 
         const serialisation = message.serialise();
 
@@ -152,7 +182,7 @@ describe('Message', () => {
 
     describe('Authority', () => {
       test('There should be no authority records', () => {
-        const message = new Message(STUB_HEADER, []);
+        const message = new Message(STUB_HEADER, [], []);
 
         const serialisation = message.serialise();
 
@@ -162,7 +192,7 @@ describe('Message', () => {
 
     describe('Additional', () => {
       test('There should be no additional records', () => {
-        const message = new Message(STUB_HEADER, []);
+        const message = new Message(STUB_HEADER, [], []);
 
         const serialisation = message.serialise();
 
@@ -172,7 +202,12 @@ describe('Message', () => {
   });
 
   describe('deserialise', () => {
-    const record: DPAnswer = {
+    const DP_QUESTION: DPQuestion = {
+      class: RECORD_CLASS_STR,
+      name: QUESTION.name,
+      type: RECORD_TYPE_STR,
+    };
+    const DP_ANSWER: DPAnswer = {
       type: RECORD_TYPE_STR,
       class: RECORD_CLASS_STR,
       name: RECORD.name,
@@ -193,6 +228,71 @@ describe('Message', () => {
       });
     });
 
+    describe('Question', () => {
+      test('No question should be output if the message had none', () => {
+        const serialisation = new Message({ rcode: RCode.NoError }, [], []).serialise();
+
+        const message = Message.deserialise(serialisation);
+
+        expect(message.questions).toHaveLength(0);
+      });
+
+      test('One question should be output if the message had one', () => {
+        const serialisation = new Message({ rcode: RCode.NoError }, [QUESTION], []).serialise();
+
+        const message = Message.deserialise(serialisation);
+
+        expect(message.questions).toHaveLength(1);
+        expect(message.questions[0].equals(QUESTION)).toBeTrue();
+      });
+
+      test('Multiple questions should be output if the message had multiple', () => {
+        const additionalQuestion = QUESTION.shallowCopy({ name: `sub.${QUESTION.name}` });
+        const serialisation = new Message(
+          { rcode: RCode.NoError },
+          [QUESTION, additionalQuestion],
+          [],
+        ).serialise();
+
+        const message = Message.deserialise(serialisation);
+
+        expect(message.questions).toHaveLength(2);
+        expect(message.questions[1].equals(additionalQuestion)).toBeTrue();
+      });
+
+      test('Questions should be capped at the length prefix', () => {
+        const serialisation = serialiseMessage([DP_QUESTION, DP_QUESTION], 1);
+
+        const message = Message.deserialise(serialisation);
+
+        expect(message.questions).toHaveLength(1);
+        expect(message.questions[0].equals(QUESTION)).toBeTrue();
+      });
+
+      test('Serialisation should be regarded malformed if QCOUNT is too high', () => {
+        const serialisation = serialiseMessage([DP_QUESTION], 2);
+
+        expect(() => Message.deserialise(serialisation)).toThrowWithMessage(
+          MalformedMessage,
+          'Message serialisation does not comply with RFC 1035 (Section 4)',
+        );
+      });
+
+      function serialiseMessage(
+        questions: readonly DPQuestion[],
+        questionCount: number,
+      ): Uint8Array {
+        const validSerialisation = encode({
+          type: 'response',
+          // tslint:disable-next-line:readonly-array
+          questions: questions as DPQuestion[],
+        });
+        const malformedSerialisation = Buffer.from(validSerialisation);
+        malformedSerialisation.writeUInt16BE(questionCount, 4);
+        return malformedSerialisation;
+      }
+    });
+
     describe('Answer', () => {
       test('No answer should be output if the message had none', () => {
         const messageSerialised = encode({
@@ -208,7 +308,7 @@ describe('Message', () => {
       test('One answer should be output if the message had one', () => {
         const messageSerialised = encode({
           type: 'response',
-          answers: [record],
+          answers: [DP_ANSWER],
         });
 
         const message = Message.deserialise(messageSerialised);
@@ -232,7 +332,7 @@ describe('Message', () => {
         };
         const messageSerialised = encode({
           type: 'response',
-          answers: [record, record2],
+          answers: [DP_ANSWER, record2],
         });
 
         const message = Message.deserialise(messageSerialised);
@@ -256,43 +356,16 @@ describe('Message', () => {
         );
       });
 
-      test('Questions should be ignored', () => {
-        const question: Question = {
-          type: RECORD_TYPE_STR,
-          class: 'IN',
-          name: `not-${RECORD.name}`,
-        };
-        const messageSerialised = encode({
-          type: 'response',
-          answers: [record],
-          questions: [question, question],
-        });
-
-        const message = Message.deserialise(messageSerialised);
-
-        expect(message.answers).toHaveLength(1);
-        expect(message.answers[0].name).toEqual(RECORD.name);
-      });
-
       test('Answers should be capped at the length prefix', () => {
-        const serialisation = serialiseMessage([record, record], 1);
+        const serialisation = serialiseMessage([DP_ANSWER, DP_ANSWER], 1);
 
         const message = Message.deserialise(serialisation);
 
         expect(message.answers).toHaveLength(1);
       });
 
-      test('Empty serialisation should be regarded malformed', () => {
-        const serialisation = Buffer.from([]);
-
-        expect(() => Message.deserialise(serialisation)).toThrowWithMessage(
-          MalformedMessage,
-          'Message serialisation does not comply with RFC 1035 (Section 4)',
-        );
-      });
-
       test('Serialisation should be regarded malformed if ANCOUNT is too high', () => {
-        const serialisation = serialiseMessage([record], 2);
+        const serialisation = serialiseMessage([DP_ANSWER], 2);
 
         expect(() => Message.deserialise(serialisation)).toThrowWithMessage(
           MalformedMessage,
@@ -311,5 +384,29 @@ describe('Message', () => {
         return malformedSerialisation;
       }
     });
+
+    test('Empty serialisation should be regarded malformed', () => {
+      const serialisation = Buffer.from([]);
+
+      expect(() => Message.deserialise(serialisation)).toThrowWithMessage(
+        MalformedMessage,
+        'Message serialisation does not comply with RFC 1035 (Section 4)',
+      );
+    });
+  });
+});
+
+describe('answersQuestion', () => {
+  test('True should be returned if message contains question', () => {
+    const message = new Message({ rcode: RCode.NoError }, [QUESTION], []);
+
+    expect(message.answersQuestion(QUESTION)).toBeTrue();
+  });
+
+  test('False should be returned if message does not contain question', () => {
+    const message = new Message({ rcode: RCode.NoError }, [QUESTION], []);
+    const differentQuestion = QUESTION.shallowCopy({ type: QUESTION.type + 1 });
+
+    expect(message.answersQuestion(differentQuestion)).toBeFalse();
   });
 });

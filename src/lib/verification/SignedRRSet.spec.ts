@@ -36,7 +36,7 @@ describe('SignedRRSet', () => {
     test('RRSIG for different owner should be ignored', async () => {
       const differentRecord = RECORD.shallowCopy({ name: `sub.${RECORD.name}` });
       const differentRrsig = signer.generateRrsig(
-        RRSet.init({ ...QUESTION, name: differentRecord.name }, [differentRecord]),
+        RRSet.init(QUESTION.shallowCopy({ name: differentRecord.name }), [differentRecord]),
         STUB_KEY_TAG,
         RRSIG_EXPIRY,
       );
@@ -58,7 +58,7 @@ describe('SignedRRSet', () => {
     test('RRSIG with mismatching type field should be accepted', async () => {
       const differentRecord = RECORD.shallowCopy({ type: RECORD.type + 1 });
       const differentRrsig = signer.generateRrsig(
-        RRSet.init({ ...QUESTION, type: differentRecord.type }, [differentRecord]),
+        RRSet.init(QUESTION.shallowCopy({ type: differentRecord.type }), [differentRecord]),
         STUB_KEY_TAG,
         RRSIG_EXPIRY,
       );

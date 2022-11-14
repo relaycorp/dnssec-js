@@ -2,13 +2,19 @@ import { Parser } from 'binary-parser';
 
 import { Record } from './Record';
 import { NAME_PARSER_OPTIONS } from './name';
+import { Question } from './Question';
 
 const QUESTION_PARSER = new Parser()
   .array('name', NAME_PARSER_OPTIONS)
   .uint16('type')
   .uint16('class');
 const QUESTION_SET_PARSER = new Parser().array('questionSet', {
-  type: new Parser().nest('question', { type: QUESTION_PARSER }),
+  formatter: (questiosnRaw: any) => questiosnRaw.map((questionRaw: any) => questionRaw.question),
+  type: new Parser().nest('question', {
+    formatter: (questionRaw: any) =>
+      new Question(questionRaw.name, questionRaw.type, questionRaw.class),
+    type: QUESTION_PARSER,
+  }),
   readUntil(): boolean {
     // @ts-ignore
     return this.questionSet.length === this.$parent.qCount;
@@ -48,10 +54,11 @@ export const DNS_MESSAGE_PARSER = new Parser()
   .uint16('qCount')
   .uint16('anCount')
   .seek(4) // Skip the rest of the header
-  .choice('question', {
+  .choice('questions', {
     tag: 'qCount',
     choices: { 0: new Parser() }, // Skip actual parser when qCount=0
     defaultChoice: QUESTION_SET_PARSER,
+    formatter: (questionSet) => questionSet?.questionSet ?? [],
   })
   .choice('answers', {
     tag: 'anCount',

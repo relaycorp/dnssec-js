@@ -45,7 +45,7 @@ describe('ZoneSigner', () => {
     const dnssecAlgorithm = DnssecAlgorithm.RSASHA256;
     const signer = await ZoneSigner.generate(dnssecAlgorithm, '.');
     const recordName = 'com.';
-    const rrset = RRSet.init({ ...QUESTION, name: recordName }, [
+    const rrset = RRSet.init(QUESTION.shallowCopy({ name: recordName }), [
       RECORD.shallowCopy({ name: recordName }),
     ]);
     const signatureExpiry = setMilliseconds(addHours(new Date(), 3), 5);
@@ -71,7 +71,7 @@ describe('ZoneSigner', () => {
     const signer = await ZoneSigner.generate(dnssecAlgorithm, '.');
     const recordName = 'com.';
 
-    const rrset = RRSet.init({ ...QUESTION, name: recordName }, [
+    const rrset = RRSet.init(QUESTION.shallowCopy({ name: recordName }), [
       RECORD.shallowCopy({ name: recordName }),
     ]);
 

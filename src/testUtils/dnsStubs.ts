@@ -22,10 +22,6 @@ export const RECORD = new Record(
   RECORD_DATA,
 );
 
-export const QUESTION: Question = {
-  class: RECORD.class_,
-  name: RECORD.name,
-  type: RECORD.type,
-};
+export const QUESTION = new Question(RECORD.name, RECORD.type, RECORD.class_);
 
 export const RRSET = RRSet.init(QUESTION, [RECORD]);

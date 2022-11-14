@@ -18,6 +18,7 @@ import { RCode } from '../dns/RCode';
 import { Message } from '../dns/Message';
 import { SuccessfulResult } from '../verification/VerificationResult';
 import { DatePeriod } from '../verification/DatePeriod';
+import { Question } from '../dns/Question';
 
 interface ZoneGenerationOptions {
   readonly parent: ZoneSigner;
@@ -114,17 +115,15 @@ export class ZoneSigner {
     const dnskey = this.generateDnskey(42, { zoneKey: true });
     const dnskeyRecords = [...(options.additionalDnskeys ?? []), dnskey.record];
     const dnskeyRrsig = this.generateRrsig(
-      RRSet.init(
-        { class: DNSClass.IN, name: this.zoneName, type: DnssecRecordType.DNSKEY },
-        dnskeyRecords,
-      ),
+      RRSet.init(new Question(this.zoneName, DnssecRecordType.DNSKEY, DNSClass.IN), dnskeyRecords),
       dnskey.data.calculateKeyTag(),
       rrsigExpiryDate,
     );
-    const dnskeyMessage = new Message({ rcode: RCode.NoError }, [
-      ...dnskeyRecords,
-      dnskeyRrsig.record,
-    ]);
+    const dnskeyMessage = new Message(
+      { rcode: RCode.NoError },
+      [],
+      [...dnskeyRecords, dnskeyRrsig.record],
+    );
     const ds = (options.parent ?? this).generateDs(dnskey, this.zoneName, 42);
     const datePeriod = DatePeriod.init(dnskeyRrsig.data.signatureInception, rrsigExpiryDate);
     const zoneResult = Zone.init(this.zoneName, dnskeyMessage, [ds.data], datePeriod);

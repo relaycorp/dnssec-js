@@ -24,11 +24,7 @@ const NOW = new Date();
 const VALIDITY_PERIOD = DatePeriod.init(subSeconds(NOW, 1), addSeconds(NOW, 1));
 
 describe('Zone', () => {
-  const TLD_DNSKEY_QUESTION: Question = {
-    class: DNSClass.IN,
-    name: RECORD_TLD,
-    type: DnssecRecordType.DNSKEY,
-  };
+  const TLD_DNSKEY_QUESTION = new Question(RECORD_TLD, DnssecRecordType.DNSKEY, DNSClass.IN);
 
   let rootSigner: ZoneSigner;
   let rootDnskey: DnskeyRecord;
@@ -38,10 +34,9 @@ describe('Zone', () => {
     rootSigner = await ZoneSigner.generate(DnssecAlgorithm.RSASHA256, '.');
 
     rootDnskey = rootSigner.generateDnskey(42, { zoneKey: true });
-    const rootDnskeyRrset = RRSet.init(
-      { class: DNSClass.IN, name: '.', type: DnssecRecordType.DNSKEY },
-      [rootDnskey.record],
-    );
+    const rootDnskeyRrset = RRSet.init(new Question('.', DnssecRecordType.DNSKEY, DNSClass.IN), [
+      rootDnskey.record,
+    ]);
     rootDnskeyRrsig = rootSigner.generateRrsig(
       rootDnskeyRrset,
       rootDnskey.data.calculateKeyTag(),
@@ -73,7 +68,7 @@ describe('Zone', () => {
   describe('init', () => {
     test('Message with rcode other than NOERROR should be BOGUS', () => {
       const rcode = 1;
-      const dnskeyMessage = new Message({ rcode }, [tldDnskey.record, tldDnskeyRrsig.record]);
+      const dnskeyMessage = new Message({ rcode }, [], [tldDnskey.record, tldDnskeyRrsig.record]);
 
       const result = Zone.init(RECORD_TLD, dnskeyMessage, [tldDs.data], VALIDITY_PERIOD);
 
@@ -91,10 +86,11 @@ describe('Zone', () => {
         tldDnskeyRrsig.data.signatureExpiry,
         NOW,
       );
-      const dnskeyMessage = new Message({ rcode: RCode.NoError }, [
-        malformedDnskey,
-        newRrsig.record,
-      ]);
+      const dnskeyMessage = new Message(
+        { rcode: RCode.NoError },
+        [],
+        [malformedDnskey, newRrsig.record],
+      );
 
       const result = Zone.init(RECORD_TLD, dnskeyMessage, [tldDs.data], VALIDITY_PERIOD);
 
@@ -114,7 +110,7 @@ describe('Zone', () => {
 
       const result = Zone.init(
         RECORD_TLD,
-        new Message({ rcode: RCode.NoError }, [tldDnskey.record, tldDnskeyRrsig.record]),
+        new Message({ rcode: RCode.NoError }, [], [tldDnskey.record, tldDnskeyRrsig.record]),
         [mismatchingDsData],
         VALIDITY_PERIOD,
       );
@@ -142,7 +138,7 @@ describe('Zone', () => {
       });
       const result = Zone.init(
         RECORD_TLD,
-        new Message({ rcode: RCode.NoError }, [tldDnskey.record, mismatchingDnskeyRrsig]),
+        new Message({ rcode: RCode.NoError }, [], [tldDnskey.record, mismatchingDnskeyRrsig]),
         [tldDs.data],
         VALIDITY_PERIOD,
       );
@@ -170,7 +166,7 @@ describe('Zone', () => {
       });
       const result = Zone.init(
         RECORD_TLD,
-        new Message({ rcode: RCode.NoError }, [tldDnskey.record, mismatchingDnskeyRrsig]),
+        new Message({ rcode: RCode.NoError }, [], [tldDnskey.record, mismatchingDnskeyRrsig]),
         [tldDs.data],
         VALIDITY_PERIOD,
       );
@@ -189,7 +185,7 @@ describe('Zone', () => {
 
       const result = Zone.init(
         RECORD_TLD,
-        new Message({ rcode: RCode.NoError }, [tldDnskey.record, tldDnskeyRrsig.record]),
+        new Message({ rcode: RCode.NoError }, [], [tldDnskey.record, tldDnskeyRrsig.record]),
         [tldDs.data],
         invalidPeriod,
       );
@@ -222,7 +218,7 @@ describe('Zone', () => {
       );
       const result = Zone.init(
         RECORD_TLD,
-        new Message({ rcode: RCode.NoError }, [nonZskDnskeyRecord.record, rrsig.record]),
+        new Message({ rcode: RCode.NoError }, [], [nonZskDnskeyRecord.record, rrsig.record]),
         [nonZskDs.data],
         VALIDITY_PERIOD,
       );
@@ -236,7 +232,7 @@ describe('Zone', () => {
     test('Zone should be initialised if ZSK is found', () => {
       const result = Zone.init(
         RECORD_TLD,
-        new Message({ rcode: RCode.NoError }, [tldDnskey.record, tldDnskeyRrsig.record]),
+        new Message({ rcode: RCode.NoError }, [], [tldDnskey.record, tldDnskeyRrsig.record]),
         [tldDs.data],
         VALIDITY_PERIOD,
       );
@@ -260,11 +256,11 @@ describe('Zone', () => {
 
       const result = Zone.init(
         RECORD_TLD,
-        new Message({ rcode: RCode.NoError }, [
-          tldDnskey.record,
-          nonZskDnskey.record,
-          newRrsig.record,
-        ]),
+        new Message(
+          { rcode: RCode.NoError },
+          [],
+          [tldDnskey.record, nonZskDnskey.record, newRrsig.record],
+        ),
         [tldDs.data],
         VALIDITY_PERIOD,
       );
@@ -281,10 +277,11 @@ describe('Zone', () => {
 
   describe('initRoot', () => {
     test('Dot should be used as zone name', () => {
-      const dnskeyMessage = new Message({ rcode: RCode.NoError }, [
-        rootDnskey.record,
-        rootDnskeyRrsig.record,
-      ]);
+      const dnskeyMessage = new Message(
+        { rcode: RCode.NoError },
+        [],
+        [rootDnskey.record, rootDnskeyRrsig.record],
+      );
 
       const result = Zone.initRoot(dnskeyMessage, [rootDs.data], VALIDITY_PERIOD);
 
@@ -295,10 +292,11 @@ describe('Zone', () => {
     });
 
     test('DNSKEY response message should be used', () => {
-      const dnskeyMessage = new Message({ rcode: RCode.NoError }, [
-        rootDnskey.record,
-        rootDnskeyRrsig.record,
-      ]);
+      const dnskeyMessage = new Message(
+        { rcode: RCode.NoError },
+        [],
+        [rootDnskey.record, rootDnskeyRrsig.record],
+      );
 
       const result = Zone.initRoot(dnskeyMessage, [rootDs.data], VALIDITY_PERIOD);
 
@@ -309,10 +307,11 @@ describe('Zone', () => {
     });
 
     test('Trust anchors should be used as DS set', () => {
-      const dnskeyMessage = new Message({ rcode: RCode.NoError }, [
-        rootDnskey.record,
-        rootDnskeyRrsig.record,
-      ]);
+      const dnskeyMessage = new Message(
+        { rcode: RCode.NoError },
+        [],
+        [rootDnskey.record, rootDnskeyRrsig.record],
+      );
 
       const result = Zone.initRoot(
         dnskeyMessage,
@@ -329,10 +328,11 @@ describe('Zone', () => {
     });
 
     test('Invalid zone should be BOGUS', () => {
-      const dnskeyMessage = new Message({ rcode: RCode.NoError }, [
-        rootDnskey.record,
-        rootDnskeyRrsig.record,
-      ]);
+      const dnskeyMessage = new Message(
+        { rcode: RCode.NoError },
+        [],
+        [rootDnskey.record, rootDnskeyRrsig.record],
+      );
       const invalidPeriod = DatePeriod.init(
         addSeconds(rootDnskeyRrsig.data.signatureExpiry, 1),
         addSeconds(rootDnskeyRrsig.data.signatureExpiry, 2),
@@ -355,18 +355,19 @@ describe('Zone', () => {
     beforeAll(() => {
       rootZone = rootSigner.generateZone(addSeconds(NOW, 60));
 
-      tldDnskeyMessage = new Message({ rcode: RCode.NoError }, [
-        tldDnskey.record,
-        tldDnskeyRrsig.record,
-      ]);
+      tldDnskeyMessage = new Message(
+        { rcode: RCode.NoError },
+        [],
+        [tldDnskey.record, tldDnskeyRrsig.record],
+      );
 
       tldDsRrsig = rootSigner.generateRrsig(
-        RRSet.init({ ...TLD_DNSKEY_QUESTION, type: DnssecRecordType.DS }, [tldDs.record]),
+        RRSet.init(TLD_DNSKEY_QUESTION.shallowCopy({ type: DnssecRecordType.DS }), [tldDs.record]),
         rootDnskey.data.calculateKeyTag(),
         addSeconds(NOW, 60),
         NOW,
       );
-      tldDsMessage = new Message({ rcode: RCode.NoError }, [tldDs.record, tldDsRrsig.record]);
+      tldDsMessage = new Message({ rcode: RCode.NoError }, [], [tldDs.record, tldDsRrsig.record]);
     });
 
     describe('Zone name', () => {
@@ -388,26 +389,28 @@ describe('Zone', () => {
         const apexSigner = await ZoneSigner.generate(tldSigner.algorithm, RECORD.name);
         const apexDnskey = apexSigner.generateDnskey(42);
         const apexDnskeyRrsig = apexSigner.generateRrsig(
-          RRSet.init({ ...QUESTION, type: DnssecRecordType.DNSKEY }, [apexDnskey.record]),
+          RRSet.init(QUESTION.shallowCopy({ type: DnssecRecordType.DNSKEY }), [apexDnskey.record]),
           apexDnskey.data.calculateKeyTag(),
           addSeconds(NOW, 60),
           NOW,
         );
-        const dnskeyMessage = new Message({ rcode: RCode.NoError }, [
-          apexDnskey.record,
-          apexDnskeyRrsig.record,
-        ]);
+        const dnskeyMessage = new Message(
+          { rcode: RCode.NoError },
+          [],
+          [apexDnskey.record, apexDnskeyRrsig.record],
+        );
         const apexDs = rootSigner.generateDs(apexDnskey, RECORD.name, 42);
         const apexDsRrsig = rootSigner.generateRrsig(
-          RRSet.init({ ...QUESTION, type: DnssecRecordType.DS }, [apexDs.record]),
+          RRSet.init(QUESTION.shallowCopy({ type: DnssecRecordType.DS }), [apexDs.record]),
           rootDnskey.data.calculateKeyTag(),
           addSeconds(NOW, 60),
           NOW,
         );
-        const dsMessage = new Message({ rcode: RCode.NoError }, [
-          apexDs.record,
-          apexDsRrsig.record,
-        ]);
+        const dsMessage = new Message(
+          { rcode: RCode.NoError },
+          [],
+          [apexDs.record, apexDsRrsig.record],
+        );
 
         const result = rootZone.initChild(RECORD.name, dnskeyMessage, dsMessage, VALIDITY_PERIOD);
 
@@ -436,7 +439,11 @@ describe('Zone', () => {
     describe('DS', () => {
       test('DS message with rcode other than NOERROR should be BOGUS', () => {
         const invalidDsMessage = new Message(
-          { ...tldDsMessage.header, rcode: 1 },
+          {
+            ...tldDsMessage.header,
+            rcode: 1,
+          },
+          [],
           tldDsMessage.answers,
         );
 
@@ -460,15 +467,18 @@ describe('Zone', () => {
           dataSerialised: Buffer.allocUnsafe(2),
         });
         const dsRrsig = rootSigner.generateRrsig(
-          RRSet.init({ ...TLD_DNSKEY_QUESTION, type: DnssecRecordType.DS }, [malformedDsRecord]),
+          RRSet.init(TLD_DNSKEY_QUESTION.shallowCopy({ type: DnssecRecordType.DS }), [
+            malformedDsRecord,
+          ]),
           rootDnskey.data.calculateKeyTag(),
           addSeconds(NOW, 60),
           NOW,
         );
-        const invalidDsMessage = new Message(tldDnskeyMessage.header, [
-          malformedDsRecord,
-          dsRrsig.record,
-        ]);
+        const invalidDsMessage = new Message(
+          tldDnskeyMessage.header,
+          [],
+          [malformedDsRecord, dsRrsig.record],
+        );
 
         const result = rootZone.initChild(
           RECORD_TLD,
@@ -504,15 +514,18 @@ describe('Zone', () => {
 
       test('DS not signed by parent zone should be BOGUS', async () => {
         const invalidDsRrsig = rootSigner.generateRrsig(
-          RRSet.init({ ...TLD_DNSKEY_QUESTION, type: DnssecRecordType.DS }, [tldDs.record]),
+          RRSet.init(TLD_DNSKEY_QUESTION.shallowCopy({ type: DnssecRecordType.DS }), [
+            tldDs.record,
+          ]),
           tldDnskey.data.calculateKeyTag() + 1, // This is what makes it invalid
           addSeconds(NOW, 60),
           NOW,
         );
-        const invaliDsMessage = new Message(tldDsMessage.header, [
-          tldDs.record,
-          invalidDsRrsig.record,
-        ]);
+        const invaliDsMessage = new Message(
+          tldDsMessage.header,
+          [],
+          [tldDs.record, invalidDsRrsig.record],
+        );
 
         const result = rootZone.initChild(
           RECORD_TLD,
@@ -530,7 +543,7 @@ describe('Zone', () => {
   });
 
   describe('verifyRrset', () => {
-    const STUB_QUESTION = { ...QUESTION, name: '.' };
+    const STUB_QUESTION = QUESTION.shallowCopy({ name: '.' });
     const STUB_RRSET = RRSet.init(STUB_QUESTION, [RECORD.shallowCopy({ name: '.' })]);
 
     test('Invalid SignedRRset should be refused as BOGUS', () => {
