@@ -2,6 +2,16 @@ import { question } from '@leichtgewicht/dns-packet';
 
 import { QUESTION, RECORD_CLASS_STR, RECORD_TYPE_STR } from '../../testUtils/dnsStubs';
 
+describe('key', () => {
+  test('Key should start with name', () => {
+    expect(QUESTION.key).toStartWith(`${QUESTION.name}/`);
+  });
+
+  test('Key should end with type id', () => {
+    expect(QUESTION.key).toEndWith(`/${QUESTION.type}`);
+  });
+});
+
 describe('equals', () => {
   test('Questions with different names should be unequal', () => {
     const differentQuestion = QUESTION.shallowCopy({ name: `sub.${QUESTION.name}` });

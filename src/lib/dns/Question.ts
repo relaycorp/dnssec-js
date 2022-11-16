@@ -14,6 +14,10 @@ export class Question {
     public readonly class_: DNSClass,
   ) {}
 
+  get key(): string {
+    return `${this.name}/${this.type}`;
+  }
+
   public equals(differentQuestion: Question) {
     return (
       this.name === differentQuestion.name &&

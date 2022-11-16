@@ -19,6 +19,7 @@ import { DnssecRecordType } from '../DnssecRecordType';
 import { RCode } from '../dns/RCode';
 import { SignedRRSet } from './SignedRRSet';
 import { DatePeriod } from './DatePeriod';
+import { Record } from '../dns/Record';
 
 const NOW = new Date();
 const VALIDITY_PERIOD = DatePeriod.init(subSeconds(NOW, 1), addSeconds(NOW, 1));
@@ -349,7 +350,7 @@ describe('Zone', () => {
     let tldDsRrsig: RrsigRecord;
     let tldDsMessage: Message;
     beforeAll(() => {
-      rootZone = rootSigner.generateZone(addSeconds(NOW, 60));
+      rootZone = generateRootZone();
 
       tldDnskeyMessage = new Message(
         { rcode: RCode.NoError },
@@ -538,7 +539,7 @@ describe('Zone', () => {
     const STUB_RRSET = RRSet.init(STUB_QUESTION, [RECORD.shallowCopy({ name: '.' })]);
 
     test('Invalid SignedRRset should be refused as BOGUS', () => {
-      const zone = rootSigner.generateZone(addSeconds(NOW, 60));
+      const zone = generateRootZone();
       const rrsig = rootSigner.generateRrsig(
         STUB_RRSET,
         zone.dnskeys[0].data.calculateKeyTag(),
@@ -557,7 +558,7 @@ describe('Zone', () => {
     });
 
     test('ZSK should be allowed to sign RRset', () => {
-      const zone = rootSigner.generateZone(addSeconds(NOW, 60));
+      const zone = generateRootZone();
       const zskData = zone.dnskeys[0].data;
       expect(zskData.flags.zoneKey).toBeTrue();
       const rrsig = rootSigner.generateRrsig(
@@ -575,9 +576,7 @@ describe('Zone', () => {
 
     test('Non-ZSK should be allowed to sign RRset', () => {
       const nonZsk = rootSigner.generateDnskey({ flags: { zoneKey: false } });
-      const zone = rootSigner.generateZone(addSeconds(NOW, 60), {
-        additionalDnskeys: [nonZsk.record],
-      });
+      const zone = generateRootZone([nonZsk.record]);
       const rrsig = rootSigner.generateRrsig(
         STUB_RRSET,
         nonZsk.data.calculateKeyTag(),
@@ -591,4 +590,20 @@ describe('Zone', () => {
       expect(zone.verifyRrset(signedRrset, VALIDITY_PERIOD)).toBeTrue();
     });
   });
+
+  function generateRootZone(additionalDnskeys: readonly Record[] = []): Zone {
+    const { dnskey, ds } = rootSigner.generateZoneResponses(rootSigner, {
+      dnskey: {
+        additionalDnskeys: additionalDnskeys,
+        flags: { zoneKey: true },
+        ...SIGNATURE_OPTIONS,
+      },
+      ds: SIGNATURE_OPTIONS,
+    });
+    const zoneResult = Zone.init(rootSigner.zoneName, dnskey.message, [ds.data], VALIDITY_PERIOD);
+    if (zoneResult.status !== SecurityStatus.SECURE) {
+      throw new Error(`Failed to generate zone: ${zoneResult.reasonChain.join(', ')}`);
+    }
+    return zoneResult.result;
+  }
 });

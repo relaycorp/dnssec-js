@@ -13,13 +13,10 @@ import { DnskeyData } from '../rdata/DnskeyData';
 import { DsData } from '../rdata/DsData';
 import { RrsigData } from '../rdata/RrsigData';
 import { DnskeyRecord } from '../dnssecRecords';
-import { Zone } from '../verification/Zone';
 import { RCode } from '../dns/RCode';
 import { Message } from '../dns/Message';
-import { DatePeriod } from '../verification/DatePeriod';
 import { Question } from '../dns/Question';
-import { DnskeyResponse, DsResponse, RrsigResponse } from './responses';
-import { SecurityStatus } from '../verification/SecurityStatus';
+import { DnskeyResponse, DsResponse, RrsigResponse, ZoneResponseSet } from './responses';
 
 const FIVE_MINUTES_IN_SECONDS = 5 * 60;
 
@@ -33,17 +30,13 @@ interface RecordGenerationOptions extends SignatureGenerationOptions {
 }
 
 interface DnskeyGenerationOptions extends RecordGenerationOptions {
+  readonly additionalDnskeys: readonly Record[];
   readonly flags: Partial<DnskeyFlags>;
   readonly protocol: number;
 }
 
 interface DsGenerationOptions extends RecordGenerationOptions {
   readonly digestType: DigestType;
-}
-
-interface ZoneGenerationOptions {
-  readonly parent: ZoneSigner;
-  readonly additionalDnskeys: readonly Record[];
 }
 
 export class ZoneSigner {
@@ -76,12 +69,13 @@ export class ZoneSigner {
       data.serialise(),
     );
     const question = new Question(this.zoneName, DnssecRecordType.DNSKEY, DNSClass.IN);
-    const rrsig = this.generateRrsig(
-      RRSet.init(question, [record]),
-      data.calculateKeyTag(),
-      options,
+    const rrset = RRSet.init(question, [record, ...(options.additionalDnskeys ?? [])]);
+    const rrsig = this.generateRrsig(rrset, data.calculateKeyTag(), options);
+    const message = new Message(
+      { rcode: RCode.NoError },
+      [question],
+      [...rrset.records, rrsig.record],
     );
-    const message = new Message({ rcode: RCode.NoError }, [question], [record, rrsig.record]);
     return { data, message, record };
   }
 
@@ -149,28 +143,16 @@ export class ZoneSigner {
     return { data, message, record };
   }
 
-  public generateZone(rrsigExpiryDate: Date, options: Partial<ZoneGenerationOptions> = {}): Zone {
-    const dnskey = this.generateDnskey({
-      flags: { zoneKey: true },
-      signatureExpiry: rrsigExpiryDate,
-    });
-    const dnskeyRecords = [...(options.additionalDnskeys ?? []), dnskey.record];
-    const dnskeyRrsig = this.generateRrsig(
-      RRSet.init(new Question(this.zoneName, DnssecRecordType.DNSKEY, DNSClass.IN), dnskeyRecords),
-      dnskey.data.calculateKeyTag(),
-      { signatureExpiry: rrsigExpiryDate },
-    );
-    const dnskeyMessage = new Message(dnskey.message.header, dnskey.message.questions, [
-      ...dnskeyRecords,
-      dnskeyRrsig.record,
-    ]);
-    const ds = (options.parent ?? this).generateDs(dnskey, this.zoneName);
-    const datePeriod = DatePeriod.init(dnskeyRrsig.data.signatureInception, rrsigExpiryDate);
-    const zoneResult = Zone.init(this.zoneName, dnskeyMessage, [ds.data], datePeriod);
-    if (zoneResult.status !== SecurityStatus.SECURE) {
-      throw new Error(`Failed to generate zone: ${zoneResult.reasonChain.join(', ')}`);
-    }
-    return zoneResult.result;
+  public generateZoneResponses(
+    parent: ZoneSigner,
+    options: Partial<{
+      readonly dnskey: Partial<DnskeyGenerationOptions>;
+      readonly ds: Partial<DsGenerationOptions>;
+    }> = {},
+  ): ZoneResponseSet {
+    const dnskey = this.generateDnskey(options.dnskey);
+    const ds = parent.generateDs(dnskey, this.zoneName, options.ds);
+    return { ds, dnskey };
   }
 
   private isChildZone(zoneName: string): boolean {
