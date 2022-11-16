@@ -1,12 +1,12 @@
 import { addMinutes, addSeconds, setMilliseconds, subSeconds } from 'date-fns';
 
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
-import { ZoneSigner } from '../signing/ZoneSigner';
+import { SignatureGenerationOptions, ZoneSigner } from '../signing/ZoneSigner';
 import { DnskeyData } from './DnskeyData';
 import { InvalidRdataError } from '../errors';
 import { RECORD_TLD, RRSET } from '../../testUtils/dnsStubs';
-import { DNSSEC_ROOT_DNSKEY_DATA, DNSSEC_ROOT_DNSKEY_KEY_TAG } from '../../testUtils/dnssec';
 import { DatePeriod } from '../verification/DatePeriod';
+import { DNSSEC_ROOT_DNSKEY_DATA, DNSSEC_ROOT_DNSKEY_KEY_TAG } from '../../testUtils/dnssec/iana';
 
 describe('DnskeyData', () => {
   const NOW = setMilliseconds(new Date(), 0);
@@ -30,7 +30,7 @@ describe('DnskeyData', () => {
     });
 
     test('Public key should be extracted', () => {
-      const record = tldSigner.generateDnskey(0).record;
+      const record = tldSigner.generateDnskey().record;
 
       const data = DnskeyData.deserialise(record.dataSerialised);
 
@@ -40,7 +40,7 @@ describe('DnskeyData', () => {
     });
 
     test('Algorithm should be extracted', () => {
-      const record = tldSigner.generateDnskey(0).record;
+      const record = tldSigner.generateDnskey().record;
 
       const data = DnskeyData.deserialise(record.dataSerialised);
 
@@ -49,7 +49,7 @@ describe('DnskeyData', () => {
 
     test('Protocol should be extracted', () => {
       const protocol = 42;
-      const record = tldSigner.generateDnskey(0, {}, protocol).record;
+      const record = tldSigner.generateDnskey({ protocol }).record;
 
       const data = DnskeyData.deserialise(record.dataSerialised);
 
@@ -58,7 +58,7 @@ describe('DnskeyData', () => {
 
     describe('Flags', () => {
       test('Zone Key should be on if set', () => {
-        const record = tldSigner.generateDnskey(0, { zoneKey: true }).record;
+        const record = tldSigner.generateDnskey({ flags: { zoneKey: true } }).record;
 
         const data = DnskeyData.deserialise(record.dataSerialised);
 
@@ -66,7 +66,7 @@ describe('DnskeyData', () => {
       });
 
       test('Zone Key should off if unset', () => {
-        const record = tldSigner.generateDnskey(0, { zoneKey: false }).record;
+        const record = tldSigner.generateDnskey({ flags: { zoneKey: false } }).record;
 
         const data = DnskeyData.deserialise(record.dataSerialised);
 
@@ -74,7 +74,7 @@ describe('DnskeyData', () => {
       });
 
       test('Secure Entrypoint should be on if set', () => {
-        const record = tldSigner.generateDnskey(0, { secureEntryPoint: true }).record;
+        const record = tldSigner.generateDnskey({ flags: { secureEntryPoint: true } }).record;
 
         const data = DnskeyData.deserialise(record.dataSerialised);
 
@@ -82,7 +82,7 @@ describe('DnskeyData', () => {
       });
 
       test('Secure Entrypoint should be off if unset', () => {
-        const record = tldSigner.generateDnskey(0, { secureEntryPoint: false }).record;
+        const record = tldSigner.generateDnskey({ flags: { secureEntryPoint: false } }).record;
 
         const data = DnskeyData.deserialise(record.dataSerialised);
 
@@ -91,7 +91,7 @@ describe('DnskeyData', () => {
     });
 
     test('Key tag should be cached', () => {
-      const record = tldSigner.generateDnskey(0, { secureEntryPoint: false }).record;
+      const record = tldSigner.generateDnskey({ flags: { secureEntryPoint: false } }).record;
 
       const data = DnskeyData.deserialise(record.dataSerialised);
 
@@ -123,10 +123,14 @@ describe('DnskeyData', () => {
 
   describe('verifyRrsig', () => {
     const VALIDITY_PERIOD = DatePeriod.init(subSeconds(NOW, 1), addSeconds(NOW, 1));
+    const RRSIG_OPTIONS: SignatureGenerationOptions = {
+      signatureExpiry: SIGNATURE_EXPIRY,
+      signatureInception: NOW,
+    };
 
     let dnskeyData: DnskeyData;
     beforeAll(() => {
-      dnskeyData = tldSigner.generateDnskey(42).data;
+      dnskeyData = tldSigner.generateDnskey().data;
     });
 
     test('Algorithm should match', async () => {
@@ -142,8 +146,7 @@ describe('DnskeyData', () => {
       const { data: rrsigData } = differentTldSigner.generateRrsig(
         RRSET,
         dnskeyData.calculateKeyTag(),
-        NOW,
-        SIGNATURE_INCEPTION,
+        RRSIG_OPTIONS,
       );
 
       expect(dnskeyData.verifyRrsig(rrsigData, VALIDITY_PERIOD)).toBeFalse();
@@ -151,23 +154,16 @@ describe('DnskeyData', () => {
 
     test('Key tag should match', async () => {
       const differentKeyTag = dnskeyData.calculateKeyTag() + 1;
-      const { data: rrsigData } = tldSigner.generateRrsig(
-        RRSET,
-        differentKeyTag,
-        NOW,
-        SIGNATURE_INCEPTION,
-      );
+      const { data: rrsigData } = tldSigner.generateRrsig(RRSET, differentKeyTag, RRSIG_OPTIONS);
 
       expect(dnskeyData.verifyRrsig(rrsigData, VALIDITY_PERIOD)).toBeFalse();
     });
 
     test('Signature validity outside required period should be BOGUS', () => {
-      const { data: rrsigData } = tldSigner.generateRrsig(
-        RRSET,
-        dnskeyData.calculateKeyTag(),
-        subSeconds(VALIDITY_PERIOD.start, 1),
-        subSeconds(VALIDITY_PERIOD.start, 2),
-      );
+      const { data: rrsigData } = tldSigner.generateRrsig(RRSET, dnskeyData.calculateKeyTag(), {
+        signatureExpiry: subSeconds(VALIDITY_PERIOD.start, 1),
+        signatureInception: subSeconds(VALIDITY_PERIOD.start, 2),
+      });
 
       expect(dnskeyData.verifyRrsig(rrsigData, VALIDITY_PERIOD)).toBeFalse();
     });
@@ -176,8 +172,7 @@ describe('DnskeyData', () => {
       const { data: rrsigData } = tldSigner.generateRrsig(
         RRSET,
         dnskeyData.calculateKeyTag(),
-        SIGNATURE_EXPIRY,
-        SIGNATURE_INCEPTION,
+        RRSIG_OPTIONS,
       );
 
       expect(dnskeyData.verifyRrsig(rrsigData, VALIDITY_PERIOD)).toBeTrue();

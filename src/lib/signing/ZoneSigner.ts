@@ -1,5 +1,5 @@
 import { KeyObject } from 'node:crypto';
-import { setMilliseconds } from 'date-fns';
+import { addSeconds, setMilliseconds } from 'date-fns';
 
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { Record } from '../dns/Record';
@@ -12,13 +12,34 @@ import { DnskeyFlags } from '../DnskeyFlags';
 import { DnskeyData } from '../rdata/DnskeyData';
 import { DsData } from '../rdata/DsData';
 import { RrsigData } from '../rdata/RrsigData';
-import { DnskeyRecord, DsRecord, RrsigRecord } from '../dnssecRecords';
+import { DnskeyRecord } from '../dnssecRecords';
 import { Zone } from '../verification/Zone';
 import { RCode } from '../dns/RCode';
 import { Message } from '../dns/Message';
-import { SuccessfulResult } from '../verification/VerificationResult';
 import { DatePeriod } from '../verification/DatePeriod';
 import { Question } from '../dns/Question';
+import { DnskeyResponse, DsResponse, RrsigResponse } from './responses';
+import { SecurityStatus } from '../verification/SecurityStatus';
+
+const FIVE_MINUTES_IN_SECONDS = 5 * 60;
+
+export interface SignatureGenerationOptions {
+  readonly signatureInception: Date;
+  readonly signatureExpiry: Date;
+}
+
+interface RecordGenerationOptions extends SignatureGenerationOptions {
+  readonly ttl: number;
+}
+
+interface DnskeyGenerationOptions extends RecordGenerationOptions {
+  readonly flags: Partial<DnskeyFlags>;
+  readonly protocol: number;
+}
+
+interface DsGenerationOptions extends RecordGenerationOptions {
+  readonly digestType: DigestType;
+}
 
 interface ZoneGenerationOptions {
   readonly parent: ZoneSigner;
@@ -39,13 +60,14 @@ export class ZoneSigner {
     public readonly algorithm: DnssecAlgorithm,
   ) {}
 
-  public generateDnskey(
-    ttl: number,
-    flags: Partial<DnskeyFlags> = {},
-    protocol: number = 3,
-  ): DnskeyRecord {
-    const finalFlags: DnskeyFlags = { zoneKey: true, secureEntryPoint: false, ...flags };
-    const data = new DnskeyData(this.publicKey, protocol, this.algorithm, finalFlags);
+  public generateDnskey(options: Partial<DnskeyGenerationOptions> = {}): DnskeyResponse {
+    const finalFlags: DnskeyFlags = {
+      zoneKey: true,
+      secureEntryPoint: false,
+      ...(options.flags ?? {}),
+    };
+    const data = new DnskeyData(this.publicKey, options.protocol ?? 3, this.algorithm, finalFlags);
+    const ttl = options.ttl ?? FIVE_MINUTES_IN_SECONDS;
     const record = new Record(
       this.zoneName,
       DnssecRecordType.DNSKEY,
@@ -53,19 +75,26 @@ export class ZoneSigner {
       ttl,
       data.serialise(),
     );
-    return { data, record };
+    const question = new Question(this.zoneName, DnssecRecordType.DNSKEY, DNSClass.IN);
+    const rrsig = this.generateRrsig(
+      RRSet.init(question, [record]),
+      data.calculateKeyTag(),
+      options,
+    );
+    const message = new Message({ rcode: RCode.NoError }, [question], [record, rrsig.record]);
+    return { data, message, record };
   }
 
   public generateDs(
     dnskey: DnskeyRecord,
     childZoneName: string,
-    ttl: number,
-    digestType: DigestType = DigestType.SHA256,
-  ): DsRecord {
+    options: Partial<DsGenerationOptions> = {},
+  ): DsResponse {
     const isRootZone = childZoneName === this.zoneName && this.zoneName === '.';
     if (!isRootZone && !this.isChildZone(childZoneName)) {
       throw new Error(`${childZoneName} isn't a child of ${this.zoneName}`);
     }
+    const digestType = options.digestType ?? DigestType.SHA256;
     const digest = DsData.calculateDnskeyDigest(dnskey, digestType);
     const data = new DsData(
       dnskey.data.calculateKeyTag(),
@@ -77,21 +106,25 @@ export class ZoneSigner {
       childZoneName,
       DnssecRecordType.DS,
       DNSClass.IN,
-      ttl,
+      options.ttl ?? FIVE_MINUTES_IN_SECONDS,
       data.serialise(),
     );
-    return { data, record };
+    const question = new Question(childZoneName, DnssecRecordType.DS, DNSClass.IN);
+    const rrsig = this.generateRrsig(RRSet.init(question, [record]), data.keyTag, options);
+    const message = new Message({ rcode: RCode.NoError }, [question], [record, rrsig.record]);
+    return { data, message, record };
   }
 
   public generateRrsig(
     rrset: RRSet,
     keyTag: number,
-    signatureExpiry: Date,
-    signatureInception: Date = new Date(),
-  ): RrsigRecord {
+    options: Partial<SignatureGenerationOptions> = {},
+  ): RrsigResponse {
     if (rrset.name !== this.zoneName && !this.isChildZone(rrset.name)) {
       throw new Error(`RRset for ${rrset.name} isn't a child of ${this.zoneName}`);
     }
+    const signatureInception = options.signatureInception ?? new Date();
+    const signatureExpiry = options.signatureExpiry ?? addSeconds(signatureInception, rrset.ttl);
     const data = RrsigData.generate(
       rrset,
       setMilliseconds(signatureExpiry, 0),
@@ -108,26 +141,36 @@ export class ZoneSigner {
       rrset.ttl,
       data.serialise(),
     );
-    return { record, data };
+    const message = new Message(
+      { rcode: RCode.NoError },
+      [new Question(rrset.name, rrset.type, rrset.class_)],
+      [...rrset.records, record],
+    );
+    return { data, message, record };
   }
 
   public generateZone(rrsigExpiryDate: Date, options: Partial<ZoneGenerationOptions> = {}): Zone {
-    const dnskey = this.generateDnskey(42, { zoneKey: true });
+    const dnskey = this.generateDnskey({
+      flags: { zoneKey: true },
+      signatureExpiry: rrsigExpiryDate,
+    });
     const dnskeyRecords = [...(options.additionalDnskeys ?? []), dnskey.record];
     const dnskeyRrsig = this.generateRrsig(
       RRSet.init(new Question(this.zoneName, DnssecRecordType.DNSKEY, DNSClass.IN), dnskeyRecords),
       dnskey.data.calculateKeyTag(),
-      rrsigExpiryDate,
+      { signatureExpiry: rrsigExpiryDate },
     );
-    const dnskeyMessage = new Message(
-      { rcode: RCode.NoError },
-      [],
-      [...dnskeyRecords, dnskeyRrsig.record],
-    );
-    const ds = (options.parent ?? this).generateDs(dnskey, this.zoneName, 42);
+    const dnskeyMessage = new Message(dnskey.message.header, dnskey.message.questions, [
+      ...dnskeyRecords,
+      dnskeyRrsig.record,
+    ]);
+    const ds = (options.parent ?? this).generateDs(dnskey, this.zoneName);
     const datePeriod = DatePeriod.init(dnskeyRrsig.data.signatureInception, rrsigExpiryDate);
     const zoneResult = Zone.init(this.zoneName, dnskeyMessage, [ds.data], datePeriod);
-    return (zoneResult as SuccessfulResult<Zone>).result;
+    if (zoneResult.status !== SecurityStatus.SECURE) {
+      throw new Error(`Failed to generate zone: ${zoneResult.reasonChain.join(', ')}`);
+    }
+    return zoneResult.result;
   }
 
   private isChildZone(zoneName: string): boolean {

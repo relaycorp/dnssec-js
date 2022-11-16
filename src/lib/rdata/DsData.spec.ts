@@ -7,7 +7,7 @@ import { DnskeyData } from './DnskeyData';
 import { DnskeyRecord, DsRecord } from '../dnssecRecords';
 import { serialiseName } from '../dns/name';
 import { generateDigest } from '../utils/crypto';
-import { copyDnssecRecordData } from '../../testUtils/dnssec';
+import { copyDnssecRecordData } from '../../testUtils/dnssec/records';
 import { RECORD_TLD } from '../../testUtils/dnsStubs';
 
 describe('DsData', () => {
@@ -17,8 +17,8 @@ describe('DsData', () => {
   beforeAll(async () => {
     signer = await ZoneSigner.generate(DnssecAlgorithm.RSASHA256, '.');
 
-    dnskey = signer.generateDnskey(42);
-    ds = signer.generateDs(dnskey, RECORD_TLD, 5, DigestType.SHA384);
+    dnskey = signer.generateDnskey();
+    ds = signer.generateDs(dnskey, RECORD_TLD);
   });
 
   describe('deserialise', () => {

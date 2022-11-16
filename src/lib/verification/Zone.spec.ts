@@ -1,6 +1,6 @@
 import { addSeconds, subSeconds } from 'date-fns';
 
-import { ZoneSigner } from '../signing/ZoneSigner';
+import { SignatureGenerationOptions, ZoneSigner } from '../signing/ZoneSigner';
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { QUESTION, RECORD, RECORD_TLD } from '../../testUtils/dnsStubs';
 import { Zone } from './Zone';
@@ -12,7 +12,7 @@ import { RRSet } from '../dns/RRSet';
 import { RrsigData } from '../rdata/RrsigData';
 import { FailureResult, SuccessfulResult } from './VerificationResult';
 import { DnskeyData } from '../rdata/DnskeyData';
-import { copyDnssecRecordData } from '../../testUtils/dnssec';
+import { copyDnssecRecordData } from '../../testUtils/dnssec/records';
 import { Question } from '../dns/Question';
 import { DNSClass } from '../dns/DNSClass';
 import { DnssecRecordType } from '../DnssecRecordType';
@@ -22,6 +22,10 @@ import { DatePeriod } from './DatePeriod';
 
 const NOW = new Date();
 const VALIDITY_PERIOD = DatePeriod.init(subSeconds(NOW, 1), addSeconds(NOW, 1));
+const SIGNATURE_OPTIONS: SignatureGenerationOptions = {
+  signatureExpiry: VALIDITY_PERIOD.end,
+  signatureInception: VALIDITY_PERIOD.start,
+};
 
 describe('Zone', () => {
   const TLD_DNSKEY_QUESTION = new Question(RECORD_TLD, DnssecRecordType.DNSKEY, DNSClass.IN);
@@ -33,18 +37,17 @@ describe('Zone', () => {
   beforeAll(async () => {
     rootSigner = await ZoneSigner.generate(DnssecAlgorithm.RSASHA256, '.');
 
-    rootDnskey = rootSigner.generateDnskey(42, { zoneKey: true });
+    rootDnskey = rootSigner.generateDnskey({ flags: { zoneKey: true } });
     const rootDnskeyRrset = RRSet.init(new Question('.', DnssecRecordType.DNSKEY, DNSClass.IN), [
       rootDnskey.record,
     ]);
     rootDnskeyRrsig = rootSigner.generateRrsig(
       rootDnskeyRrset,
       rootDnskey.data.calculateKeyTag(),
-      addSeconds(NOW, 60),
-      NOW,
+      SIGNATURE_OPTIONS,
     );
 
-    rootDs = rootSigner.generateDs(rootDnskey, '.', 42);
+    rootDs = rootSigner.generateDs(rootDnskey, '.');
   });
 
   let tldSigner: ZoneSigner;
@@ -54,15 +57,14 @@ describe('Zone', () => {
   beforeAll(async () => {
     tldSigner = await ZoneSigner.generate(DnssecAlgorithm.RSASHA256, RECORD_TLD);
 
-    tldDnskey = tldSigner.generateDnskey(60);
+    tldDnskey = tldSigner.generateDnskey();
     tldDnskeyRrsig = tldSigner.generateRrsig(
       RRSet.init(TLD_DNSKEY_QUESTION, [tldDnskey.record]),
       tldDnskey.data.calculateKeyTag(),
-      addSeconds(NOW, 60),
-      NOW,
+      SIGNATURE_OPTIONS,
     );
 
-    tldDs = rootSigner.generateDs(tldDnskey, RECORD_TLD, 60);
+    tldDs = rootSigner.generateDs(tldDnskey, RECORD_TLD);
   });
 
   describe('init', () => {
@@ -83,8 +85,7 @@ describe('Zone', () => {
       const newRrsig = tldSigner.generateRrsig(
         RRSet.init(TLD_DNSKEY_QUESTION, [malformedDnskey]),
         tldDnskeyRrsig.data.keyTag,
-        tldDnskeyRrsig.data.signatureExpiry,
-        NOW,
+        SIGNATURE_OPTIONS,
       );
       const dnskeyMessage = new Message(
         { rcode: RCode.NoError },
@@ -207,15 +208,11 @@ describe('Zone', () => {
       const rrsig = tldSigner.generateRrsig(
         RRSet.init(TLD_DNSKEY_QUESTION, [nonZskDnskeyRecord.record]),
         nonZskDnskeyData.calculateKeyTag(),
-        tldDnskeyRrsig.data.signatureExpiry,
-        tldDnskeyRrsig.data.signatureInception,
+        SIGNATURE_OPTIONS,
       );
-      const nonZskDs = rootSigner.generateDs(
-        nonZskDnskeyRecord,
-        RECORD_TLD,
-        tldDs.record.ttl,
-        tldDs.data.digestType,
-      );
+      const nonZskDs = rootSigner.generateDs(nonZskDnskeyRecord, RECORD_TLD, {
+        digestType: tldDs.data.digestType,
+      });
       const result = Zone.init(
         RECORD_TLD,
         new Message({ rcode: RCode.NoError }, [], [nonZskDnskeyRecord.record, rrsig.record]),
@@ -246,12 +243,11 @@ describe('Zone', () => {
 
     test('Additional DNSKEYs should also be stored if a valid ZSK is found', async () => {
       const newApexSigner = await ZoneSigner.generate(DnssecAlgorithm.RSASHA1, tldSigner.zoneName);
-      const nonZskDnskey = newApexSigner.generateDnskey(tldDnskey.record.ttl, { zoneKey: false });
+      const nonZskDnskey = newApexSigner.generateDnskey({ flags: { zoneKey: false } });
       const newRrsig = tldSigner.generateRrsig(
         RRSet.init(TLD_DNSKEY_QUESTION, [tldDnskey.record, nonZskDnskey.record]),
         tldDnskey.data.calculateKeyTag(),
-        tldDnskeyRrsig.data.signatureExpiry,
-        tldDnskeyRrsig.data.signatureInception,
+        SIGNATURE_OPTIONS,
       );
 
       const result = Zone.init(
@@ -364,8 +360,7 @@ describe('Zone', () => {
       tldDsRrsig = rootSigner.generateRrsig(
         RRSet.init(TLD_DNSKEY_QUESTION.shallowCopy({ type: DnssecRecordType.DS }), [tldDs.record]),
         rootDnskey.data.calculateKeyTag(),
-        addSeconds(NOW, 60),
-        NOW,
+        SIGNATURE_OPTIONS,
       );
       tldDsMessage = new Message({ rcode: RCode.NoError }, [], [tldDs.record, tldDsRrsig.record]);
     });
@@ -387,24 +382,22 @@ describe('Zone', () => {
 
       test('Indirectly-descending name should be supported', async () => {
         const apexSigner = await ZoneSigner.generate(tldSigner.algorithm, RECORD.name);
-        const apexDnskey = apexSigner.generateDnskey(42);
+        const apexDnskey = apexSigner.generateDnskey();
         const apexDnskeyRrsig = apexSigner.generateRrsig(
           RRSet.init(QUESTION.shallowCopy({ type: DnssecRecordType.DNSKEY }), [apexDnskey.record]),
           apexDnskey.data.calculateKeyTag(),
-          addSeconds(NOW, 60),
-          NOW,
+          SIGNATURE_OPTIONS,
         );
         const dnskeyMessage = new Message(
           { rcode: RCode.NoError },
           [],
           [apexDnskey.record, apexDnskeyRrsig.record],
         );
-        const apexDs = rootSigner.generateDs(apexDnskey, RECORD.name, 42);
+        const apexDs = rootSigner.generateDs(apexDnskey, RECORD.name);
         const apexDsRrsig = rootSigner.generateRrsig(
           RRSet.init(QUESTION.shallowCopy({ type: DnssecRecordType.DS }), [apexDs.record]),
           rootDnskey.data.calculateKeyTag(),
-          addSeconds(NOW, 60),
-          NOW,
+          SIGNATURE_OPTIONS,
         );
         const dsMessage = new Message(
           { rcode: RCode.NoError },
@@ -471,8 +464,7 @@ describe('Zone', () => {
             malformedDsRecord,
           ]),
           rootDnskey.data.calculateKeyTag(),
-          addSeconds(NOW, 60),
-          NOW,
+          SIGNATURE_OPTIONS,
         );
         const invalidDsMessage = new Message(
           tldDnskeyMessage.header,
@@ -518,8 +510,7 @@ describe('Zone', () => {
             tldDs.record,
           ]),
           tldDnskey.data.calculateKeyTag() + 1, // This is what makes it invalid
-          addSeconds(NOW, 60),
-          NOW,
+          SIGNATURE_OPTIONS,
         );
         const invaliDsMessage = new Message(
           tldDsMessage.header,
@@ -551,8 +542,7 @@ describe('Zone', () => {
       const rrsig = rootSigner.generateRrsig(
         STUB_RRSET,
         zone.dnskeys[0].data.calculateKeyTag(),
-        addSeconds(NOW, 60),
-        NOW,
+        SIGNATURE_OPTIONS,
       );
       const signedRrset = SignedRRSet.initFromRecords(STUB_QUESTION, [
         ...STUB_RRSET.records,
@@ -573,8 +563,7 @@ describe('Zone', () => {
       const rrsig = rootSigner.generateRrsig(
         STUB_RRSET,
         zskData.calculateKeyTag(),
-        addSeconds(NOW, 60),
-        NOW,
+        SIGNATURE_OPTIONS,
       );
       const signedRrset = SignedRRSet.initFromRecords(STUB_QUESTION, [
         ...STUB_RRSET.records,
@@ -585,15 +574,14 @@ describe('Zone', () => {
     });
 
     test('Non-ZSK should be allowed to sign RRset', () => {
-      const nonZsk = rootSigner.generateDnskey(42, { zoneKey: false });
+      const nonZsk = rootSigner.generateDnskey({ flags: { zoneKey: false } });
       const zone = rootSigner.generateZone(addSeconds(NOW, 60), {
         additionalDnskeys: [nonZsk.record],
       });
       const rrsig = rootSigner.generateRrsig(
         STUB_RRSET,
         nonZsk.data.calculateKeyTag(),
-        addSeconds(NOW, 60),
-        NOW,
+        SIGNATURE_OPTIONS,
       );
       const signedRrset = SignedRRSet.initFromRecords(STUB_QUESTION, [
         ...STUB_RRSET.records,

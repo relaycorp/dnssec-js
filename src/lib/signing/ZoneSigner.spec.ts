@@ -13,7 +13,7 @@ describe('ZoneSigner', () => {
   test('generateDnskey', async () => {
     const signer = await ZoneSigner.generate(DnssecAlgorithm.RSASHA256, '.');
 
-    const dnskey = signer.generateDnskey(10, { secureEntryPoint: true }).record;
+    const dnskey = signer.generateDnskey({ flags: { secureEntryPoint: true } }).record;
 
     expect(dnskey.name).toEqual(signer.zoneName);
     const dnskeyParsed = DNSKEY.decode(lengthPrefixRdata(dnskey.dataSerialised));
@@ -23,9 +23,9 @@ describe('ZoneSigner', () => {
   test('generateDs', async () => {
     const signer = await ZoneSigner.generate(DnssecAlgorithm.RSASHA256, '.');
     const digestAlgorithm = DigestType.SHA256;
-    const dnskey = signer.generateDnskey(42);
+    const dnskey = signer.generateDnskey();
 
-    const ds = signer.generateDs(dnskey, RECORD_TLD, 10, digestAlgorithm);
+    const ds = signer.generateDs(dnskey, RECORD_TLD, { digestType: digestAlgorithm });
 
     expect(ds.record.name).toEqual(RECORD_TLD);
     const rdata = lengthPrefixRdata(ds.record.dataSerialised);
@@ -52,7 +52,7 @@ describe('ZoneSigner', () => {
     const signatureInception = setMilliseconds(new Date(), 5);
     const keyTag = 12345;
 
-    const rrsig = signer.generateRrsig(rrset, keyTag, signatureExpiry, signatureInception);
+    const rrsig = signer.generateRrsig(rrset, keyTag, { signatureExpiry, signatureInception });
 
     const rdata = lengthPrefixRdata(rrsig.record.dataSerialised);
     const parsed = RRSIG.decode(rdata);
@@ -75,7 +75,7 @@ describe('ZoneSigner', () => {
       RECORD.shallowCopy({ name: recordName }),
     ]);
 
-    const rrsig = signer.generateRrsig(rrset, 42, addHours(new Date(), 3));
+    const rrsig = signer.generateRrsig(rrset, 42);
     const rdata = lengthPrefixRdata(rrsig.record.dataSerialised);
 
     const parsed = RRSIG.decode(rdata);
