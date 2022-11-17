@@ -3,7 +3,7 @@ import { addMinutes, setMilliseconds } from 'date-fns';
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { SignatureGenerationOptions, ZoneSigner } from '../signing/ZoneSigner';
 import { RrsigData } from './RrsigData';
-import { InvalidRdataError } from '../errors';
+import { MalformedRdataError } from '../verification/MalformedRdataError';
 import { serialiseName } from '../dns/name';
 import { RRSet } from '../dns/RRSet';
 import { QUESTION, RECORD, RRSET } from '../../testUtils/dnsStubs';
@@ -29,7 +29,7 @@ describe('RrsigData', () => {
       const malformedRrsigData = Buffer.allocUnsafe(18);
 
       expect(() => RrsigData.deserialise(malformedRrsigData)).toThrowWithMessage(
-        InvalidRdataError,
+        MalformedRdataError,
         'RRSIG data is malformed',
       );
     });
@@ -40,7 +40,7 @@ describe('RrsigData', () => {
       nameSerialised.copy(serialisation, 18);
 
       expect(() => RrsigData.deserialise(serialisation)).toThrowWithMessage(
-        InvalidRdataError,
+        MalformedRdataError,
         'Signature is empty',
       );
     });

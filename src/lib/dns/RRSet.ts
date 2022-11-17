@@ -1,7 +1,7 @@
 import { Record } from './Record';
-import { RRSetError } from '../errors';
 import { DNSClass } from './DNSClass';
 import { Question } from './Question';
+import { DnsError } from './DnsError';
 
 /**
  * A set of Resource Records (aka `RRset`).
@@ -19,7 +19,7 @@ export class RRSet {
     );
 
     if (matchingRecords.length === 0) {
-      throw new RRSetError(
+      throw new DnsError(
         `RRset for ${question.name}/${question.type} should have at least one matching record`,
       );
     }
@@ -28,7 +28,7 @@ export class RRSet {
     const ttl = firstRecord.ttl;
     const mismatchingTtlRecord = remainingRecords.find((r) => r.ttl !== ttl);
     if (mismatchingTtlRecord) {
-      throw new RRSetError(
+      throw new DnsError(
         `RRset for ${question.name}/${question.type} contains different TTLs ` +
           `(e.g., ${ttl}, ${mismatchingTtlRecord.ttl})`,
       );

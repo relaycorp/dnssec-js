@@ -2,7 +2,7 @@ import { Parser } from 'binary-parser';
 
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { DigestType } from '../DigestType';
-import { InvalidRdataError } from '../errors';
+import { MalformedRdataError } from '../verification/MalformedRdataError';
 import { generateDigest } from '../utils/crypto';
 import { DnssecRecordData } from './DnssecRecordData';
 import { DnskeyRecord } from '../dnssecRecords';
@@ -21,10 +21,10 @@ export class DsData implements DnssecRecordData {
     try {
       parsingResult = PARSER.parse(serialisation);
     } catch (_) {
-      throw new InvalidRdataError('DS data is malformed');
+      throw new MalformedRdataError('DS data is malformed');
     }
     if (parsingResult.digest.byteLength === 0) {
-      throw new InvalidRdataError('DS data is missing digest');
+      throw new MalformedRdataError('DS data is missing digest');
     }
     return new DsData(
       parsingResult.keyTag,

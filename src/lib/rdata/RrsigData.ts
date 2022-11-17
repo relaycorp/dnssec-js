@@ -4,7 +4,7 @@ import { fromUnixTime, getUnixTime } from 'date-fns';
 
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { NAME_PARSER_OPTIONS, serialiseName } from '../dns/name';
-import { InvalidRdataError } from '../errors';
+import { MalformedRdataError } from '../verification/MalformedRdataError';
 import { DnssecRecordData } from './DnssecRecordData';
 import { RRSet } from '../dns/RRSet';
 import { getNodejsHashAlgorithmFromDnssecAlgo } from '../utils/crypto';
@@ -27,11 +27,11 @@ export class RrsigData implements DnssecRecordData {
     try {
       parsingResult = PARSER.parse(serialisation);
     } catch (_) {
-      throw new InvalidRdataError('RRSIG data is malformed');
+      throw new MalformedRdataError('RRSIG data is malformed');
     }
 
     if (parsingResult.signature.byteLength === 0) {
-      throw new InvalidRdataError('Signature is empty');
+      throw new MalformedRdataError('Signature is empty');
     }
 
     return new RrsigData(

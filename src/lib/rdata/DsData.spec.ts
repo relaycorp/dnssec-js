@@ -1,5 +1,5 @@
 import { DsData } from './DsData';
-import { InvalidRdataError } from '../errors';
+import { MalformedRdataError } from '../verification/MalformedRdataError';
 import { ZoneSigner } from '../signing/ZoneSigner';
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { DigestType } from '../DigestType';
@@ -32,7 +32,7 @@ describe('DsData', () => {
       const malformedDSData = Buffer.allocUnsafe(3);
 
       expect(() => DsData.deserialise(malformedDSData)).toThrowWithMessage(
-        InvalidRdataError,
+        MalformedRdataError,
         'DS data is malformed',
       );
     });
@@ -41,7 +41,7 @@ describe('DsData', () => {
       const malformedDsData = Buffer.allocUnsafe(4);
 
       expect(() => DsData.deserialise(malformedDsData)).toThrowWithMessage(
-        InvalidRdataError,
+        MalformedRdataError,
         'DS data is missing digest',
       );
     });

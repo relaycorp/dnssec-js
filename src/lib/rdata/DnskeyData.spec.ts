@@ -3,7 +3,7 @@ import { addMinutes, addSeconds, setMilliseconds, subSeconds } from 'date-fns';
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { SignatureGenerationOptions, ZoneSigner } from '../signing/ZoneSigner';
 import { DnskeyData } from './DnskeyData';
-import { InvalidRdataError } from '../errors';
+import { MalformedRdataError } from '../verification/MalformedRdataError';
 import { RECORD_TLD, RRSET } from '../../testUtils/dnsStubs';
 import { DatePeriod } from '../verification/DatePeriod';
 import { DNSSEC_ROOT_DNSKEY_DATA, DNSSEC_ROOT_DNSKEY_KEY_TAG } from '../../testUtils/dnssec/iana';
@@ -24,7 +24,7 @@ describe('DnskeyData', () => {
       const malformedDnskey = Buffer.allocUnsafe(3);
 
       expect(() => DnskeyData.deserialise(malformedDnskey)).toThrowWithMessage(
-        InvalidRdataError,
+        MalformedRdataError,
         'DNSKEY data is malformed',
       );
     });

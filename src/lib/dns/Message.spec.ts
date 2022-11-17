@@ -8,7 +8,6 @@ import {
 } from '@leichtgewicht/dns-packet';
 
 import { Message } from './Message';
-import { MalformedMessage } from './MalformedMessage';
 import { Record } from './Record';
 import { DNSClass } from './DNSClass';
 import {
@@ -21,6 +20,7 @@ import {
 } from '../../testUtils/dnsStubs';
 import { Header } from './Header';
 import { RCode } from './RCode';
+import { DnsError } from './DnsError';
 
 const STUB_HEADER: Header = { rcode: RCode.NoError };
 
@@ -273,7 +273,7 @@ describe('Message', () => {
         const serialisation = serialiseMessage([DP_QUESTION], 2);
 
         expect(() => Message.deserialise(serialisation)).toThrowWithMessage(
-          MalformedMessage,
+          DnsError,
           'Message serialisation does not comply with RFC 1035 (Section 4)',
         );
       });
@@ -368,7 +368,7 @@ describe('Message', () => {
         const serialisation = serialiseMessage([DP_ANSWER], 2);
 
         expect(() => Message.deserialise(serialisation)).toThrowWithMessage(
-          MalformedMessage,
+          DnsError,
           'Message serialisation does not comply with RFC 1035 (Section 4)',
         );
       });
@@ -389,7 +389,7 @@ describe('Message', () => {
       const serialisation = Buffer.from([]);
 
       expect(() => Message.deserialise(serialisation)).toThrowWithMessage(
-        MalformedMessage,
+        DnsError,
         'Message serialisation does not comply with RFC 1035 (Section 4)',
       );
     });

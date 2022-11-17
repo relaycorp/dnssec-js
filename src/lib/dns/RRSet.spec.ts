@@ -1,7 +1,7 @@
 import { RRSet } from './RRSet';
 import { QUESTION, RECORD, RRSET } from '../../testUtils/dnsStubs';
-import { RRSetError } from '../errors';
 import { DNSClass } from './DNSClass';
+import { DnsError } from './DnsError';
 
 describe('RRSet', () => {
   describe('init', () => {
@@ -9,7 +9,7 @@ describe('RRSet', () => {
       const nonMatchingRecord = RECORD.shallowCopy({ name: `not-${RECORD.name}` });
 
       expect(() => RRSet.init(QUESTION, [nonMatchingRecord])).toThrowWithMessage(
-        RRSetError,
+        DnsError,
         `RRset for ${QUESTION.name}/${QUESTION.type} should have at least one matching record`,
       );
     });
@@ -42,7 +42,7 @@ describe('RRSet', () => {
       const record2 = RECORD.shallowCopy({ ttl: RECORD.ttl + 1 });
 
       expect(() => RRSet.init(QUESTION, [RECORD, record2])).toThrowWithMessage(
-        RRSetError,
+        DnsError,
         `RRset for ${QUESTION.name}/${QUESTION.type} contains different TTLs ` +
           `(e.g., ${RECORD.ttl}, ${record2.ttl})`,
       );

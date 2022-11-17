@@ -3,7 +3,7 @@ import { KeyObject } from 'node:crypto';
 
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { DnskeyFlags } from '../DnskeyFlags';
-import { InvalidRdataError } from '../errors';
+import { MalformedRdataError } from '../verification/MalformedRdataError';
 import { DnssecRecordData } from './DnssecRecordData';
 import { RrsigData } from './RrsigData';
 import { deserialisePublicKey, serialisePublicKey } from '../utils/keySerialisation';
@@ -30,7 +30,7 @@ export class DnskeyData implements DnssecRecordData {
     try {
       parsingResult = PARSER.parse(serialisation);
     } catch (_) {
-      throw new InvalidRdataError('DNSKEY data is malformed');
+      throw new MalformedRdataError('DNSKEY data is malformed');
     }
     const publicKey = deserialisePublicKey(parsingResult.publicKey, parsingResult.algorithm);
     const flags: DnskeyFlags = {
