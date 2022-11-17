@@ -1,5 +1,5 @@
 import { DsData } from '../rdata/DsData';
-import { VerificationResult } from './VerificationResult';
+import { VerificationResult } from './results';
 import { Message } from '../dns/Message';
 import { DnskeyData } from '../rdata/DnskeyData';
 import { SecurityStatus } from './SecurityStatus';
@@ -34,7 +34,7 @@ export class Zone {
   ): VerificationResult<Zone> {
     if (dnskeyMessage.header.rcode !== RCode.NoError) {
       return {
-        status: SecurityStatus.BOGUS,
+        status: SecurityStatus.INDETERMINATE,
         reasonChain: [`Expected DNSKEY rcode to be NOERROR (0; got ${dnskeyMessage.header.rcode})`],
       };
     }
@@ -94,7 +94,7 @@ export class Zone {
   ): VerificationResult<Zone> {
     if (dsMessage.header.rcode !== RCode.NoError) {
       return {
-        status: SecurityStatus.BOGUS,
+        status: SecurityStatus.INDETERMINATE,
         reasonChain: [`Expected DS rcode to be NOERROR (0; got ${dsMessage.header.rcode})`],
       };
     }

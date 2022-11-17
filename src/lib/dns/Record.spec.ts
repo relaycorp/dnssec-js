@@ -8,6 +8,26 @@ import {
 } from '../../testUtils/dnsStubs';
 
 describe('Record', () => {
+  describe('question', () => {
+    test('Name should be set', () => {
+      const question = RECORD.makeQuestion();
+
+      expect(question.name).toEqual(RECORD.name);
+    });
+
+    test('Type should be set', () => {
+      const question = RECORD.makeQuestion();
+
+      expect(question.type).toEqual(RECORD.type);
+    });
+
+    test('Class should be set', () => {
+      const question = RECORD.makeQuestion();
+
+      expect(question.class_).toEqual(RECORD.class_);
+    });
+  });
+
   describe('serialise', () => {
     const recordNameWithoutDot = RECORD.name.replace(/\.$/, '');
 

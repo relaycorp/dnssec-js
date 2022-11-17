@@ -10,7 +10,7 @@ import { DnskeyRecord, DsRecord, RrsigRecord } from '../dnssecRecords';
 import { DsData } from '../rdata/DsData';
 import { RRSet } from '../dns/RRSet';
 import { RrsigData } from '../rdata/RrsigData';
-import { FailureResult, SuccessfulResult } from './VerificationResult';
+import { FailureResult, SuccessfulResult } from './results';
 import { DnskeyData } from '../rdata/DnskeyData';
 import { copyDnssecRecordData } from '../../testUtils/dnssec/records';
 import { Question } from '../dns/Question';
@@ -48,7 +48,7 @@ describe('Zone', () => {
       SIGNATURE_OPTIONS,
     );
 
-    rootDs = rootSigner.generateDs(rootDnskey, '.');
+    rootDs = rootSigner.generateDs(rootDnskey, '.', rootDnskey.data.calculateKeyTag());
   });
 
   let tldSigner: ZoneSigner;
@@ -65,18 +65,18 @@ describe('Zone', () => {
       SIGNATURE_OPTIONS,
     );
 
-    tldDs = rootSigner.generateDs(tldDnskey, RECORD_TLD);
+    tldDs = rootSigner.generateDs(tldDnskey, RECORD_TLD, rootDs.data.keyTag);
   });
 
   describe('init', () => {
-    test('Message with rcode other than NOERROR should be BOGUS', () => {
+    test('Message with rcode other than NOERROR should be INDETERMINATE', () => {
       const rcode = 1;
       const dnskeyMessage = new Message({ rcode }, [], [tldDnskey.record, tldDnskeyRrsig.record]);
 
       const result = Zone.init(RECORD_TLD, dnskeyMessage, [tldDs.data], VALIDITY_PERIOD);
 
       expect(result).toEqual<FailureResult>({
-        status: SecurityStatus.BOGUS,
+        status: SecurityStatus.INDETERMINATE,
         reasonChain: [`Expected DNSKEY rcode to be NOERROR (0; got ${rcode})`],
       });
     });
@@ -211,7 +211,7 @@ describe('Zone', () => {
         nonZskDnskeyData.calculateKeyTag(),
         SIGNATURE_OPTIONS,
       );
-      const nonZskDs = rootSigner.generateDs(nonZskDnskeyRecord, RECORD_TLD, {
+      const nonZskDs = rootSigner.generateDs(nonZskDnskeyRecord, RECORD_TLD, rootDs.data.keyTag, {
         digestType: tldDs.data.digestType,
       });
       const result = Zone.init(
@@ -394,7 +394,7 @@ describe('Zone', () => {
           [],
           [apexDnskey.record, apexDnskeyRrsig.record],
         );
-        const apexDs = rootSigner.generateDs(apexDnskey, RECORD.name);
+        const apexDs = rootSigner.generateDs(apexDnskey, RECORD.name, tldDs.data.keyTag);
         const apexDsRrsig = rootSigner.generateRrsig(
           RRSet.init(QUESTION.shallowCopy({ type: DnssecRecordType.DS }), [apexDs.record]),
           rootDnskey.data.calculateKeyTag(),
@@ -431,7 +431,7 @@ describe('Zone', () => {
     });
 
     describe('DS', () => {
-      test('DS message with rcode other than NOERROR should be BOGUS', () => {
+      test('DS message with rcode other than NOERROR should be INDETERMINATE', () => {
         const invalidDsMessage = new Message(
           {
             ...tldDsMessage.header,
@@ -449,7 +449,7 @@ describe('Zone', () => {
         );
 
         expect(result).toEqual<FailureResult>({
-          status: SecurityStatus.BOGUS,
+          status: SecurityStatus.INDETERMINATE,
           reasonChain: [
             `Expected DS rcode to be NOERROR (0; got ${invalidDsMessage.header.rcode})`,
           ],
@@ -538,7 +538,7 @@ describe('Zone', () => {
     const STUB_QUESTION = QUESTION.shallowCopy({ name: '.' });
     const STUB_RRSET = RRSet.init(STUB_QUESTION, [RECORD.shallowCopy({ name: '.' })]);
 
-    test('Invalid SignedRRset should be refused as BOGUS', () => {
+    test('Invalid SignedRRset should be refused', () => {
       const zone = generateRootZone();
       const rrsig = rootSigner.generateRrsig(
         STUB_RRSET,
@@ -592,7 +592,7 @@ describe('Zone', () => {
   });
 
   function generateRootZone(additionalDnskeys: readonly Record[] = []): Zone {
-    const { dnskey, ds } = rootSigner.generateZoneResponses(rootSigner, {
+    const { dnskey, ds } = rootSigner.generateZoneResponses(rootSigner, rootDs.data.keyTag, {
       dnskey: {
         additionalDnskeys: additionalDnskeys,
         flags: { zoneKey: true },

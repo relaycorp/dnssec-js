@@ -1,5 +1,6 @@
 import { DNSClass } from './DNSClass';
 import { serialiseName } from './name';
+import { Question } from './Question';
 
 interface RecordFields {
   readonly name: string;
@@ -53,5 +54,14 @@ export class Record {
     const ttl = partialRecord.ttl ?? this.ttl;
     const dataSerialised = partialRecord.dataSerialised ?? this.dataSerialised;
     return new Record(name, type, class_, ttl, dataSerialised);
+  }
+
+  /**
+   * Generate a question that this specific record would answer.
+   *
+   * It may or may not equal the question in the original query message.
+   */
+  public makeQuestion(): Question {
+    return new Question(this.name, this.type, this.class_);
   }
 }

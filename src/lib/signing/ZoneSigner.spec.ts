@@ -25,7 +25,9 @@ describe('ZoneSigner', () => {
     const digestAlgorithm = DigestType.SHA256;
     const dnskey = signer.generateDnskey();
 
-    const ds = signer.generateDs(dnskey, RECORD_TLD, { digestType: digestAlgorithm });
+    const ds = signer.generateDs(dnskey, RECORD_TLD, dnskey.data.calculateKeyTag(), {
+      digestType: digestAlgorithm,
+    });
 
     expect(ds.record.name).toEqual(RECORD_TLD);
     const rdata = lengthPrefixRdata(ds.record.dataSerialised);

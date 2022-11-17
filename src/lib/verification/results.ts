@@ -15,3 +15,13 @@ export interface FailureResult extends BaseResult {
 }
 
 export type VerificationResult<R = void> = SuccessfulResult<R> | FailureResult;
+
+export function augmentFailureResult(
+  originalResult: FailureResult,
+  additionalReason: string,
+): FailureResult {
+  return {
+    status: originalResult.status,
+    reasonChain: [additionalReason, ...originalResult.reasonChain],
+  };
+}

@@ -80,8 +80,9 @@ export class ZoneSigner {
   }
 
   public generateDs(
-    dnskey: DnskeyRecord,
+    childDnskey: DnskeyRecord,
     childZoneName: string,
+    dnskeyTag: number,
     options: Partial<DsGenerationOptions> = {},
   ): DsResponse {
     const isRootZone = childZoneName === this.zoneName && this.zoneName === '.';
@@ -89,10 +90,10 @@ export class ZoneSigner {
       throw new Error(`${childZoneName} isn't a child of ${this.zoneName}`);
     }
     const digestType = options.digestType ?? DigestType.SHA256;
-    const digest = DsData.calculateDnskeyDigest(dnskey, digestType);
+    const digest = DsData.calculateDnskeyDigest(childDnskey, digestType);
     const data = new DsData(
-      dnskey.data.calculateKeyTag(),
-      dnskey.data.algorithm,
+      childDnskey.data.calculateKeyTag(),
+      childDnskey.data.algorithm,
       digestType,
       digest,
     );
@@ -104,7 +105,7 @@ export class ZoneSigner {
       data.serialise(),
     );
     const question = new Question(childZoneName, DnssecRecordType.DS, DNSClass.IN);
-    const rrsig = this.generateRrsig(RRSet.init(question, [record]), data.keyTag, options);
+    const rrsig = this.generateRrsig(RRSet.init(question, [record]), dnskeyTag, options);
     const message = new Message({ rcode: RCode.NoError }, [question], [record, rrsig.record]);
     return { data, message, record };
   }
@@ -145,13 +146,19 @@ export class ZoneSigner {
 
   public generateZoneResponses(
     parent: ZoneSigner,
+    parentDnskeyTag: number | null,
     options: Partial<{
       readonly dnskey: Partial<DnskeyGenerationOptions>;
       readonly ds: Partial<DsGenerationOptions>;
     }> = {},
   ): ZoneResponseSet {
     const dnskey = this.generateDnskey(options.dnskey);
-    const ds = parent.generateDs(dnskey, this.zoneName, options.ds);
+    const ds = parent.generateDs(
+      dnskey,
+      this.zoneName,
+      parentDnskeyTag ?? dnskey.data.calculateKeyTag(),
+      options.ds,
+    );
     return { ds, dnskey };
   }
 

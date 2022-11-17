@@ -18,7 +18,7 @@ describe('DsData', () => {
     signer = await ZoneSigner.generate(DnssecAlgorithm.RSASHA256, '.');
 
     dnskey = signer.generateDnskey();
-    ds = signer.generateDs(dnskey, RECORD_TLD);
+    ds = signer.generateDs(dnskey, RECORD_TLD, dnskey.data.calculateKeyTag());
   });
 
   describe('deserialise', () => {
