@@ -306,8 +306,13 @@ describe('Zone', () => {
 
       test('Indirectly-descending name should be supported', async () => {
         const apexSigner = await ZoneSigner.generate(tldSigner.algorithm, RECORD.name);
-        const apexDnskey = apexSigner.generateDnskey();
-        const apexDs = rootSigner.generateDs(apexDnskey, RECORD.name, tldDs.data.keyTag);
+        const apexDnskey = apexSigner.generateDnskey(SIGNATURE_OPTIONS);
+        const apexDs = rootSigner.generateDs(
+          apexDnskey,
+          RECORD.name,
+          tldDs.data.keyTag,
+          SIGNATURE_OPTIONS,
+        );
         const apexDsRrsig = rootSigner.generateRrsig(
           RRSet.init(QUESTION.shallowCopy({ type: DnssecRecordType.DS }), [apexDs.record]),
           rootDnskey.data.calculateKeyTag(),
