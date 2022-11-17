@@ -34,7 +34,13 @@ export class RRSet {
       );
     }
 
-    return new RRSet(question.name, question.class_, question.type, ttl, matchingRecords);
+    return new RRSet(
+      question.name,
+      question.class_,
+      question.type,
+      ttl,
+      canonicallySortRecords(matchingRecords),
+    );
   }
 
   protected constructor(
@@ -44,4 +50,36 @@ export class RRSet {
     public readonly ttl: number,
     public readonly records: readonly Record[],
   ) {}
+}
+
+/**
+ * Sort records per RFC 4034 (Section 6.3).
+ *
+ * @param originalRecords
+ * @link https://www.rfc-editor.org/rfc/rfc4034#section-6.3
+ */
+function canonicallySortRecords(originalRecords: readonly Record[]): readonly Record[] {
+  const recordSorted = [...originalRecords].sort((a, b) => {
+    const byteLengthDifference = a.dataSerialised.byteLength - b.dataSerialised.byteLength;
+    if (byteLengthDifference !== 0) {
+      return byteLengthDifference;
+    }
+
+    for (let index = 0; index < a.dataSerialised.byteLength; index++) {
+      const aOctet = a.dataSerialised[index];
+      const bOctet = b.dataSerialised[index];
+      if (aOctet !== bOctet) {
+        return aOctet - bOctet;
+      }
+    }
+
+    return 0;
+  });
+
+  return recordSorted.reduce((acc, record) => {
+    const previousRecord = acc[acc.length - 1];
+    const isDuplicated =
+      previousRecord && record.dataSerialised.equals(previousRecord.dataSerialised);
+    return isDuplicated ? acc : [...acc, record];
+  }, [] as readonly Record[]);
 }

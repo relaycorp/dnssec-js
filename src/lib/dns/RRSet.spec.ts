@@ -53,7 +53,7 @@ describe('RRSet', () => {
 
       const rrset = RRSet.init(QUESTION, [RECORD, record2]);
 
-      expect(rrset.records).toEqual([RECORD, record2]);
+      expect(rrset.records).toContainAllValues([RECORD, record2]);
     });
 
     test('Name property should be set', () => {
@@ -70,6 +70,36 @@ describe('RRSet', () => {
 
     test('TTL property should be set', () => {
       expect(RRSET.ttl).toEqual(RECORD.ttl);
+    });
+
+    describe('Ordering', () => {
+      test('Smaller RDATA should come first', () => {
+        const shorterRdataRecord = RECORD.shallowCopy({
+          dataSerialised: RECORD.dataSerialised.subarray(1),
+        });
+
+        const rrset = RRSet.init(QUESTION, [RECORD, shorterRdataRecord]);
+
+        expect(rrset.records).toEqual([shorterRdataRecord, RECORD]);
+      });
+
+      test('RDATA should be sorted from the left if they have same length', () => {
+        const record1 = RECORD.shallowCopy({ dataSerialised: Buffer.from([42, 0]) });
+        const record2 = RECORD.shallowCopy({ dataSerialised: Buffer.from([42, 1]) });
+
+        const rrset = RRSet.init(QUESTION, [record2, record1]);
+
+        expect(rrset.records).toEqual([record1, record2]);
+      });
+
+      test('Duplicated records should be deleted', () => {
+        const record1 = RECORD.shallowCopy({});
+        const record2 = RECORD.shallowCopy({});
+
+        const rrset = RRSet.init(QUESTION, [record1, record2]);
+
+        expect(rrset.records).toEqual([record1]);
+      });
     });
   });
 });
