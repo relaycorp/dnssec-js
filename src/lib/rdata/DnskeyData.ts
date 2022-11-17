@@ -18,6 +18,13 @@ const PARSER = new Parser()
   .buffer('publicKey', { readUntil: 'eof' });
 
 export class DnskeyData implements DnssecRecordData {
+  /**
+   * Fixed protocol field.
+   *
+   * @link https://www.rfc-editor.org/rfc/rfc4034#section-2.1.2
+   */
+  public static PROTOCOL = 3;
+
   public static deserialise(serialisation: Buffer): DnskeyData {
     let parsingResult: any;
     try {
@@ -78,6 +85,10 @@ export class DnskeyData implements DnssecRecordData {
   }
 
   public verifyRrsig(rrsigData: RrsigData, datePeriod: DatePeriod): boolean {
+    if (this.protocol !== DnskeyData.PROTOCOL) {
+      return false;
+    }
+
     if (this.calculateKeyTag() !== rrsigData.keyTag) {
       return false;
     }

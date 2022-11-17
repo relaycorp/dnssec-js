@@ -99,23 +99,10 @@ describe('DsData', () => {
       expect(ds.data.verifyDnskey(invalidDnskey)).toBeFalse();
     });
 
-    test('Serialisation should be refused if protocol is not 3', () => {
-      const protocol = 42;
-      const invalidDnskeyData = new DnskeyData(
-        dnskey.data.publicKey,
-        protocol,
-        dnskey.data.algorithm,
-        dnskey.data.flags,
-      );
-      const invalidDnskey = copyDnssecRecordData(dnskey, invalidDnskeyData);
-
-      expect(ds.data.verifyDnskey(invalidDnskey)).toBeFalse();
-    });
-
     test('Key should be refused if algorithm does not match', () => {
       const invalidDnskeyData = new DnskeyData(
         dnskey.data.publicKey,
-        3,
+        DnskeyData.PROTOCOL,
         dnskey.data.algorithm + 1,
         dnskey.data.flags,
       );

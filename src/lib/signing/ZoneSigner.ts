@@ -59,7 +59,12 @@ export class ZoneSigner {
       secureEntryPoint: false,
       ...(options.flags ?? {}),
     };
-    const data = new DnskeyData(this.publicKey, options.protocol ?? 3, this.algorithm, finalFlags);
+    const data = new DnskeyData(
+      this.publicKey,
+      options.protocol ?? DnskeyData.PROTOCOL,
+      this.algorithm,
+      finalFlags,
+    );
     const ttl = options.ttl ?? FIVE_MINUTES_IN_SECONDS;
     const record = new Record(
       this.zoneName,

@@ -71,10 +71,6 @@ export class DsData implements DnssecRecordData {
       return false;
     }
 
-    if (key.data.protocol !== 3) {
-      return false;
-    }
-
     if (key.data.algorithm !== this.algorithm) {
       return false;
     }

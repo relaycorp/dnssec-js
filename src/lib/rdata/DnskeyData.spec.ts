@@ -133,6 +133,17 @@ describe('DnskeyData', () => {
       dnskeyData = tldSigner.generateDnskey().data;
     });
 
+    test('Protocol should be 3', () => {
+      const invalidDnskey = tldSigner.generateDnskey({ protocol: DnskeyData.PROTOCOL + 1 }).data;
+      const { data: rrsigData } = tldSigner.generateRrsig(
+        RRSET,
+        invalidDnskey.calculateKeyTag(),
+        RRSIG_OPTIONS,
+      );
+
+      expect(invalidDnskey.verifyRrsig(rrsigData, VALIDITY_PERIOD)).toBeFalse();
+    });
+
     test('Algorithm should match', async () => {
       const differentAlgorithm = DnssecAlgorithm.RSASHA512;
       expect(differentAlgorithm).not.toEqual(tldSigner.algorithm); // In case we change fixture
@@ -159,7 +170,7 @@ describe('DnskeyData', () => {
       expect(dnskeyData.verifyRrsig(rrsigData, VALIDITY_PERIOD)).toBeFalse();
     });
 
-    test('Signature validity outside required period should be BOGUS', () => {
+    test('Signature validity be within required period', () => {
       const { data: rrsigData } = tldSigner.generateRrsig(RRSET, dnskeyData.calculateKeyTag(), {
         signatureExpiry: subSeconds(VALIDITY_PERIOD.start, 1),
         signatureInception: subSeconds(VALIDITY_PERIOD.start, 2),
