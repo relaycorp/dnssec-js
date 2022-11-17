@@ -27,6 +27,13 @@ This would've made it cumbersome to validate DNSSEC signatures, as we'd need to 
 
 Fortunately, since we're only interested in the _answers_ section of the message, our implementation is very straightforward.
 
+### Error handling
+
+As this is primarily a DNSSEC library, we treat DNS and DNSSEC errors differently:
+
+- Any input that violates DNS RFCs in ways from which we can't recover will result in errors.
+- Any input that violates DNSSEC RFCs will result in one of the three failure _security statuses_ defined in [RFC 4035 (Section 4.3)](https://www.rfc-editor.org/rfc/rfc4035#section-4.3): insecure, bogus or indeterminate.
+
 ### Denial of Existence record support
 
 We don't need DoE records in Vera, so [we won't be implementing that functionality ourselves](https://github.com/relaycorp/dnssec-js/issues/17), but PRs are welcomed.

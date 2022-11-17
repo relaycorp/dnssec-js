@@ -3,7 +3,7 @@
  *
  * @link https://www.iana.org/assignments/dns-sec-alg-numbers/dns-sec-alg-numbers.xhtml
  */
-export enum DNSSECAlgorithm {
+export enum DnssecAlgorithm {
   DSA = 3,
   RSASHA1 = 5,
   RSASHA256 = 8,

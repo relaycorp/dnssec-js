@@ -3,7 +3,7 @@
  *
  * This library will only ever support one value, but we want to make it explicit to users.
  *
- * See: https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml#dns-parameters-2
+ * @link https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml#dns-parameters-2
  */
 export enum DNSClass {
   IN = 1,

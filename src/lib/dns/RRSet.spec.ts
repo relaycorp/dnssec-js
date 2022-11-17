@@ -1,106 +1,105 @@
 import { RRSet } from './RRSet';
-import {
-  RECORD,
-  RECORD_DATA,
-  RECORD_NAME,
-  RECORD_TTL,
-  RECORD_TYPE_ID,
-} from '../../testUtils/stubs';
-import { SignedRRSetError } from '../errors';
-import { Record } from './Record';
+import { QUESTION, RECORD, RRSET } from '../../testUtils/dnsStubs';
 import { DNSClass } from './DNSClass';
+import { DnsError } from './DnsError';
 
 describe('RRSet', () => {
-  describe('constructor', () => {
-    test('At least one record should be specified', () => {
-      expect(() => new RRSet([])).toThrowWithMessage(
-        SignedRRSetError,
-        'At least one record should be specified',
+  describe('init', () => {
+    test('RRset should be empty if there are no matching records', () => {
+      const nonMatchingRecord = RECORD.shallowCopy({ name: `not-${RECORD.name}` });
+
+      expect(() => RRSet.init(QUESTION, [nonMatchingRecord])).toThrowWithMessage(
+        DnsError,
+        `RRset for ${QUESTION.name}/${QUESTION.type} should have at least one matching record`,
       );
     });
 
-    test('All record names should match', () => {
-      const record2 = new Record(
-        `sub.${RECORD_NAME}`,
-        RECORD_TYPE_ID,
-        DNSClass.IN,
-        RECORD_TTL,
-        RECORD_DATA,
-      );
+    test('Record names should match', () => {
+      const record2 = RECORD.shallowCopy({ name: `not-${RECORD.name}` });
 
-      expect(() => new RRSet([RECORD, record2])).toThrowWithMessage(
-        SignedRRSetError,
-        `Record names don't match (${RECORD.name}, ${record2.name})`,
+      const rrset = RRSet.init(QUESTION, [RECORD, record2]);
+
+      expect(rrset.records).toEqual([RECORD]);
+    });
+
+    test('Record classes should match', () => {
+      const record2 = RECORD.shallowCopy({ class: DNSClass.IN + 1 });
+
+      const rrset = RRSet.init(QUESTION, [RECORD, record2]);
+
+      expect(rrset.records).toEqual([RECORD]);
+    });
+
+    test('Record types should match', () => {
+      const record2 = RECORD.shallowCopy({ type: RECORD.type + 1 });
+
+      const rrset = RRSet.init(QUESTION, [RECORD, record2]);
+
+      expect(rrset.records).toEqual([RECORD]);
+    });
+
+    test('Record TTLs should match', () => {
+      const record2 = RECORD.shallowCopy({ ttl: RECORD.ttl + 1 });
+
+      expect(() => RRSet.init(QUESTION, [RECORD, record2])).toThrowWithMessage(
+        DnsError,
+        `RRset for ${QUESTION.name}/${QUESTION.type} contains different TTLs ` +
+          `(e.g., ${RECORD.ttl}, ${record2.ttl})`,
       );
     });
 
-    test('All record classes should match', () => {
-      const record2 = new Record(
-        RECORD_NAME,
-        RECORD_TYPE_ID,
-        DNSClass.IN + 1,
-        RECORD_TTL,
-        RECORD_DATA,
-      );
+    test('Multiple records should be supported', () => {
+      const record2 = RECORD.shallowCopy({ dataSerialised: Buffer.allocUnsafe(1) });
 
-      expect(() => new RRSet([RECORD, record2])).toThrowWithMessage(
-        SignedRRSetError,
-        `Record classes don't match (${RECORD.class_}, ${record2.class_})`,
-      );
-    });
+      const rrset = RRSet.init(QUESTION, [RECORD, record2]);
 
-    test('All record types should match', () => {
-      const record2 = new Record(
-        RECORD_NAME,
-        RECORD_TYPE_ID + 1,
-        DNSClass.IN,
-        RECORD_TTL,
-        RECORD_DATA,
-      );
-
-      expect(() => new RRSet([RECORD, record2])).toThrowWithMessage(
-        SignedRRSetError,
-        `Record types don't match (${RECORD.type}, ${record2.type})`,
-      );
-    });
-
-    test('All record TTls should match', () => {
-      const record2 = new Record(
-        RECORD_NAME,
-        RECORD_TYPE_ID,
-        DNSClass.IN,
-        RECORD_TTL + 1,
-        RECORD_DATA,
-      );
-
-      expect(() => new RRSet([RECORD, record2])).toThrowWithMessage(
-        SignedRRSetError,
-        `Record TTLs don't match (${RECORD.ttl}, ${record2.ttl})`,
-      );
+      expect(rrset.records).toContainAllValues([RECORD, record2]);
     });
 
     test('Name property should be set', () => {
-      const rrset = new RRSet([RECORD]);
-
-      expect(rrset.name).toEqual(RECORD.name);
+      expect(RRSET.name).toEqual(RECORD.name);
     });
 
     test('Class property should be set', () => {
-      const rrset = new RRSet([RECORD]);
-
-      expect(rrset.class_).toEqual(RECORD.class_);
+      expect(RRSET.class_).toEqual(RECORD.class_);
     });
 
     test('Type property should be set', () => {
-      const rrset = new RRSet([RECORD]);
-
-      expect(rrset.type).toEqual(RECORD.type);
+      expect(RRSET.type).toEqual(RECORD.type);
     });
 
     test('TTL property should be set', () => {
-      const rrset = new RRSet([RECORD]);
+      expect(RRSET.ttl).toEqual(RECORD.ttl);
+    });
 
-      expect(rrset.ttl).toEqual(RECORD.ttl);
+    describe('Ordering', () => {
+      test('Smaller RDATA should come first', () => {
+        const shorterRdataRecord = RECORD.shallowCopy({
+          dataSerialised: RECORD.dataSerialised.subarray(1),
+        });
+
+        const rrset = RRSet.init(QUESTION, [RECORD, shorterRdataRecord]);
+
+        expect(rrset.records).toEqual([shorterRdataRecord, RECORD]);
+      });
+
+      test('RDATA should be sorted from the left if they have same length', () => {
+        const record1 = RECORD.shallowCopy({ dataSerialised: Buffer.from([42, 0]) });
+        const record2 = RECORD.shallowCopy({ dataSerialised: Buffer.from([42, 1]) });
+
+        const rrset = RRSet.init(QUESTION, [record2, record1]);
+
+        expect(rrset.records).toEqual([record1, record2]);
+      });
+
+      test('Duplicated records should be deleted', () => {
+        const record1 = RECORD.shallowCopy({});
+        const record2 = RECORD.shallowCopy({});
+
+        const rrset = RRSet.init(QUESTION, [record1, record2]);
+
+        expect(rrset.records).toEqual([record1]);
+      });
     });
   });
 });
