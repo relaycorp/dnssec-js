@@ -2,7 +2,7 @@
 
 !build/lib/**
 build/lib/integration_tests
-build/lib/**/_test_utils.*
+build/lib/testUtils/**
 build/lib/**/*.spec.js*
 
 !LICENSE
