@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals';
 import { addSeconds, setMilliseconds, subSeconds } from 'date-fns';
 
 import { SignedRRSet } from './SignedRRSet';
@@ -7,6 +8,9 @@ import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { RRSet } from '../dns/RRSet';
 import { DnskeyRecord } from '../dnssecRecords';
 import { DatePeriod } from './DatePeriod';
+import { serialisePublicKey } from '../utils/keySerialisation';
+import { DnskeyData } from '../rdata/DnskeyData';
+import { RrsigData } from '../rdata/RrsigData';
 
 describe('SignedRRSet', () => {
   const RRSIG_OPTIONS: Partial<SignatureGenerationOptions> = {
@@ -147,6 +151,44 @@ describe('SignedRRSet', () => {
       );
 
       expect(signedRrset.verify([dnskey], invalidPeriod)).toBeFalse();
+    });
+
+    test('RRSig should be verified with the correct DNSKEY public key', async () => {
+      // Simulate two DNSKEYs with the same key tag but different public keys
+      const verifyRrsigSpy = jest.spyOn(DnskeyData.prototype, 'verifyRrsig');
+      const verifyRrsetSpy = jest.spyOn(RrsigData.prototype, 'verifyRrset');
+      try {
+        verifyRrsigSpy.mockReturnValue(true);
+        const validDnskey = signer.generateDnskey();
+        const invalidSigner = await ZoneSigner.generate(signer.algorithm, signer.zoneName);
+        const invalidDnskey = invalidSigner.generateDnskey();
+        const rrsig = signer.generateRrsig(
+          RRSET,
+          validDnskey.data.calculateKeyTag(),
+          RRSIG_OPTIONS,
+        );
+        const signedRrset = SignedRRSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
+
+        expect(signedRrset.verify([invalidDnskey, validDnskey], VALIDITY_PERIOD)).toBeTrue();
+
+        expect(verifyRrsetSpy).toHaveBeenNthCalledWith(
+          1,
+          expect.anything(),
+          expect.toSatisfy((k) =>
+            serialisePublicKey(invalidDnskey.data.publicKey).equals(serialisePublicKey(k)),
+          ),
+        );
+        expect(verifyRrsetSpy).toHaveBeenNthCalledWith(
+          2,
+          expect.anything(),
+          expect.toSatisfy((k) =>
+            serialisePublicKey(validDnskey.data.publicKey).equals(serialisePublicKey(k)),
+          ),
+        );
+      } finally {
+        verifyRrsigSpy.mockRestore();
+        verifyRrsetSpy.mockRestore();
+      }
     });
 
     test('Verification should succeed if deemed valid by a valid RRSig', () => {

@@ -1,4 +1,4 @@
-import { KeyObject, sign as cryptoSign } from 'node:crypto';
+import { KeyObject, sign as cryptoSign, verify as cryptoVerify } from 'node:crypto';
 import { Parser } from 'binary-parser';
 import { fromUnixTime, getUnixTime } from 'date-fns';
 
@@ -110,7 +110,7 @@ export class RrsigData implements DnssecRecordData {
     return serialisation;
   }
 
-  public verifyRrset(rrset: RRSet): boolean {
+  public verifyRrset(rrset: RRSet, dnskeyPublicKey: KeyObject): boolean {
     if (rrset.type !== this.type) {
       return false;
     }
@@ -120,7 +120,19 @@ export class RrsigData implements DnssecRecordData {
     }
 
     const rrsetNameLabelCount = countLabels(rrset.name);
-    return this.labels <= rrsetNameLabelCount;
+    if (rrsetNameLabelCount < this.labels) {
+      return false;
+    }
+
+    const rdataFirstPart = generateRdataFirstPart(
+      this.signatureExpiry,
+      this.signatureInception,
+      this.keyTag,
+      this.algorithm,
+      rrset,
+    );
+    const plaintext = Buffer.concat([rdataFirstPart, serialiseRrset(rrset)]);
+    return verifySignature(plaintext, this.signature, dnskeyPublicKey, this.algorithm);
   }
 }
 
@@ -152,6 +164,16 @@ function serialiseRrset(rrset: RRSet): Buffer {
 function sign(plaintext: Buffer, privateKey: KeyObject, dnssecAlgorithm: DnssecAlgorithm): Buffer {
   const nodejsHashAlgorithm = getNodejsHashAlgorithmFromDnssecAlgo(dnssecAlgorithm);
   return cryptoSign(nodejsHashAlgorithm, plaintext, privateKey);
+}
+
+function verifySignature(
+  plaintext: Buffer,
+  signature: Buffer,
+  publicKey: KeyObject,
+  dnssecAlgorithm: DnssecAlgorithm,
+): boolean {
+  const nodejsHashAlgorithm = getNodejsHashAlgorithmFromDnssecAlgo(dnssecAlgorithm);
+  return cryptoVerify(nodejsHashAlgorithm, plaintext, publicKey, signature);
 }
 
 function countLabels(name: string): number {

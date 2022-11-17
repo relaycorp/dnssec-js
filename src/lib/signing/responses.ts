@@ -5,9 +5,13 @@ interface DnssecResponseMixin {
   readonly message: Message;
 }
 
-export interface DnskeyResponse extends DnssecResponseMixin, DnskeyRecord {}
+interface SignedResponseMixin {
+  readonly rrsig: RrsigRecord;
+}
 
-export interface DsResponse extends DnssecResponseMixin, DsRecord {}
+export interface DnskeyResponse extends DnssecResponseMixin, SignedResponseMixin, DnskeyRecord {}
+
+export interface DsResponse extends DnssecResponseMixin, SignedResponseMixin, DsRecord {}
 
 export interface RrsigResponse extends DnssecResponseMixin, RrsigRecord {}
 

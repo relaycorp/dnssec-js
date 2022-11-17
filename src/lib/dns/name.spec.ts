@@ -24,7 +24,7 @@ describe('serialiseName', () => {
   test('Root name (dot) should be supported', () => {
     const serialisation = serialiseName('.');
 
-    expect(NAME.decode(serialisation)).toEqual('.');
+    expect(serialisation).toEqual(Buffer.from([0]));
   });
 });
 

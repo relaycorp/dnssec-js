@@ -115,7 +115,7 @@ describe('RrsigData', () => {
 
       const rrsigData = RrsigData.deserialise(rrsig.record.dataSerialised);
 
-      expect(rrsigData.signature.byteLength).toBeGreaterThan(0);
+      expect(rrsigData.signature).toEqual(rrsig.data.signature);
     });
   });
 
@@ -127,14 +127,14 @@ describe('RrsigData', () => {
       ]);
       const { data } = signer.generateRrsig(invalidRrset, STUB_KEY_TAG, SIGNATURE_OPTIONS);
 
-      expect(data.verifyRrset(RRSET)).toBeFalse();
+      expect(data.verifyRrset(RRSET, signer.publicKey)).toBeFalse();
     });
 
     test('Original TTL should match RRset TTL', () => {
       const invalidRrset = RRSet.init(QUESTION, [RECORD.shallowCopy({ ttl: RECORD.ttl + 1 })]);
       const { data } = signer.generateRrsig(invalidRrset, STUB_KEY_TAG, SIGNATURE_OPTIONS);
 
-      expect(data.verifyRrset(RRSET)).toBeFalse();
+      expect(data.verifyRrset(RRSET, signer.publicKey)).toBeFalse();
     });
 
     describe('Label count', () => {
@@ -145,13 +145,13 @@ describe('RrsigData', () => {
         ]);
         const { data } = signer.generateRrsig(differentRrset, STUB_KEY_TAG, SIGNATURE_OPTIONS);
 
-        expect(data.verifyRrset(differentRrset)).toBeTrue();
+        expect(data.verifyRrset(differentRrset, signer.publicKey)).toBeTrue();
       });
 
       test('RRset owner labels equal to RRSig count should be SECURE', () => {
         const { data } = signer.generateRrsig(RRSET, STUB_KEY_TAG, SIGNATURE_OPTIONS);
 
-        expect(data.verifyRrset(RRSET)).toBeTrue();
+        expect(data.verifyRrset(RRSET, signer.publicKey)).toBeTrue();
       });
 
       test('RRset owner labels less than RRSig count should be BOGUS', async () => {
@@ -168,14 +168,31 @@ describe('RrsigData', () => {
           data.signature,
         );
 
-        expect(mismatchingData.verifyRrset(RRSET)).toBeFalse();
+        expect(mismatchingData.verifyRrset(RRSET, signer.publicKey)).toBeFalse();
       });
+    });
+
+    test('Invalid signature should be BOGUS', () => {
+      const { data } = signer.generateRrsig(RRSET, STUB_KEY_TAG, SIGNATURE_OPTIONS);
+      const mismatchingData = new RrsigData(
+        data.type,
+        data.algorithm,
+        data.labels,
+        data.ttl,
+        data.signatureExpiry,
+        data.signatureInception,
+        data.keyTag,
+        data.signerName,
+        data.signature.subarray(1),
+      );
+
+      expect(mismatchingData.verifyRrset(RRSET, signer.publicKey)).toBeFalse();
     });
 
     test('Valid RRset should be SECURE', () => {
       const { data } = signer.generateRrsig(RRSET, STUB_KEY_TAG, SIGNATURE_OPTIONS);
 
-      expect(data.verifyRrset(RRSET)).toBeTrue();
+      expect(data.verifyRrset(RRSET, signer.publicKey)).toBeTrue();
     });
   });
 });

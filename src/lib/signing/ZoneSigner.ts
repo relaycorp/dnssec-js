@@ -68,15 +68,9 @@ export class ZoneSigner {
       ttl,
       data.serialise(),
     );
-    const question = new Question(this.zoneName, DnssecRecordType.DNSKEY, DNSClass.IN);
-    const rrset = RRSet.init(question, [record, ...(options.additionalDnskeys ?? [])]);
+    const rrset = RRSet.init(record.makeQuestion(), [record, ...(options.additionalDnskeys ?? [])]);
     const rrsig = this.generateRrsig(rrset, data.calculateKeyTag(), options);
-    const message = new Message(
-      { rcode: RCode.NoError },
-      [question],
-      [...rrset.records, rrsig.record],
-    );
-    return { data, message, record };
+    return { data, message: rrsig.message, record, rrsig };
   }
 
   public generateDs(
@@ -90,12 +84,11 @@ export class ZoneSigner {
       throw new Error(`${childZoneName} isn't a child of ${this.zoneName}`);
     }
     const digestType = options.digestType ?? DigestType.SHA256;
-    const digest = DsData.calculateDnskeyDigest(childDnskey, digestType);
     const data = new DsData(
       childDnskey.data.calculateKeyTag(),
       childDnskey.data.algorithm,
       digestType,
-      digest,
+      DsData.calculateDnskeyDigest(childDnskey, digestType),
     );
     const record = new Record(
       childZoneName,
@@ -104,10 +97,12 @@ export class ZoneSigner {
       options.ttl ?? FIVE_MINUTES_IN_SECONDS,
       data.serialise(),
     );
-    const question = new Question(childZoneName, DnssecRecordType.DS, DNSClass.IN);
-    const rrsig = this.generateRrsig(RRSet.init(question, [record]), dnskeyTag, options);
-    const message = new Message({ rcode: RCode.NoError }, [question], [record, rrsig.record]);
-    return { data, message, record };
+    const rrsig = this.generateRrsig(
+      RRSet.init(record.makeQuestion(), [record]),
+      dnskeyTag,
+      options,
+    );
+    return { data, message: rrsig.message, record, rrsig };
   }
 
   public generateRrsig(

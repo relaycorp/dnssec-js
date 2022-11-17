@@ -5,6 +5,7 @@ import { DnssecRecordType } from '../DnssecRecordType';
 import { RrsigData } from '../rdata/RrsigData';
 import { Question } from '../dns/Question';
 import { DatePeriod } from './DatePeriod';
+import { DnskeyData } from '../rdata/DnskeyData';
 
 /**
  * RRSet with one or more corresponding RRSigs.
@@ -42,13 +43,19 @@ export class SignedRRSet {
     datePeriod: DatePeriod,
     expectedSigner?: string,
   ): boolean {
-    const validRrsigs = this.rrsigs.filter((rrsig) =>
-      dnsKeys.some(
+    const validRrsigs = this.rrsigs.reduce((acc, rrsig) => {
+      const matchingDnskeys = dnsKeys.filter(
         (dnskey) =>
           dnskey.data.verifyRrsig(rrsig.data, datePeriod) &&
           (expectedSigner ?? dnskey.record.name) === rrsig.data.signerName,
-      ),
-    );
-    return validRrsigs.some((rrsig) => rrsig.data.verifyRrset(this.rrset));
+      );
+      const additionalItems = matchingDnskeys.map((dnskey) => ({
+        dnskey: dnskey.data,
+        rrsig: rrsig.data,
+      }));
+      return [...acc, ...additionalItems];
+    }, [] as readonly { readonly rrsig: RrsigData; readonly dnskey: DnskeyData }[]);
+
+    return validRrsigs.some(({ dnskey, rrsig }) => rrsig.verifyRrset(this.rrset, dnskey.publicKey));
   }
 }

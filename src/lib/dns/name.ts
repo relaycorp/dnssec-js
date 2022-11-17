@@ -13,6 +13,9 @@ export const NAME_PARSER_OPTIONS = {
 };
 
 export function serialiseName(name: string): Buffer {
+  if (name === '.') {
+    return Buffer.alloc(1);
+  }
   const labels = name
     .replace(/\.$/, '')
     .split('.')
