@@ -1,7 +1,31 @@
 import { createHash } from 'node:crypto';
 
 import { DigestType } from '../DigestType';
-import { getNodejsHashAlgo, generateDigest } from './crypto';
+import { generateDigest, getNodejsHashAlgo, getNodejsHashAlgorithmFromDnssecAlgo } from './crypto';
+import { DnssecAlgorithm } from '../DnssecAlgorithm';
+
+describe('getNodejsHashAlgorithmFromDnssecAlgo', () => {
+  test.each([
+    [DnssecAlgorithm.DSA, 'sha1'],
+    [DnssecAlgorithm.RSASHA1, 'sha1'],
+    [DnssecAlgorithm.RSASHA256, 'sha256'],
+    [DnssecAlgorithm.RSASHA512, 'sha512'],
+    [DnssecAlgorithm.ECDSAP256SHA256, 'sha256'],
+    [DnssecAlgorithm.ECDSAP384SHA384, 'sha384'],
+    [DnssecAlgorithm.ED25519, null],
+    [DnssecAlgorithm.ED448, null],
+  ])('%s should use %s', (dnssecAlgo, nodejsHashAlgo) => {
+    expect(getNodejsHashAlgorithmFromDnssecAlgo(dnssecAlgo)).toEqual(nodejsHashAlgo);
+  });
+
+  test('Non-IANA algorithms should not be supported', () => {
+    const algorithm = 0;
+    expect(() => getNodejsHashAlgorithmFromDnssecAlgo(algorithm)).toThrowWithMessage(
+      Error,
+      `Unsupported DNSSEC algorithm (${algorithm})`,
+    );
+  });
+});
 
 describe('getNodejsHashAlgo', () => {
   test.each([

@@ -7,7 +7,7 @@ import { NAME_PARSER_OPTIONS, serialiseName } from '../dns/name';
 import { InvalidRdataError } from '../errors';
 import { DnssecRecordData } from './DnssecRecordData';
 import { RRSet } from '../dns/RRSet';
-import { getNodejsHashAlgorithmFromDnssecAlgo } from '../signing/utils';
+import { getNodejsHashAlgorithmFromDnssecAlgo } from '../utils/crypto';
 
 const PARSER = new Parser()
   .endianness('big')
