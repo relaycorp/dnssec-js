@@ -17,6 +17,12 @@ const ECDSA_PUB_KEYS = {
     '_uX45NBwY8rp65F6Glur8I_mlVNgF6W_qTI37m40',
 };
 
+// Parameters taken from https://www.rfc-editor.org/rfc/rfc8080.html#section-6
+const EDDSA_PUB_KEYS = {
+  ed25519: 'l02Woi0iS8Aa25FQkUd9RMzZHJpBoRQwAQEX1SxZJA4',
+  ed448: '3kgROaDjrh0H2iuixWBrc8g2EpBBLCdGzHmn-G2MpTPhpj_OiBVHHSfPodx1FYYUcJKm1MDpJtIA',
+};
+
 describe('serialisePublicKey', () => {
   describe('RSA', () => {
     test('Exponent length prefix should span 1 octet if exponent spans up to 255 octets', () => {
@@ -97,13 +103,40 @@ describe('serialisePublicKey', () => {
     });
 
     test('Non-ECDSA key should be refused', () => {
-      const publicKey = importRsaPubKey(RSA_PUB_KEY.exponent, RSA_PUB_KEY.modulus);
+      const publicKey = importEdPubKey(EDDSA_PUB_KEYS.ed25519, 'Ed25519');
 
       expect(() =>
         serialisePublicKey(publicKey, DnssecAlgorithm.ECDSAP256SHA256),
       ).toThrowWithMessage(
         Error,
         `Requested serialisation of ECDSA key but got ${publicKey.asymmetricKeyType} key`,
+      );
+    });
+  });
+
+  describe('EdDSA', () => {
+    test('Ed25519 should be supported', () => {
+      const publicKey = importEdPubKey(EDDSA_PUB_KEYS.ed25519, 'Ed25519');
+
+      const serialisation = serialisePublicKey(publicKey, DnssecAlgorithm.ED25519);
+
+      expect(serialisation.toString('base64url')).toEqual(EDDSA_PUB_KEYS.ed25519);
+    });
+
+    test('Ed448 should be supported', () => {
+      const publicKey = importEdPubKey(EDDSA_PUB_KEYS.ed448, 'Ed448');
+
+      const serialisation = serialisePublicKey(publicKey, DnssecAlgorithm.ED448);
+
+      expect(serialisation.toString('base64url')).toEqual(EDDSA_PUB_KEYS.ed448);
+    });
+
+    test('Non-EdDSA key should be refused', () => {
+      const publicKey = importEcPubKey(ECDSA_PUB_KEYS.p256, 'P-256');
+
+      expect(() => serialisePublicKey(publicKey, DnssecAlgorithm.ED25519)).toThrowWithMessage(
+        Error,
+        `Requested serialisation of EdDSA key but got ${publicKey.asymmetricKeyType} key`,
       );
     });
   });
@@ -215,6 +248,58 @@ describe('deserialisePublicKey', () => {
     });
   });
 
+  describe('EdDSA', () => {
+    test('Ed25519 should be supported', () => {
+      const algorithm = DnssecAlgorithm.ED25519;
+      const serialisation = serialisePublicKey(
+        importEdPubKey(EDDSA_PUB_KEYS.ed25519, 'Ed25519'),
+        algorithm,
+      );
+
+      const deserialisation = deserialisePublicKey(serialisation, algorithm);
+
+      expect(serialisePublicKey(deserialisation, algorithm)).toEqual(serialisation);
+    });
+
+    test('Ed25519 key should span 32 octets', () => {
+      const algorithm = DnssecAlgorithm.ED25519;
+      const serialisation = serialisePublicKey(
+        importEdPubKey(EDDSA_PUB_KEYS.ed25519, 'Ed25519'),
+        algorithm,
+      ).subarray(1);
+
+      expect(() => deserialisePublicKey(serialisation, algorithm)).toThrowWithMessage(
+        Error,
+        `Ed25519 public key should span 32 octets (got ${serialisation.byteLength})`,
+      );
+    });
+
+    test('Ed448 should be supported', () => {
+      const algorithm = DnssecAlgorithm.ED448;
+      const serialisation = serialisePublicKey(
+        importEdPubKey(EDDSA_PUB_KEYS.ed448, 'Ed448'),
+        algorithm,
+      );
+
+      const deserialisation = deserialisePublicKey(serialisation, algorithm);
+
+      expect(serialisePublicKey(deserialisation, algorithm)).toEqual(serialisation);
+    });
+
+    test('Ed448 key should span 57 octets', () => {
+      const algorithm = DnssecAlgorithm.ED448;
+      const serialisation = serialisePublicKey(
+        importEdPubKey(EDDSA_PUB_KEYS.ed448, 'Ed448'),
+        algorithm,
+      ).subarray(1);
+
+      expect(() => deserialisePublicKey(serialisation, algorithm)).toThrowWithMessage(
+        Error,
+        `Ed448 public key should span 57 octets (got ${serialisation.byteLength})`,
+      );
+    });
+  });
+
   test('Error should be thrown if algorithm is unsupported', () => {
     const invalidAlgorithm = 999 as any;
     expect(() => deserialisePublicKey(Buffer.allocUnsafe(1), invalidAlgorithm)).toThrowWithMessage(
@@ -238,6 +323,13 @@ function importEcPubKey(publicKeyBase64: string, curveName: string): KeyObject {
   const y = publicKeyBuffer.subarray(paramsLength).toString('base64url');
   return createPublicKey({
     key: { kty: 'EC', crv: curveName, x, y },
+    format: 'jwk',
+  });
+}
+
+function importEdPubKey(publicKeyBase64: string, curveName: string): KeyObject {
+  return createPublicKey({
+    key: { crv: curveName, kty: 'OKP', x: publicKeyBase64 },
     format: 'jwk',
   });
 }

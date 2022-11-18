@@ -20,6 +20,8 @@ describe('Support for DNSSEC algorithms', () => {
     DnssecAlgorithm.RSASHA512,
     DnssecAlgorithm.ECDSAP256SHA256,
     DnssecAlgorithm.ECDSAP384SHA384,
+    DnssecAlgorithm.ED25519,
+    DnssecAlgorithm.ED448,
   ])('Algorithm %s', async (algo) => {
     const rootSigner = await ZoneSigner.generate(algo, '.');
     const rootMessages = rootSigner.generateZoneResponses(rootSigner, null, {
