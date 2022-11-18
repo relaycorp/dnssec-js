@@ -9,18 +9,23 @@ import { Zone } from './Zone';
 import { DatePeriod } from './DatePeriod';
 import { IANA_TRUST_ANCHORS } from './IANA_TRUST_ANCHORS';
 import { SignedRRSet } from './SignedRRSet';
+import { Resolver } from './Resolver';
 
 interface MessageByKey {
   readonly [name: string]: Message;
 }
 
 export class UnverifiedChain {
-  // public static async retrieve(
-  //   question: Omit<Question, 'class'>,
-  //   resolver: (q: Question) => Promise<Message>,
-  // ): Promise<UnverifiedChain> {
-  //   throw new Error('' + question + resolver);
-  // }
+  public static async retrieve(question: Question, resolver: Resolver): Promise<UnverifiedChain> {
+    const rootDnskeyMessage = await resolver(
+      new Question('.', DnssecRecordType.DNSKEY, question.class_),
+    );
+    const zoneMessageByKey = {
+      [`./${DnssecRecordType.DNSKEY}`]: rootDnskeyMessage,
+    };
+    const response = await resolver(question);
+    return new UnverifiedChain(question, response, zoneMessageByKey);
+  }
 
   public static initFromMessages(query: Question, messages: readonly Message[]): UnverifiedChain {
     const allMessages = messages.reduce((acc, m) => {
