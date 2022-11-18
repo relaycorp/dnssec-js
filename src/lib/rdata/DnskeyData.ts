@@ -6,7 +6,7 @@ import { DnskeyFlags } from '../DnskeyFlags';
 import { MalformedRdataError } from '../verification/MalformedRdataError';
 import { DnssecRecordData } from './DnssecRecordData';
 import { RrsigData } from './RrsigData';
-import { deserialisePublicKey, serialisePublicKey } from '../utils/keySerialisation';
+import { deserialisePublicKey, serialisePublicKey } from '../utils/crypto/keySerialisation';
 import { DatePeriod } from '../verification/DatePeriod';
 
 const PARSER = new Parser()

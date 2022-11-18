@@ -4,7 +4,7 @@ import { addSeconds, setMilliseconds } from 'date-fns';
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { Record } from '../dns/Record';
 import { DNSClass } from '../dns/DNSClass';
-import { generateKeyPairAsync, getKeyGenOptions } from './keyGen';
+import { generateKeyPair } from './keyGen';
 import { DigestType } from '../DigestType';
 import { DnssecRecordType } from '../DnssecRecordType';
 import { RRSet } from '../dns/RRSet';
@@ -41,8 +41,7 @@ interface DsGenerationOptions extends RecordGenerationOptions {
 
 export class ZoneSigner {
   public static async generate(algorithm: DnssecAlgorithm, zoneName: string): Promise<ZoneSigner> {
-    const keyGenOptions = getKeyGenOptions(algorithm);
-    const keyPair = await generateKeyPairAsync(keyGenOptions.type as any, keyGenOptions.options);
+    const keyPair = await generateKeyPair(algorithm);
     return new ZoneSigner(keyPair.privateKey, keyPair.publicKey, zoneName, algorithm);
   }
 

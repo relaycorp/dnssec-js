@@ -1,9 +1,9 @@
-import { generateKeyPair } from 'node:crypto';
+import { generateKeyPair as cryptoGenerateKeyPair, KeyObject } from 'node:crypto';
 import { promisify } from 'node:util';
 
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 
-export const generateKeyPairAsync = promisify(generateKeyPair);
+export const generateKeyPairAsync = promisify(cryptoGenerateKeyPair);
 
 interface KeyGenOptions {
   readonly type: string;
@@ -25,10 +25,16 @@ const KEY_GEN_OPTIONS: { readonly [key in DnssecAlgorithm]: KeyGenOptions } = {
   [DnssecAlgorithm.ED448]: { type: 'ed448' },
 };
 
-export function getKeyGenOptions(dnssecAlgorithm: DnssecAlgorithm): KeyGenOptions {
-  const algorithm = KEY_GEN_OPTIONS[dnssecAlgorithm];
-  if (!algorithm) {
-    throw new Error(`Unsupported algorithm (${dnssecAlgorithm})`);
+export interface KeyPair {
+  // No, Node.js' typings don't offer this interface as of this writing.
+  readonly publicKey: KeyObject;
+  readonly privateKey: KeyObject;
+}
+
+export async function generateKeyPair(algorithm: DnssecAlgorithm): Promise<KeyPair> {
+  const options = KEY_GEN_OPTIONS[algorithm];
+  if (!options) {
+    throw new Error(`Unsupported algorithm (${algorithm})`);
   }
-  return algorithm;
+  return generateKeyPairAsync(options.type as any, options.options);
 }

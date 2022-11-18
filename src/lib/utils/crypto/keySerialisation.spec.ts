@@ -2,7 +2,7 @@ import { createPublicKey, generateKeyPair, KeyObject } from 'node:crypto';
 import { promisify } from 'node:util';
 
 import { deserialisePublicKey, serialisePublicKey } from './keySerialisation';
-import { DnssecAlgorithm } from '../DnssecAlgorithm';
+import { DnssecAlgorithm } from '../../DnssecAlgorithm';
 
 // Parameters taken from https://www.rfc-editor.org/rfc/rfc5702.html#section-6.1
 const RSA_EXPONENT = 'AQAB';

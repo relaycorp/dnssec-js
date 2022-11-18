@@ -1,7 +1,8 @@
 import { createPublicKey, KeyObject } from 'node:crypto';
 import { toBufferBE } from 'bigint-buffer';
-import { getIntegerByteLength } from './integers';
-import { DnssecAlgorithm } from '../DnssecAlgorithm';
+
+import { getIntegerByteLength } from '../integers';
+import { DnssecAlgorithm } from '../../DnssecAlgorithm';
 
 export function serialisePublicKey(publicKey: KeyObject): Buffer {
   const algorithm = publicKey.asymmetricKeyType!;

@@ -8,7 +8,7 @@ import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { RRSet } from '../dns/RRSet';
 import { DnskeyRecord } from '../dnssecRecords';
 import { DatePeriod } from './DatePeriod';
-import { serialisePublicKey } from '../utils/keySerialisation';
+import { serialisePublicKey } from '../utils/crypto/keySerialisation';
 import { DnskeyData } from '../rdata/DnskeyData';
 import { RrsigData } from '../rdata/RrsigData';
 

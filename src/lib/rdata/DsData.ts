@@ -3,7 +3,7 @@ import { Parser } from 'binary-parser';
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { DigestType } from '../DigestType';
 import { MalformedRdataError } from '../verification/MalformedRdataError';
-import { generateDigest } from '../utils/crypto';
+import { generateDigest } from '../utils/crypto/hashing';
 import { DnssecRecordData } from './DnssecRecordData';
 import { DnskeyRecord } from '../dnssecRecords';
 import { serialiseName } from '../dns/name';

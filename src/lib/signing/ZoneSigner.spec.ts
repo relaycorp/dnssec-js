@@ -6,7 +6,7 @@ import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { DigestType } from '../DigestType';
 import { RRSet } from '../dns/RRSet';
 import { QUESTION, RECORD, RECORD_TLD, RECORD_TYPE_STR } from '../../testUtils/dnsStubs';
-import { generateDigest } from '../utils/crypto';
+import { generateDigest } from '../utils/crypto/hashing';
 import { serialiseName } from '../dns/name';
 
 describe('ZoneSigner', () => {

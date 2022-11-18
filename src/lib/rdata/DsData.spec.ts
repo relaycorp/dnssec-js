@@ -6,7 +6,7 @@ import { DigestType } from '../DigestType';
 import { DnskeyData } from './DnskeyData';
 import { DnskeyRecord, DsRecord } from '../dnssecRecords';
 import { serialiseName } from '../dns/name';
-import { generateDigest } from '../utils/crypto';
+import { generateDigest } from '../utils/crypto/hashing';
 import { copyDnssecRecordData } from '../../testUtils/dnssec/records';
 import { RECORD_TLD } from '../../testUtils/dnsStubs';
 

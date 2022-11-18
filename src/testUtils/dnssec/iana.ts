@@ -1,5 +1,5 @@
 import { DnskeyData } from '../../lib/rdata/DnskeyData';
-import { deserialisePublicKey } from '../../lib/utils/keySerialisation';
+import { deserialisePublicKey } from '../../lib/utils/crypto/keySerialisation';
 import { DnssecAlgorithm } from '../../lib/DnssecAlgorithm';
 
 const DNSSEC_ROOT_DNSKEY_SERIALISATION = Buffer.from(
