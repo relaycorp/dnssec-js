@@ -56,7 +56,7 @@ export class DnskeyData implements DnssecRecordData {
   ) {}
 
   public serialise(): Buffer {
-    const publicKeyEncoded = serialisePublicKey(this.publicKey);
+    const publicKeyEncoded = serialisePublicKey(this.publicKey, this.algorithm);
     const data = Buffer.alloc(4 + publicKeyEncoded.byteLength);
 
     if (this.flags.zoneKey) {

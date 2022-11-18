@@ -14,22 +14,25 @@ const SIGNATURE_OPTIONS: SignatureGenerationOptions = {
 };
 
 describe('Support for DNSSEC algorithms', () => {
-  test.each([DnssecAlgorithm.RSASHA1, DnssecAlgorithm.RSASHA256, DnssecAlgorithm.RSASHA512])(
-    'Algorithm %s',
-    async (algo) => {
-      const rootSigner = await ZoneSigner.generate(algo, '.');
-      const rootMessages = rootSigner.generateZoneResponses(rootSigner, null, {
-        dnskey: SIGNATURE_OPTIONS,
-        ds: SIGNATURE_OPTIONS,
-      });
+  test.each([
+    DnssecAlgorithm.RSASHA1,
+    DnssecAlgorithm.RSASHA256,
+    DnssecAlgorithm.RSASHA512,
+    DnssecAlgorithm.ECDSAP256SHA256,
+    DnssecAlgorithm.ECDSAP384SHA384,
+  ])('Algorithm %s', async (algo) => {
+    const rootSigner = await ZoneSigner.generate(algo, '.');
+    const rootMessages = rootSigner.generateZoneResponses(rootSigner, null, {
+      dnskey: SIGNATURE_OPTIONS,
+      ds: SIGNATURE_OPTIONS,
+    });
 
-      const zoneResult = Zone.initRoot(
-        rootMessages.dnskey.message,
-        [rootMessages.ds.data],
-        VALIDITY_PERIOD,
-      );
+    const zoneResult = Zone.initRoot(
+      rootMessages.dnskey.message,
+      [rootMessages.ds.data],
+      VALIDITY_PERIOD,
+    );
 
-      expect(zoneResult.status).toEqual(SecurityStatus.SECURE);
-    },
-  );
+    expect(zoneResult.status).toEqual(SecurityStatus.SECURE);
+  });
 });

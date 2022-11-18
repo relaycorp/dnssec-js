@@ -100,10 +100,12 @@ describe('DsData', () => {
     });
 
     test('Key should be refused if algorithm does not match', () => {
+      const differentAlgorithm = DnssecAlgorithm.RSASHA1;
+      expect(differentAlgorithm).not.toEqual(dnskey.data.algorithm);
       const invalidDnskeyData = new DnskeyData(
         dnskey.data.publicKey,
         DnskeyData.PROTOCOL,
-        dnskey.data.algorithm + 1,
+        differentAlgorithm,
         dnskey.data.flags,
       );
       const invalidDnskey = copyDnssecRecordData(dnskey, invalidDnskeyData);
