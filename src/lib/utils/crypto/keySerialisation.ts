@@ -12,7 +12,10 @@ export function serialisePublicKey(publicKey: KeyObject, dnssecAlgorithm: Dnssec
       return serialiseRsaPublicKey(publicKey);
     case DnssecAlgorithm.ECDSAP256SHA256:
     case DnssecAlgorithm.ECDSAP384SHA384:
-      return serialiseEcdsaPublicKey(publicKey);
+      return serialiseEcDsaPublicKey(publicKey);
+    case DnssecAlgorithm.ED25519:
+    case DnssecAlgorithm.ED448:
+      return serialiseEdDsaPublicKey(publicKey);
     default:
       throw new Error(`Unsupported DNSSEC algorithm (${dnssecAlgorithm})`);
   }
@@ -49,7 +52,7 @@ function serialiseRsaExponentPrefix(exponent: Buffer): Buffer {
   return prefix;
 }
 
-function serialiseEcdsaPublicKey(publicKey: KeyObject): Buffer {
+function serialiseEcDsaPublicKey(publicKey: KeyObject): Buffer {
   const algorithm = publicKey.asymmetricKeyType!;
   if (algorithm !== 'ec') {
     throw new Error(`Requested serialisation of ECDSA key but got ${algorithm} key`);
@@ -59,6 +62,15 @@ function serialiseEcdsaPublicKey(publicKey: KeyObject): Buffer {
   const xBuffer = Buffer.from(keyJwt.x as string, 'base64url');
   const yBuffer = Buffer.from(keyJwt.y as string, 'base64url');
   return Buffer.concat([xBuffer, yBuffer]);
+}
+
+function serialiseEdDsaPublicKey(publicKey: KeyObject): Buffer {
+  const algorithm = publicKey.asymmetricKeyType!;
+  if (!['ed25519', 'ed448'].includes(algorithm)) {
+    throw new Error(`Requested serialisation of EdDSA key but got ${algorithm} key`);
+  }
+  const keyJwt = publicKey.export({ format: 'jwk' });
+  return Buffer.from(keyJwt.x as string, 'base64url');
 }
 
 export function deserialisePublicKey(
@@ -72,7 +84,10 @@ export function deserialisePublicKey(
       return deserialiseRsaPublicKey(serialisation);
     case DnssecAlgorithm.ECDSAP256SHA256:
     case DnssecAlgorithm.ECDSAP384SHA384:
-      return deserialiseEcdsaPublicKey(serialisation, dnssecAlgorithm);
+      return deserialiseEcDsaPublicKey(serialisation, dnssecAlgorithm);
+    case DnssecAlgorithm.ED25519:
+    case DnssecAlgorithm.ED448:
+      return deserialiseEdDsaPublicKey(serialisation, dnssecAlgorithm);
     default:
       throw new Error(`Unsupported DNSSEC algorithm (${dnssecAlgorithm})`);
   }
@@ -101,7 +116,7 @@ function deserialiseRsaPublicKey(serialisation: Buffer): KeyObject {
   });
 }
 
-function deserialiseEcdsaPublicKey(
+function deserialiseEcDsaPublicKey(
   serialisation: Buffer,
   algorithm: DnssecAlgorithm.ECDSAP256SHA256 | DnssecAlgorithm.ECDSAP384SHA384,
 ): KeyObject {
@@ -119,6 +134,26 @@ function deserialiseEcdsaPublicKey(
   const curveName = algorithm === DnssecAlgorithm.ECDSAP256SHA256 ? 'P-256' : 'P-384';
   return createPublicKey({
     key: { kty: 'EC', crv: curveName, x, y },
+    format: 'jwk',
+  });
+}
+
+function deserialiseEdDsaPublicKey(
+  serialisation: Buffer,
+  algorithm: DnssecAlgorithm.ED25519 | DnssecAlgorithm.ED448,
+): KeyObject {
+  const serialisationLength = serialisation.byteLength;
+  if (algorithm === DnssecAlgorithm.ED25519 && serialisationLength !== 32) {
+    throw new Error(`Ed25519 public key should span 32 octets (got ${serialisationLength})`);
+  }
+  if (algorithm === DnssecAlgorithm.ED448 && serialisationLength !== 57) {
+    throw new Error(`Ed448 public key should span 57 octets (got ${serialisationLength})`);
+  }
+
+  const curveName = algorithm === DnssecAlgorithm.ED25519 ? 'Ed25519' : 'Ed448';
+  const publicKeyBase64 = serialisation.toString('base64url');
+  return createPublicKey({
+    key: { crv: curveName, kty: 'OKP', x: publicKeyBase64 },
     format: 'jwk',
   });
 }

@@ -9,7 +9,6 @@ import { RRSet } from '../dns/RRSet';
 import { QUESTION, RECORD, RRSET } from '../../testUtils/dnsStubs';
 
 describe('RrsigData', () => {
-  const ALGORITHM = DnssecAlgorithm.RSASHA256;
   const STUB_KEY_TAG = 12345;
 
   const NOW = setMilliseconds(new Date(), 0);
@@ -20,7 +19,7 @@ describe('RrsigData', () => {
 
   let signer: ZoneSigner;
   beforeAll(async () => {
-    signer = await ZoneSigner.generate(ALGORITHM, RECORD.name);
+    signer = await ZoneSigner.generate(DnssecAlgorithm.RSASHA256, RECORD.name);
   });
 
   describe('deserialise', () => {
@@ -58,7 +57,7 @@ describe('RrsigData', () => {
 
       const rrsigData = RrsigData.deserialise(rrsig.record.dataSerialised);
 
-      expect(rrsigData.algorithm).toEqual(ALGORITHM);
+      expect(rrsigData.algorithm).toEqual(signer.algorithm);
     });
 
     test('Labels should be extracted', () => {
