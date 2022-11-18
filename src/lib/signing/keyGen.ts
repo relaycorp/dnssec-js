@@ -15,11 +15,11 @@ const RSA_OPTIONS = {
   options: { modulusLength: 2048 },
 };
 const KEY_GEN_OPTIONS: { readonly [key in DnssecAlgorithm]: KeyGenOptions } = {
-  [DnssecAlgorithm.ECDSAP256SHA256]: { type: 'ec', options: { namedCurve: 'prime256v1' } },
-  [DnssecAlgorithm.ECDSAP384SHA384]: { type: 'ec', options: { namedCurve: 'secp384r1' } },
   [DnssecAlgorithm.RSASHA1]: RSA_OPTIONS,
   [DnssecAlgorithm.RSASHA256]: RSA_OPTIONS,
   [DnssecAlgorithm.RSASHA512]: RSA_OPTIONS,
+  [DnssecAlgorithm.ECDSAP256SHA256]: { type: 'ec', options: { namedCurve: 'prime256v1' } },
+  [DnssecAlgorithm.ECDSAP384SHA384]: { type: 'ec', options: { namedCurve: 'secp384r1' } },
   [DnssecAlgorithm.ED25519]: { type: 'ed25519' },
   [DnssecAlgorithm.ED448]: { type: 'ed448' },
 };

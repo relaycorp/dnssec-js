@@ -160,7 +160,8 @@ describe('SignedRRSet', () => {
       try {
         verifyRrsigSpy.mockReturnValue(true);
         const validDnskey = signer.generateDnskey();
-        const invalidSigner = await ZoneSigner.generate(signer.algorithm, signer.zoneName);
+        const dnssecAlgorithm = signer.algorithm;
+        const invalidSigner = await ZoneSigner.generate(dnssecAlgorithm, signer.zoneName);
         const invalidDnskey = invalidSigner.generateDnskey();
         const rrsig = signer.generateRrsig(
           RRSET,
@@ -175,14 +176,18 @@ describe('SignedRRSet', () => {
           1,
           expect.anything(),
           expect.toSatisfy((k) =>
-            serialisePublicKey(invalidDnskey.data.publicKey).equals(serialisePublicKey(k)),
+            serialisePublicKey(invalidDnskey.data.publicKey, dnssecAlgorithm).equals(
+              serialisePublicKey(k, dnssecAlgorithm),
+            ),
           ),
         );
         expect(verifyRrsetSpy).toHaveBeenNthCalledWith(
           2,
           expect.anything(),
           expect.toSatisfy((k) =>
-            serialisePublicKey(validDnskey.data.publicKey).equals(serialisePublicKey(k)),
+            serialisePublicKey(validDnskey.data.publicKey, dnssecAlgorithm).equals(
+              serialisePublicKey(k, dnssecAlgorithm),
+            ),
           ),
         );
       } finally {
