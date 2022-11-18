@@ -6,7 +6,6 @@ import { DnssecAlgorithm } from '../../DnssecAlgorithm';
 
 describe('getNodejsHashAlgorithmFromDnssecAlgo', () => {
   test.each([
-    [DnssecAlgorithm.DSA, 'sha1'],
     [DnssecAlgorithm.RSASHA1, 'sha1'],
     [DnssecAlgorithm.RSASHA256, 'sha256'],
     [DnssecAlgorithm.RSASHA512, 'sha512'],

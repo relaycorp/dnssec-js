@@ -15,7 +15,6 @@ const RSA_OPTIONS = {
   options: { modulusLength: 2048 },
 };
 const KEY_GEN_OPTIONS: { readonly [key in DnssecAlgorithm]: KeyGenOptions } = {
-  [DnssecAlgorithm.DSA]: { type: 'dsa' },
   [DnssecAlgorithm.ECDSAP256SHA256]: { type: 'ec', options: { namedCurve: 'prime256v1' } },
   [DnssecAlgorithm.ECDSAP384SHA384]: { type: 'ec', options: { namedCurve: 'secp384r1' } },
   [DnssecAlgorithm.RSASHA1]: RSA_OPTIONS,

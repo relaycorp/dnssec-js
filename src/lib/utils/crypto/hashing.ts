@@ -4,7 +4,6 @@ import { DigestType } from '../../DigestType';
 import { DnssecAlgorithm } from '../../DnssecAlgorithm';
 
 const HASH_BY_DNSSEC_ALGO: { readonly [algo in DnssecAlgorithm]: string | null } = {
-  [DnssecAlgorithm.DSA]: 'sha1',
   [DnssecAlgorithm.RSASHA1]: 'sha1',
   [DnssecAlgorithm.RSASHA256]: 'sha256',
   [DnssecAlgorithm.RSASHA512]: 'sha512',

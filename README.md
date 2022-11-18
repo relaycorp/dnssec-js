@@ -46,6 +46,7 @@ This library supports producing RRSig records simply for testing purposes: It ma
 
 We support all the _Zone Signing_ [DNSSEC algorithms](https://www.iana.org/assignments/dns-sec-alg-numbers/dns-sec-alg-numbers.xhtml#dns-sec-alg-numbers-1) as of 2022, except for:
 
+- DSA (`3`) because [it's too insecure and hardly used](https://github.com/relaycorp/dnssec-js/issues/50).
 - NSEC3 (`6` and `7`) because [we don't currently support Denial of Existence records](https://github.com/relaycorp/dnssec-js/issues/17).
 - [GOST](https://en.wikipedia.org/wiki/GOST) (`12`) due to lack of support in Node.js, and its lack of popularity and security doesn't seem to justify integrating a third party NPM package supporting it (assuming a suitable one exists).
 - Private algorithms (`253` and `254`) because we have no use for those, but we'd welcome PRs to implement them.
