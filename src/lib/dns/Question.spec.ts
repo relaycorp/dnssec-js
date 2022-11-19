@@ -7,6 +7,29 @@ import { DnsClass } from './DnsClass';
 import { DnsError } from './DnsError';
 
 describe('constructor', () => {
+  describe('Name', () => {
+    test('Missing trailing dot should be added', () => {
+      const name = 'example.com';
+      const question = new Question(name, QUESTION.typeId, QUESTION.class_);
+
+      expect(question.name).toEqual(`${name}.`);
+    });
+
+    test('Present trailing dot should be left as is', () => {
+      const name = 'example.com.';
+      const question = new Question(name, QUESTION.typeId, QUESTION.class_);
+
+      expect(question.name).toEqual(name);
+    });
+
+    test('Root should be left as is', () => {
+      const name = '.';
+      const question = new Question(name, QUESTION.typeId, QUESTION.class_);
+
+      expect(question.name).toEqual(name);
+    });
+  });
+
   describe('Type', () => {
     test('Id should be stored as is', () => {
       const question = new Question(QUESTION.name, IANA_RR_TYPE_IDS.A, DnsClass.IN);
