@@ -12,7 +12,7 @@ import { SignedRRSet } from './SignedRRSet';
 import { Resolver } from './Resolver';
 
 interface MessageByKey {
-  readonly [name: string]: Message;
+  readonly [key: string]: Message;
 }
 
 export class UnverifiedChain {
@@ -20,8 +20,23 @@ export class UnverifiedChain {
     const rootDnskeyMessage = await resolver(
       new Question('.', DnssecRecordType.DNSKEY, question.class_),
     );
-    const zoneMessageByKey = {
+    const intermediateZones = getZonesInChain(question.name, false);
+    const intermediateZoneMessages = await intermediateZones.reduce(async (messages, zoneName) => {
+      const dnskeyMessage = await resolver(
+        new Question(zoneName, DnssecRecordType.DNSKEY, question.class_),
+      );
+      const dsMessage = await resolver(
+        new Question(zoneName, DnssecRecordType.DS, question.class_),
+      );
+      return {
+        ...(await messages),
+        [`${zoneName}/${DnssecRecordType.DNSKEY}`]: dnskeyMessage,
+        [`${zoneName}/${DnssecRecordType.DS}`]: dsMessage,
+      };
+    }, Promise.resolve({} as MessageByKey));
+    const zoneMessageByKey: MessageByKey = {
       [`./${DnssecRecordType.DNSKEY}`]: rootDnskeyMessage,
+      ...intermediateZoneMessages,
     };
     const response = await resolver(question);
     return new UnverifiedChain(question, response, zoneMessageByKey);
@@ -57,7 +72,7 @@ export class UnverifiedChain {
     return new UnverifiedChain(query, queryResponse, messageByKey);
   }
 
-  constructor(
+  protected constructor(
     public readonly query: Question,
     public readonly response: Message,
     public readonly zoneMessageByKey: MessageByKey,
