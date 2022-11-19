@@ -97,8 +97,8 @@ export const IANA_RR_TYPE_IDS = {
   DLV: 32769,
 };
 
-export type IanaRrTypeNames = keyof typeof IANA_RR_TYPE_IDS;
+export type IanaRrTypeName = keyof typeof IANA_RR_TYPE_IDS;
 
 export const IANA_RR_TYPE_NAMES = Object.entries(IANA_RR_TYPE_IDS).reduce((acc, [name, id]) => {
-  return { ...acc, [id]: name as IanaRrTypeNames };
-}, {} as { [key: number]: IanaRrTypeNames });
+  return { ...acc, [id]: name as IanaRrTypeName };
+}, {} as { [key: number]: IanaRrTypeName });

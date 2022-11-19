@@ -1,5 +1,5 @@
 // DNS-related
-export { IanaRrTypeNames } from './lib/dns/ianaRrTypes';
+export { IanaRrTypeName } from './lib/dns/ianaRrTypes';
 export { DnsClass } from './lib/dns/DnsClass';
 export { Header } from './lib/dns/Header';
 export { Message } from './lib/dns/Message';

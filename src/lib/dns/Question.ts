@@ -1,6 +1,6 @@
 import { DnsClass } from './DnsClass';
 import { serialiseName } from './name';
-import { IANA_RR_TYPE_IDS, IANA_RR_TYPE_NAMES, IanaRrTypeNames } from './ianaRrTypes';
+import { IANA_RR_TYPE_IDS, IANA_RR_TYPE_NAMES, IanaRrTypeName } from './ianaRrTypes';
 import { DnsError } from './DnsError';
 
 export interface QuestionFields {
@@ -14,7 +14,7 @@ export class Question {
 
   constructor(
     public readonly name: string,
-    type: number | IanaRrTypeNames,
+    type: number | IanaRrTypeName,
     public readonly class_: DnsClass,
   ) {
     const typeId: number | undefined = typeof type === 'number' ? type : IANA_RR_TYPE_IDS[type];
@@ -28,7 +28,7 @@ export class Question {
     return `${this.name}/${this.typeId}`;
   }
 
-  public getTypeName(): IanaRrTypeNames {
+  public getTypeName(): IanaRrTypeName {
     const name = IANA_RR_TYPE_NAMES[this.typeId];
     if (!name) {
       throw new DnsError(`RR type id ${this.typeId} is not defined by IANA`);
