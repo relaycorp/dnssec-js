@@ -15,13 +15,11 @@ export class RRSet {
    */
   public static init(question: Question, records: readonly Record[]): RRSet {
     const matchingRecords = records.filter(
-      (r) => r.name === question.name && r.class_ === question.class_ && r.type === question.type,
+      (r) => r.name === question.name && r.class_ === question.class_ && r.type === question.typeId,
     );
 
     if (matchingRecords.length === 0) {
-      throw new DnsError(
-        `RRset for ${question.name}/${question.type} should have at least one matching record`,
-      );
+      throw new DnsError(`RRset for ${question.key} should have at least one matching record`);
     }
 
     const [firstRecord, ...remainingRecords] = records;
@@ -29,7 +27,7 @@ export class RRSet {
     const mismatchingTtlRecord = remainingRecords.find((r) => r.ttl !== ttl);
     if (mismatchingTtlRecord) {
       throw new DnsError(
-        `RRset for ${question.name}/${question.type} contains different TTLs ` +
+        `RRset for ${question.key} contains different TTLs ` +
           `(e.g., ${ttl}, ${mismatchingTtlRecord.ttl})`,
       );
     }
@@ -37,7 +35,7 @@ export class RRSet {
     return new RRSet(
       question.name,
       question.class_,
-      question.type,
+      question.typeId,
       ttl,
       canonicallySortRecords(matchingRecords),
     );

@@ -1,5 +1,7 @@
 import { DnsClass } from './DnsClass';
 import { serialiseName } from './name';
+import { IANA_RR_TYPE_IDS, IANA_RR_TYPE_NAMES, IanaRrTypeName } from './ianaRrTypes';
+import { DnsError } from './DnsError';
 
 export interface QuestionFields {
   readonly name: string;
@@ -8,20 +10,35 @@ export interface QuestionFields {
 }
 
 export class Question {
-  constructor(
-    public readonly name: string,
-    public readonly type: number,
-    public readonly class_: DnsClass,
-  ) {}
+  public readonly name: string;
+  public readonly typeId: number;
+
+  constructor(name: string, type: number | IanaRrTypeName, public readonly class_: DnsClass) {
+    this.name = name === '.' || name.endsWith('.') ? name : `${name}.`;
+
+    const typeId: number | undefined = typeof type === 'number' ? type : IANA_RR_TYPE_IDS[type];
+    if (typeId === undefined) {
+      throw new DnsError(`RR type name "${type}" is not defined by IANA`);
+    }
+    this.typeId = typeId;
+  }
 
   get key(): string {
-    return `${this.name}/${this.type}`;
+    return `${this.name}/${this.typeId}`;
+  }
+
+  public getTypeName(): IanaRrTypeName {
+    const name = IANA_RR_TYPE_NAMES[this.typeId];
+    if (!name) {
+      throw new DnsError(`RR type id ${this.typeId} is not defined by IANA`);
+    }
+    return name;
   }
 
   public equals(differentQuestion: Question) {
     return (
       this.name === differentQuestion.name &&
-      this.type === differentQuestion.type &&
+      this.typeId === differentQuestion.typeId &&
       this.class_ === differentQuestion.class_
     );
   }
@@ -31,14 +48,14 @@ export class Question {
 
     const serialisation = Buffer.allocUnsafe(nameSerialised.byteLength + 4);
     nameSerialised.copy(serialisation);
-    serialisation.writeUInt16BE(this.type, nameSerialised.byteLength);
+    serialisation.writeUInt16BE(this.typeId, nameSerialised.byteLength);
     serialisation.writeUInt16BE(this.class_, nameSerialised.byteLength + 2);
     return serialisation;
   }
 
   public shallowCopy(fields: Partial<QuestionFields>): Question {
     const newName = fields.name ?? this.name;
-    const newType = fields.type ?? this.type;
+    const newType = fields.type ?? this.typeId;
     const newClass = fields.class ?? this.class_;
     return new Question(newName, newType, newClass);
   }

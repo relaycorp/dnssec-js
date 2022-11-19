@@ -10,7 +10,7 @@ describe('RRSet', () => {
 
       expect(() => RRSet.init(QUESTION, [nonMatchingRecord])).toThrowWithMessage(
         DnsError,
-        `RRset for ${QUESTION.name}/${QUESTION.type} should have at least one matching record`,
+        `RRset for ${QUESTION.key} should have at least one matching record`,
       );
     });
 
@@ -43,7 +43,7 @@ describe('RRSet', () => {
 
       expect(() => RRSet.init(QUESTION, [RECORD, record2])).toThrowWithMessage(
         DnsError,
-        `RRset for ${QUESTION.name}/${QUESTION.type} contains different TTLs ` +
+        `RRset for ${QUESTION.key} contains different TTLs ` +
           `(e.g., ${RECORD.ttl}, ${record2.ttl})`,
       );
     });
