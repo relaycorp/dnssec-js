@@ -1,6 +1,6 @@
 import { RRSet } from './RRSet';
 import { QUESTION, RECORD, RRSET } from '../../testUtils/dnsStubs';
-import { DNSClass } from './DNSClass';
+import { DnsClass } from './DnsClass';
 import { DnsError } from './DnsError';
 
 describe('RRSet', () => {
@@ -23,7 +23,7 @@ describe('RRSet', () => {
     });
 
     test('Record classes should match', () => {
-      const record2 = RECORD.shallowCopy({ class: DNSClass.IN + 1 });
+      const record2 = RECORD.shallowCopy({ class: DnsClass.IN + 1 });
 
       const rrset = RRSet.init(QUESTION, [RECORD, record2]);
 

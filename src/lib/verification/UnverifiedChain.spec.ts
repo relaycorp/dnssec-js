@@ -17,7 +17,7 @@ import { DsData } from '../rdata/DsData';
 import { IANA_TRUST_ANCHORS } from './IANA_TRUST_ANCHORS';
 import { DatePeriod } from './DatePeriod';
 import { Resolver } from './Resolver';
-import { DNSClass } from '../dns/DNSClass';
+import { DnsClass } from '../dns/DnsClass';
 
 const NOW = new Date();
 const SIGNATURE_OPTIONS: SignatureGenerationOptions = {
@@ -125,7 +125,7 @@ describe('retrieve', () => {
 
   test('Original query class should be used in zone queries', async () => {
     const stubMessage = rootResponses.dnskey.message;
-    const differentQuestion = new Question(RECORD_TLD, DnssecRecordType.DS, DNSClass.IN + 1);
+    const differentQuestion = new Question(RECORD_TLD, DnssecRecordType.DS, DnsClass.IN + 1);
 
     await UnverifiedChain.retrieve(differentQuestion, async (question) => {
       expect(question.class_).toEqual(differentQuestion.class_);

@@ -1,4 +1,4 @@
-import { DNSClass } from '../lib/dns/DNSClass';
+import { DnsClass } from '../lib/dns/DnsClass';
 import { Record } from '../lib/dns/Record';
 import { Question } from '../lib/dns/Question';
 import { RRSet } from '../lib/dns/RRSet';
@@ -17,7 +17,7 @@ RECORD_DATA_TXT_DATA.copy(RECORD_DATA, 1);
 export const RECORD = new Record(
   `example.${RECORD_TLD}`,
   16, // TXT
-  DNSClass.IN,
+  DnsClass.IN,
   42,
   RECORD_DATA,
 );

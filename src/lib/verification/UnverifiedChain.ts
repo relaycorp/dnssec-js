@@ -10,6 +10,7 @@ import { DatePeriod } from './DatePeriod';
 import { IANA_TRUST_ANCHORS } from './IANA_TRUST_ANCHORS';
 import { SignedRRSet } from './SignedRRSet';
 import { Resolver } from './Resolver';
+import { DnsClass } from '../dns/DnsClass';
 
 interface MessageByKey {
   readonly [key: string]: Message;
@@ -17,27 +18,20 @@ interface MessageByKey {
 
 export class UnverifiedChain {
   public static async retrieve(question: Question, resolver: Resolver): Promise<UnverifiedChain> {
-    const rootDnskeyMessage = await resolver(
-      new Question('.', DnssecRecordType.DNSKEY, question.class_),
+    const zoneNames = getZonesInChain(question.name);
+    const dnskeyMessages = await retrieveZoneMessages(
+      zoneNames,
+      DnssecRecordType.DNSKEY,
+      question.class_,
+      resolver,
     );
-    const intermediateZones = getZonesInChain(question.name, false);
-    const intermediateZoneMessages = await intermediateZones.reduce(async (messages, zoneName) => {
-      const dnskeyMessage = await resolver(
-        new Question(zoneName, DnssecRecordType.DNSKEY, question.class_),
-      );
-      const dsMessage = await resolver(
-        new Question(zoneName, DnssecRecordType.DS, question.class_),
-      );
-      return {
-        ...(await messages),
-        [`${zoneName}/${DnssecRecordType.DNSKEY}`]: dnskeyMessage,
-        [`${zoneName}/${DnssecRecordType.DS}`]: dsMessage,
-      };
-    }, Promise.resolve({} as MessageByKey));
-    const zoneMessageByKey: MessageByKey = {
-      [`./${DnssecRecordType.DNSKEY}`]: rootDnskeyMessage,
-      ...intermediateZoneMessages,
-    };
+    const dsMessages = await retrieveZoneMessages(
+      zoneNames.slice(1), // Skip the root DS
+      DnssecRecordType.DS,
+      question.class_,
+      resolver,
+    );
+    const zoneMessageByKey: MessageByKey = { ...dnskeyMessages, ...dsMessages };
     const response = await resolver(question);
     return new UnverifiedChain(question, response, zoneMessageByKey);
   }
@@ -147,4 +141,17 @@ function getZonesInChain(zoneName: string, includeRoot: boolean = true): readonl
   const parentZoneName = zoneName.replace(/^[^.]+\./, '');
   const parentZones = getZonesInChain(parentZoneName, includeRoot);
   return [...parentZones, zoneName];
+}
+
+async function retrieveZoneMessages(
+  zoneNames: readonly string[],
+  recordType: DnssecRecordType,
+  class_: DnsClass,
+  resolver: Resolver,
+): Promise<MessageByKey> {
+  const question = new Question('.', recordType, class_);
+  return zoneNames.reduce(async (messages, zoneName) => {
+    const message = await resolver(question.shallowCopy({ name: zoneName }));
+    return { ...(await messages), [`${zoneName}/${recordType}`]: message };
+  }, Promise.resolve({} as MessageByKey));
 }

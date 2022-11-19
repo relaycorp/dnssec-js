@@ -5,6 +5,6 @@
  *
  * @link https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml#dns-parameters-2
  */
-export enum DNSClass {
+export enum DnsClass {
   IN = 1,
 }
