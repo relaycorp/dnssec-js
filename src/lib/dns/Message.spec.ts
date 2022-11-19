@@ -9,7 +9,7 @@ import {
 
 import { Message } from './Message';
 import { Record } from './Record';
-import { DNSClass } from './DNSClass';
+import { DnsClass } from './DnsClass';
 import {
   QUESTION,
   RECORD,
@@ -341,14 +341,14 @@ describe('Message', () => {
         expect(message.answers[0]).toMatchObject<Partial<Record>>({
           name: RECORD.name,
           type: RECORD.type,
-          class_: DNSClass.IN,
+          class_: DnsClass.IN,
           ttl: RECORD.ttl,
         });
         expect(Buffer.from(message.answers[0].dataSerialised)).toEqual(RECORD_DATA);
         expect(message.answers[1]).toMatchObject<Partial<Record>>({
           name: record2.name,
           type: 16,
-          class_: DNSClass.IN,
+          class_: DnsClass.IN,
           ttl: record2.ttl,
         });
         expect(Buffer.from(message.answers[1].dataSerialised)).toEqual(

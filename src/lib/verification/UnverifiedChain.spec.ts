@@ -16,6 +16,8 @@ import { SecurityStatus } from './SecurityStatus';
 import { DsData } from '../rdata/DsData';
 import { IANA_TRUST_ANCHORS } from './IANA_TRUST_ANCHORS';
 import { DatePeriod } from './DatePeriod';
+import { Resolver } from './Resolver';
+import { DnsClass } from '../dns/DnsClass';
 
 const NOW = new Date();
 const SIGNATURE_OPTIONS: SignatureGenerationOptions = {
@@ -67,6 +69,81 @@ beforeAll(async () => {
     apexResponses.ds.message,
     queryResponse,
   ];
+});
+
+describe('retrieve', () => {
+  const RESOLVER = jest.fn<Resolver>();
+  beforeEach(() => {
+    RESOLVER.mockImplementation(async (question: Question) => {
+      const message = chainMessages.find((m) => m.answersQuestion(question));
+      if (!message) {
+        throw new Error(`Could not find message that answers ${question.key}`);
+      }
+      return message;
+    });
+  });
+  afterEach(() => {
+    RESOLVER.mockReset();
+  });
+
+  test('Root DNSKEY should be retrieved', async () => {
+    const chain = await UnverifiedChain.retrieve(QUESTION, RESOLVER);
+
+    expect(chain.zoneMessageByKey[`./${DnssecRecordType.DNSKEY}`]).toEqual(
+      rootResponses.dnskey.message,
+    );
+  });
+
+  test('Root DS should not be retrieved', async () => {
+    const chain = await UnverifiedChain.retrieve(QUESTION, RESOLVER);
+
+    expect(chain.zoneMessageByKey).not.toHaveProperty([`./${DnssecRecordType.DS}`]);
+    expect(RESOLVER).not.toBeCalledWith(rootResponses.ds.record.makeQuestion);
+  });
+
+  test('Intermediate zone DNSKEYs should be retrieved', async () => {
+    const chain = await UnverifiedChain.retrieve(QUESTION, RESOLVER);
+
+    expect(chain.zoneMessageByKey[`${RECORD_TLD}/${DnssecRecordType.DNSKEY}`]).toEqual(
+      tldResponses.dnskey.message,
+    );
+    expect(chain.zoneMessageByKey[`${RECORD.name}/${DnssecRecordType.DNSKEY}`]).toEqual(
+      apexResponses.dnskey.message,
+    );
+  });
+
+  test('Intermediate zone DSs should be retrieved', async () => {
+    const chain = await UnverifiedChain.retrieve(QUESTION, RESOLVER);
+
+    expect(chain.zoneMessageByKey[`${RECORD_TLD}/${DnssecRecordType.DS}`]).toEqual(
+      tldResponses.ds.message,
+    );
+    expect(chain.zoneMessageByKey[`${RECORD.name}/${DnssecRecordType.DS}`]).toEqual(
+      apexResponses.ds.message,
+    );
+  });
+
+  test('Original query class should be used in zone queries', async () => {
+    const stubMessage = rootResponses.dnskey.message;
+    const differentQuestion = new Question(RECORD_TLD, DnssecRecordType.DS, DnsClass.IN + 1);
+
+    await UnverifiedChain.retrieve(differentQuestion, async (question) => {
+      expect(question.class_).toEqual(differentQuestion.class_);
+      return stubMessage;
+    });
+  });
+
+  test('Query response should be retrieved', async () => {
+    const chain = await UnverifiedChain.retrieve(QUESTION, RESOLVER);
+
+    expect(chain.response).toEqual(queryResponse);
+  });
+
+  test('Question should be stored', async () => {
+    const chain = await UnverifiedChain.retrieve(QUESTION, RESOLVER);
+
+    expect(chain.query).toEqual(QUESTION);
+  });
 });
 
 describe('initFromMessages', () => {

@@ -7,7 +7,7 @@ import { RCode } from '../dns/RCode';
 import { DnssecRecordType } from '../DnssecRecordType';
 import { DnskeyRecord, DsRecord } from '../dnssecRecords';
 import { SignedRRSet } from './SignedRRSet';
-import { DNSClass } from '../dns/DNSClass';
+import { DnsClass } from '../dns/DnsClass';
 import { DatePeriod } from './DatePeriod';
 import { Question } from '../dns/Question';
 
@@ -40,7 +40,7 @@ export class Zone {
     }
 
     const dnskeySignedRrset = SignedRRSet.initFromRecords(
-      new Question(zoneName, DnssecRecordType.DNSKEY, DNSClass.IN),
+      new Question(zoneName, DnssecRecordType.DNSKEY, DnsClass.IN),
       dnskeyMessage.answers,
     );
 
@@ -100,7 +100,7 @@ export class Zone {
     }
 
     const dsSignedRrset = SignedRRSet.initFromRecords(
-      new Question(zoneName, DnssecRecordType.DS, DNSClass.IN),
+      new Question(zoneName, DnssecRecordType.DS, DnsClass.IN),
       dsMessage.answers,
     );
 

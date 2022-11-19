@@ -1,5 +1,5 @@
 import { Record } from './Record';
-import { DNSClass } from './DNSClass';
+import { DnsClass } from './DnsClass';
 import { Question } from './Question';
 import { DnsError } from './DnsError';
 
@@ -45,7 +45,7 @@ export class RRSet {
 
   protected constructor(
     public readonly name: string,
-    public readonly class_: DNSClass,
+    public readonly class_: DnsClass,
     public readonly type: number,
     public readonly ttl: number,
     public readonly records: readonly Record[],

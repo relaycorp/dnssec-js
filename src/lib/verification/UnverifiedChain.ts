@@ -9,18 +9,32 @@ import { Zone } from './Zone';
 import { DatePeriod } from './DatePeriod';
 import { IANA_TRUST_ANCHORS } from './IANA_TRUST_ANCHORS';
 import { SignedRRSet } from './SignedRRSet';
+import { Resolver } from './Resolver';
+import { DnsClass } from '../dns/DnsClass';
 
 interface MessageByKey {
-  readonly [name: string]: Message;
+  readonly [key: string]: Message;
 }
 
 export class UnverifiedChain {
-  // public static async retrieve(
-  //   question: Omit<Question, 'class'>,
-  //   resolver: (q: Question) => Promise<Message>,
-  // ): Promise<UnverifiedChain> {
-  //   throw new Error('' + question + resolver);
-  // }
+  public static async retrieve(question: Question, resolver: Resolver): Promise<UnverifiedChain> {
+    const zoneNames = getZonesInChain(question.name);
+    const dnskeyMessages = await retrieveZoneMessages(
+      zoneNames,
+      DnssecRecordType.DNSKEY,
+      question.class_,
+      resolver,
+    );
+    const dsMessages = await retrieveZoneMessages(
+      zoneNames.slice(1), // Skip the root DS
+      DnssecRecordType.DS,
+      question.class_,
+      resolver,
+    );
+    const zoneMessageByKey: MessageByKey = { ...dnskeyMessages, ...dsMessages };
+    const response = await resolver(question);
+    return new UnverifiedChain(question, response, zoneMessageByKey);
+  }
 
   public static initFromMessages(query: Question, messages: readonly Message[]): UnverifiedChain {
     const allMessages = messages.reduce((acc, m) => {
@@ -52,7 +66,7 @@ export class UnverifiedChain {
     return new UnverifiedChain(query, queryResponse, messageByKey);
   }
 
-  constructor(
+  protected constructor(
     public readonly query: Question,
     public readonly response: Message,
     public readonly zoneMessageByKey: MessageByKey,
@@ -127,4 +141,17 @@ function getZonesInChain(zoneName: string, includeRoot: boolean = true): readonl
   const parentZoneName = zoneName.replace(/^[^.]+\./, '');
   const parentZones = getZonesInChain(parentZoneName, includeRoot);
   return [...parentZones, zoneName];
+}
+
+async function retrieveZoneMessages(
+  zoneNames: readonly string[],
+  recordType: DnssecRecordType,
+  class_: DnsClass,
+  resolver: Resolver,
+): Promise<MessageByKey> {
+  const question = new Question('.', recordType, class_);
+  return zoneNames.reduce(async (messages, zoneName) => {
+    const message = await resolver(question.shallowCopy({ name: zoneName }));
+    return { ...(await messages), [`${zoneName}/${recordType}`]: message };
+  }, Promise.resolve({} as MessageByKey));
 }

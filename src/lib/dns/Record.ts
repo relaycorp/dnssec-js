@@ -1,11 +1,11 @@
-import { DNSClass } from './DNSClass';
+import { DnsClass } from './DnsClass';
 import { serialiseName } from './name';
 import { Question } from './Question';
 
 interface RecordFields {
   readonly name: string;
   readonly type: number;
-  readonly class: DNSClass;
+  readonly class: DnsClass;
   readonly ttl: number;
   readonly dataSerialised: Buffer;
 }
@@ -17,7 +17,7 @@ export class Record {
   constructor(
     public readonly name: string,
     public readonly type: number,
-    public readonly class_: DNSClass,
+    public readonly class_: DnsClass,
     public readonly ttl: number,
     public readonly dataSerialised: Buffer,
   ) {}

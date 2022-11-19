@@ -1,17 +1,17 @@
-import { DNSClass } from './DNSClass';
+import { DnsClass } from './DnsClass';
 import { serialiseName } from './name';
 
 export interface QuestionFields {
   readonly name: string;
   readonly type: number;
-  readonly class: DNSClass;
+  readonly class: DnsClass;
 }
 
 export class Question {
   constructor(
     public readonly name: string,
     public readonly type: number,
-    public readonly class_: DNSClass,
+    public readonly class_: DnsClass,
   ) {}
 
   get key(): string {

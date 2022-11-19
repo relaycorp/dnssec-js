@@ -3,7 +3,7 @@ import { addSeconds, setMilliseconds } from 'date-fns';
 
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { Record } from '../dns/Record';
-import { DNSClass } from '../dns/DNSClass';
+import { DnsClass } from '../dns/DnsClass';
 import { generateKeyPair } from './keyGen';
 import { DigestType } from '../DigestType';
 import { DnssecRecordType } from '../DnssecRecordType';
@@ -68,7 +68,7 @@ export class ZoneSigner {
     const record = new Record(
       this.zoneName,
       DnssecRecordType.DNSKEY,
-      DNSClass.IN,
+      DnsClass.IN,
       ttl,
       data.serialise(),
     );
@@ -97,7 +97,7 @@ export class ZoneSigner {
     const record = new Record(
       childZoneName,
       DnssecRecordType.DS,
-      DNSClass.IN,
+      DnsClass.IN,
       options.ttl ?? FIVE_MINUTES_IN_SECONDS,
       data.serialise(),
     );
@@ -131,7 +131,7 @@ export class ZoneSigner {
     const record = new Record(
       rrset.name,
       DnssecRecordType.RRSIG,
-      DNSClass.IN,
+      DnsClass.IN,
       rrset.ttl,
       data.serialise(),
     );

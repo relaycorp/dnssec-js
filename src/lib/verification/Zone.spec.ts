@@ -12,7 +12,7 @@ import { RRSet } from '../dns/RRSet';
 import { RrsigData } from '../rdata/RrsigData';
 import { FailureResult, SuccessfulResult } from './results';
 import { Question } from '../dns/Question';
-import { DNSClass } from '../dns/DNSClass';
+import { DnsClass } from '../dns/DnsClass';
 import { DnssecRecordType } from '../DnssecRecordType';
 import { RCode } from '../dns/RCode';
 import { SignedRRSet } from './SignedRRSet';
@@ -28,7 +28,7 @@ const SIGNATURE_OPTIONS: SignatureGenerationOptions = {
 };
 
 describe('Zone', () => {
-  const TLD_DNSKEY_QUESTION = new Question(RECORD_TLD, DnssecRecordType.DNSKEY, DNSClass.IN);
+  const TLD_DNSKEY_QUESTION = new Question(RECORD_TLD, DnssecRecordType.DNSKEY, DnsClass.IN);
 
   let rootSigner: ZoneSigner;
   let rootDnskey: DnskeyResponse;
