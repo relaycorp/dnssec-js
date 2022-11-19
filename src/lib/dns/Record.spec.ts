@@ -18,7 +18,7 @@ describe('Record', () => {
     test('Type should be set', () => {
       const question = RECORD.makeQuestion();
 
-      expect(question.type).toEqual(RECORD.type);
+      expect(question.typeId).toEqual(RECORD.type);
     });
 
     test('Class should be set', () => {

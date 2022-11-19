@@ -208,7 +208,7 @@ describe('Message', () => {
       type: RECORD_TYPE_STR,
     };
     const DP_ANSWER: DPAnswer = {
-      type: RECORD_TYPE_STR,
+      type: RECORD_TYPE_STR as any,
       class: RECORD_CLASS_STR,
       name: RECORD.name,
       ttl: RECORD.ttl,
@@ -405,7 +405,7 @@ describe('answersQuestion', () => {
 
   test('False should be returned if message does not contain question', () => {
     const message = new Message({ rcode: RCode.NoError }, [QUESTION], []);
-    const differentQuestion = QUESTION.shallowCopy({ type: QUESTION.type + 1 });
+    const differentQuestion = QUESTION.shallowCopy({ type: QUESTION.typeId + 1 });
 
     expect(message.answersQuestion(differentQuestion)).toBeFalse();
   });

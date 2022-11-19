@@ -2,11 +2,9 @@ import { DnsClass } from '../lib/dns/DnsClass';
 import { Record } from '../lib/dns/Record';
 import { Question } from '../lib/dns/Question';
 import { RRSet } from '../lib/dns/RRSet';
+import { IANA_RR_TYPE_IDS, IANA_RR_TYPE_NAMES } from '../lib/dns/ianaRrTypes';
 
 export const RECORD_TLD = 'com.';
-
-export const RECORD_TYPE_STR = 'TXT';
-export const RECORD_CLASS_STR = 'IN';
 
 // TXT RDATA serialisation according to RFC 1035 (Section 3.3.14)
 export const RECORD_DATA_TXT_DATA = Buffer.from('foo');
@@ -16,11 +14,14 @@ RECORD_DATA_TXT_DATA.copy(RECORD_DATA, 1);
 
 export const RECORD = new Record(
   `example.${RECORD_TLD}`,
-  16, // TXT
+  IANA_RR_TYPE_IDS.TXT,
   DnsClass.IN,
   42,
   RECORD_DATA,
 );
+
+export const RECORD_TYPE_STR = IANA_RR_TYPE_NAMES[RECORD.type];
+export const RECORD_CLASS_STR = 'IN';
 
 export const QUESTION = new Question(RECORD.name, RECORD.type, RECORD.class_);
 

@@ -1,6 +1,38 @@
 import { question } from '@leichtgewicht/dns-packet';
 
 import { QUESTION, RECORD_CLASS_STR, RECORD_TYPE_STR } from '../../testUtils/dnsStubs';
+import { Question } from './Question';
+import { IANA_RR_TYPE_IDS, IANA_RR_TYPE_NAMES } from './ianaRrTypes';
+import { DnsClass } from './DnsClass';
+import { DnsError } from './DnsError';
+
+describe('constructor', () => {
+  describe('Type', () => {
+    test('Id should be stored as is', () => {
+      const question = new Question(QUESTION.name, IANA_RR_TYPE_IDS.A, DnsClass.IN);
+
+      expect(question.typeId).toEqual(IANA_RR_TYPE_IDS.A);
+    });
+
+    test('Name should be converted to id', () => {
+      const id = IANA_RR_TYPE_IDS.A;
+      const name = IANA_RR_TYPE_NAMES[id];
+
+      const question = new Question(QUESTION.name, name, DnsClass.IN);
+
+      expect(question.typeId).toEqual(id);
+    });
+
+    test('Name not defined by IANA should cause an error', () => {
+      const invalidName = 'BAZINGA' as any;
+
+      expect(() => new Question(QUESTION.name, invalidName, DnsClass.IN)).toThrowWithMessage(
+        DnsError,
+        `RR type name "${invalidName}" is not defined by IANA`,
+      );
+    });
+  });
+});
 
 describe('key', () => {
   test('Key should start with name', () => {
@@ -8,7 +40,23 @@ describe('key', () => {
   });
 
   test('Key should end with type id', () => {
-    expect(QUESTION.key).toEndWith(`/${QUESTION.type}`);
+    expect(QUESTION.key).toEndWith(`/${QUESTION.typeId}`);
+  });
+});
+
+describe('getTypeName', () => {
+  test('Name should be returned if defined by IANA', () => {
+    expect(QUESTION.getTypeName()).toEqual(RECORD_TYPE_STR);
+  });
+
+  test('Error should be thrown if not defined by IANA', () => {
+    const reservedType = 0;
+    const question = QUESTION.shallowCopy({ type: reservedType });
+
+    expect(() => question.getTypeName()).toThrowWithMessage(
+      DnsError,
+      `RR type id ${reservedType} is not defined by IANA`,
+    );
   });
 });
 
@@ -20,7 +68,7 @@ describe('equals', () => {
   });
 
   test('Questions with different types should be unequal', () => {
-    const differentQuestion = QUESTION.shallowCopy({ type: QUESTION.type + 1 });
+    const differentQuestion = QUESTION.shallowCopy({ type: QUESTION.typeId + 1 });
 
     expect(QUESTION.equals(differentQuestion)).toBeFalse();
   });
@@ -66,7 +114,7 @@ describe('shallowCopy', () => {
     const copy = QUESTION.shallowCopy({});
 
     expect(copy.name).toEqual(QUESTION.name);
-    expect(copy.type).toEqual(QUESTION.type);
+    expect(copy.typeId).toEqual(QUESTION.typeId);
     expect(copy.class_).toEqual(QUESTION.class_);
   });
 
@@ -76,17 +124,17 @@ describe('shallowCopy', () => {
     const copy = QUESTION.shallowCopy({ name: newName });
 
     expect(copy.name).toEqual(newName);
-    expect(copy.type).toEqual(QUESTION.type);
+    expect(copy.typeId).toEqual(QUESTION.typeId);
     expect(copy.class_).toEqual(QUESTION.class_);
   });
 
   test('New type should be used if set', () => {
-    const newType = QUESTION.type + 1;
+    const newType = QUESTION.typeId + 1;
 
     const copy = QUESTION.shallowCopy({ type: newType });
 
     expect(copy.name).toEqual(QUESTION.name);
-    expect(copy.type).toEqual(newType);
+    expect(copy.typeId).toEqual(newType);
     expect(copy.class_).toEqual(QUESTION.class_);
   });
 
@@ -96,7 +144,7 @@ describe('shallowCopy', () => {
     const copy = QUESTION.shallowCopy({ class: newClass });
 
     expect(copy.name).toEqual(QUESTION.name);
-    expect(copy.type).toEqual(QUESTION.type);
+    expect(copy.typeId).toEqual(QUESTION.typeId);
     expect(copy.class_).toEqual(newClass);
   });
 });
