@@ -8,7 +8,6 @@ import { QUESTION, RECORD, RECORD_TLD, RRSET } from '../../testUtils/dnsStubs';
 import { UnverifiedChain } from './UnverifiedChain';
 import { ZoneResponseSet } from '../signing/responses';
 import { DnssecRecordType } from '../DnssecRecordType';
-import { RCode } from '../dns/RCode';
 import { Question } from '../dns/Question';
 import { FailureResult, SuccessfulResult, VerificationResult } from './results';
 import { RRSet } from '../dns/RRSet';
@@ -17,7 +16,8 @@ import { DsData } from '../rdata/DsData';
 import { IANA_TRUST_ANCHORS } from './IANA_TRUST_ANCHORS';
 import { DatePeriod } from './DatePeriod';
 import { Resolver } from './Resolver';
-import { DnsClass } from '../dns/DnsClass';
+import { DnsClass } from '../dns/ianaClasses';
+import { RCODE_IDS } from '../dns/ianaRcodes';
 
 const NOW = new Date();
 const SIGNATURE_OPTIONS: SignatureGenerationOptions = {
@@ -154,14 +154,14 @@ describe('initFromMessages', () => {
   });
 
   test('Message without question should be ignored', () => {
-    const unquestionableMessage = new Message({ rcode: RCode.NoError }, [], []);
+    const unquestionableMessage = new Message({ rcode: RCODE_IDS.NoError }, [], []);
 
     UnverifiedChain.initFromMessages(QUESTION, [unquestionableMessage, ...chainMessages]);
   });
 
   test('Irrelevant message should be filtered out', () => {
     const irrelevantQuestion = QUESTION.shallowCopy({ name: `not-${QUESTION.name}` });
-    const irrelevantMessage = new Message({ rcode: RCode.NoError }, [irrelevantQuestion], []);
+    const irrelevantMessage = new Message({ rcode: RCODE_IDS.NoError }, [irrelevantQuestion], []);
 
     const chain = UnverifiedChain.initFromMessages(QUESTION, [irrelevantMessage, ...chainMessages]);
 

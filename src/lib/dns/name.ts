@@ -26,3 +26,7 @@ export function serialiseName(name: string): Buffer {
     });
   return Buffer.concat([...labels, Buffer.alloc(1)]);
 }
+
+export function normaliseName(name: string): string {
+  return name.endsWith('.') ? name : `${name}.`;
+}

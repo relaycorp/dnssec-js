@@ -1,7 +1,7 @@
 import { name as NAME } from '@leichtgewicht/dns-packet';
 
 import { RECORD, RECORD_TLD } from '../../testUtils/dnsStubs';
-import { NAME_PARSER_OPTIONS, serialiseName } from './name';
+import { NAME_PARSER_OPTIONS, normaliseName, serialiseName } from './name';
 import { Parser } from 'binary-parser';
 
 describe('serialiseName', () => {
@@ -25,6 +25,26 @@ describe('serialiseName', () => {
     const serialisation = serialiseName('.');
 
     expect(serialisation).toEqual(Buffer.from([0]));
+  });
+});
+
+describe('normaliseName', () => {
+  test('Missing trailing dot should be added', () => {
+    const name = 'example.com';
+
+    expect(normaliseName(name)).toEqual(`${name}.`);
+  });
+
+  test('Present trailing dot should be left as is', () => {
+    const name = 'example.com.';
+
+    expect(normaliseName(name)).toEqual(name);
+  });
+
+  test('Root should be left as is', () => {
+    const name = '.';
+
+    expect(normaliseName(name)).toEqual(name);
   });
 });
 

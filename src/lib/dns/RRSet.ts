@@ -1,5 +1,5 @@
 import { Record } from './Record';
-import { DnsClass } from './DnsClass';
+import { DnsClass } from './ianaClasses';
 import { Question } from './Question';
 import { DnsError } from './DnsError';
 
@@ -15,7 +15,8 @@ export class RRSet {
    */
   public static init(question: Question, records: readonly Record[]): RRSet {
     const matchingRecords = records.filter(
-      (r) => r.name === question.name && r.class_ === question.class_ && r.type === question.typeId,
+      (r) =>
+        r.name === question.name && r.class_ === question.class_ && r.typeId === question.typeId,
     );
 
     if (matchingRecords.length === 0) {

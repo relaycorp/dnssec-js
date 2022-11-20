@@ -5,6 +5,9 @@
  *
  * @link https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml#dns-parameters-4
  */
+
+import { DnsError } from './DnsError';
+
 export const IANA_RR_TYPE_IDS = {
   A: 1,
   NS: 2,
@@ -98,7 +101,34 @@ export const IANA_RR_TYPE_IDS = {
 };
 
 export type IanaRrTypeName = keyof typeof IANA_RR_TYPE_IDS;
+export type IanaRrTypeIdOrName = number | IanaRrTypeName;
 
 export const IANA_RR_TYPE_NAMES = Object.entries(IANA_RR_TYPE_IDS).reduce((acc, [name, id]) => {
   return { ...acc, [id]: name as IanaRrTypeName };
 }, {} as { [key: number]: IanaRrTypeName });
+
+export function getRrTypeId(typeName: IanaRrTypeIdOrName): number {
+  if (typeof typeName === 'number') {
+    return typeName;
+  }
+
+  const typeId = IANA_RR_TYPE_IDS[typeName];
+  if (typeId === undefined) {
+    throw new DnsError(`RR type name "${typeName}" is not defined by IANA`);
+  }
+
+  return typeId;
+}
+
+export function getRrTypeName(typeId: number | string): IanaRrTypeName {
+  if (typeof typeId === 'string') {
+    return typeId as IanaRrTypeName;
+  }
+
+  const typeName = IANA_RR_TYPE_NAMES[typeId];
+  if (typeName === undefined) {
+    throw new DnsError(`RR type id "${typeId}" is not defined by IANA`);
+  }
+
+  return typeName;
+}

@@ -3,8 +3,8 @@ import { question } from '@leichtgewicht/dns-packet';
 import { QUESTION, RECORD_CLASS_STR, RECORD_TYPE_STR } from '../../testUtils/dnsStubs';
 import { Question } from './Question';
 import { IANA_RR_TYPE_IDS, IANA_RR_TYPE_NAMES } from './ianaRrTypes';
-import { DnsClass } from './DnsClass';
 import { DnsError } from './DnsError';
+import { DnsClass } from './ianaClasses';
 
 describe('constructor', () => {
   describe('Name', () => {
@@ -17,13 +17,6 @@ describe('constructor', () => {
 
     test('Present trailing dot should be left as is', () => {
       const name = 'example.com.';
-      const question = new Question(name, QUESTION.typeId, QUESTION.class_);
-
-      expect(question.name).toEqual(name);
-    });
-
-    test('Root should be left as is', () => {
-      const name = '.';
       const question = new Question(name, QUESTION.typeId, QUESTION.class_);
 
       expect(question.name).toEqual(name);
@@ -45,14 +38,19 @@ describe('constructor', () => {
 
       expect(question.typeId).toEqual(id);
     });
+  });
 
-    test('Name not defined by IANA should cause an error', () => {
-      const invalidName = 'BAZINGA' as any;
+  describe('Class', () => {
+    test('Id should be stored as is', () => {
+      const question = new Question(QUESTION.name, IANA_RR_TYPE_IDS.A, DnsClass.IN);
 
-      expect(() => new Question(QUESTION.name, invalidName, DnsClass.IN)).toThrowWithMessage(
-        DnsError,
-        `RR type name "${invalidName}" is not defined by IANA`,
-      );
+      expect(question.class_).toEqual(DnsClass.IN);
+    });
+
+    test('Name should be converted to id', () => {
+      const question = new Question(QUESTION.name, QUESTION.typeId, 'CH');
+
+      expect(question.class_).toEqual(DnsClass.CH);
     });
   });
 });

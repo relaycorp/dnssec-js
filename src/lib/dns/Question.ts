@@ -1,7 +1,7 @@
-import { DnsClass } from './DnsClass';
-import { serialiseName } from './name';
-import { IANA_RR_TYPE_IDS, IANA_RR_TYPE_NAMES, IanaRrTypeName } from './ianaRrTypes';
+import { getRrTypeId, IANA_RR_TYPE_NAMES, IanaRrTypeIdOrName, IanaRrTypeName } from './ianaRrTypes';
 import { DnsError } from './DnsError';
+import { DnsClass, DnsClassIdOrName, getDnsClassId } from './ianaClasses';
+import { normaliseName, serialiseName } from './name';
 
 export interface QuestionFields {
   readonly name: string;
@@ -12,15 +12,12 @@ export interface QuestionFields {
 export class Question {
   public readonly name: string;
   public readonly typeId: number;
+  public readonly class_: DnsClass;
 
-  constructor(name: string, type: number | IanaRrTypeName, public readonly class_: DnsClass) {
-    this.name = name === '.' || name.endsWith('.') ? name : `${name}.`;
-
-    const typeId: number | undefined = typeof type === 'number' ? type : IANA_RR_TYPE_IDS[type];
-    if (typeId === undefined) {
-      throw new DnsError(`RR type name "${type}" is not defined by IANA`);
-    }
-    this.typeId = typeId;
+  constructor(name: string, type: IanaRrTypeIdOrName, class_: DnsClassIdOrName) {
+    this.name = normaliseName(name);
+    this.typeId = getRrTypeId(type);
+    this.class_ = getDnsClassId(class_);
   }
 
   get key(): string {

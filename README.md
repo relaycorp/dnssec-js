@@ -19,14 +19,6 @@ Although this is a general-purpose DNSSEC library, some key design decisions ste
 
 DNS resolution is a problem solved in Node.js -- there's just no shortage of reliable UDP-, TLS- or HTTPS-based resolvers on NPM. So we didn't want to create a new resolver or tie our DNSSEC implementation to any particular resolver.
 
-### DNS message parsing (RFC 1035)
-
-We decided to write a partial implementation of the DNS wire format (as specified in RFC 1035, Section 4) because the existing third-party implementations we found on NPM ([dns-packet](https://www.npmjs.com/package/dns-packet) and [dns2](https://www.npmjs.com/package/dns2)) parsed the entire message eagerly (all the way down to the RDATA fields) and didn't offer an option to keep the original byte stream.
-
-This would've made it cumbersome to validate DNSSEC signatures, as we'd need to re-serialise the records that we just parsed. A re-serialisation would also introduce the possibility that the new byte stream would be functionally equivalent but not identical to the one that was originally signed (especially when re-serialising the RDATA field).
-
-Fortunately, since we're only interested in the _answers_ section of the message, our implementation is very straightforward.
-
 ### Error handling
 
 As this is primarily a DNSSEC library, we treat DNS and DNSSEC errors differently:

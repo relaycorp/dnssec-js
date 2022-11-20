@@ -3,7 +3,7 @@ import { addSeconds, setMilliseconds } from 'date-fns';
 
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { Record } from '../dns/Record';
-import { DnsClass } from '../dns/DnsClass';
+import { DnsClass } from '../dns/ianaClasses';
 import { generateKeyPair } from './keyGen';
 import { DigestType } from '../DigestType';
 import { DnssecRecordType } from '../DnssecRecordType';
@@ -13,10 +13,10 @@ import { DnskeyData } from '../rdata/DnskeyData';
 import { DsData } from '../rdata/DsData';
 import { RrsigData } from '../rdata/RrsigData';
 import { DnskeyRecord } from '../dnssecRecords';
-import { RCode } from '../dns/RCode';
 import { Message } from '../dns/Message';
 import { Question } from '../dns/Question';
 import { DnskeyResponse, DsResponse, RrsigResponse, ZoneResponseSet } from './responses';
+import { RCODE_IDS } from '../dns/ianaRcodes';
 
 const FIVE_MINUTES_IN_SECONDS = 5 * 60;
 
@@ -136,7 +136,7 @@ export class ZoneSigner {
       data.serialise(),
     );
     const message = new Message(
-      { rcode: RCode.NoError },
+      { rcode: RCODE_IDS.NoError },
       [new Question(rrset.name, rrset.type, rrset.class_)],
       [...rrset.records, record],
     );

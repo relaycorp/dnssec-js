@@ -11,6 +11,8 @@ import { DatePeriod } from './DatePeriod';
 import { serialisePublicKey } from '../utils/crypto/keySerialisation';
 import { DnskeyData } from '../rdata/DnskeyData';
 import { RrsigData } from '../rdata/RrsigData';
+import { DnsClass } from '../dns/ianaClasses';
+import { IANA_RR_TYPE_IDS } from '../dns/ianaRrTypes';
 
 describe('SignedRRSet', () => {
   const RRSIG_OPTIONS: Partial<SignatureGenerationOptions> = {
@@ -54,7 +56,8 @@ describe('SignedRRSet', () => {
 
     test('RRSIG for different class should be ignored', async () => {
       const rrsig = signer.generateRrsig(RRSET, STUB_KEY_TAG, RRSIG_OPTIONS);
-      const differentRrsigRecord = rrsig.record.shallowCopy({ class: 'foobar' as any });
+      const differentRrsigRecord = rrsig.record.shallowCopy({ class: DnsClass.CH });
+      expect(differentRrsigRecord.class_).not.toEqual(rrsig.record.class_);
 
       const signedRrset = SignedRRSet.initFromRecords(QUESTION, [RECORD, differentRrsigRecord]);
 
@@ -62,9 +65,10 @@ describe('SignedRRSet', () => {
     });
 
     test('RRSIG with mismatching type field should be accepted', async () => {
-      const differentRecord = RECORD.shallowCopy({ type: RECORD.type + 1 });
+      const differentRecord = RECORD.shallowCopy({ type: IANA_RR_TYPE_IDS.A });
+      expect(differentRecord.typeId).not.toEqual(RECORD.typeId);
       const differentRrsig = signer.generateRrsig(
-        RRSet.init(QUESTION.shallowCopy({ type: differentRecord.type }), [differentRecord]),
+        RRSet.init(QUESTION.shallowCopy({ type: differentRecord.typeId }), [differentRecord]),
         STUB_KEY_TAG,
         RRSIG_OPTIONS,
       );

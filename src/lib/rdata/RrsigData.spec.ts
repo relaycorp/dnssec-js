@@ -7,6 +7,7 @@ import { MalformedRdataError } from '../verification/MalformedRdataError';
 import { serialiseName } from '../dns/name';
 import { RRSet } from '../dns/RRSet';
 import { QUESTION, RECORD, RRSET } from '../../testUtils/dnsStubs';
+import { IANA_RR_TYPE_IDS } from '../dns/ianaRrTypes';
 
 describe('RrsigData', () => {
   const STUB_KEY_TAG = 12345;
@@ -49,7 +50,7 @@ describe('RrsigData', () => {
 
       const rrsigData = RrsigData.deserialise(rrsig.record.dataSerialised);
 
-      expect(rrsigData.type).toEqual(RECORD.type);
+      expect(rrsigData.type).toEqual(RECORD.typeId);
     });
 
     test('Algorithm should be extracted', () => {
@@ -120,7 +121,8 @@ describe('RrsigData', () => {
 
   describe('verifyRrset', () => {
     test('Covered type should match RRset type', () => {
-      const type = RECORD.type + 1;
+      const type = IANA_RR_TYPE_IDS.A;
+      expect(type).not.toEqual(RECORD.typeId);
       const invalidRrset = RRSet.init(QUESTION.shallowCopy({ type }), [
         RECORD.shallowCopy({ type }),
       ]);

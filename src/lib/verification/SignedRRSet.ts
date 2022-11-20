@@ -12,13 +12,13 @@ import { DnskeyData } from '../rdata/DnskeyData';
  */
 export class SignedRRSet {
   static initFromRecords(question: Question, records: readonly Record[]): SignedRRSet {
-    const rrsetRecords = records.filter((r) => r.type !== DnssecRecordType.RRSIG);
+    const rrsetRecords = records.filter((r) => r.typeId !== DnssecRecordType.RRSIG);
     const rrset = RRSet.init(question, rrsetRecords);
 
     const rrsigRecords = records
       .filter(
         (r) =>
-          r.type === DnssecRecordType.RRSIG && r.name === rrset.name && r.class_ === rrset.class_,
+          r.typeId === DnssecRecordType.RRSIG && r.name === rrset.name && r.class_ === rrset.class_,
       )
       .reduce(function deserialise(acc, record): readonly RrsigRecord[] {
         let data: RrsigData;

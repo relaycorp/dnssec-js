@@ -1,7 +1,8 @@
 import { RRSet } from './RRSet';
 import { QUESTION, RECORD, RRSET } from '../../testUtils/dnsStubs';
-import { DnsClass } from './DnsClass';
+import { DnsClass } from './ianaClasses';
 import { DnsError } from './DnsError';
+import { IANA_RR_TYPE_IDS } from './ianaRrTypes';
 
 describe('RRSet', () => {
   describe('init', () => {
@@ -31,7 +32,9 @@ describe('RRSet', () => {
     });
 
     test('Record types should match', () => {
-      const record2 = RECORD.shallowCopy({ type: RECORD.type + 1 });
+      const type = IANA_RR_TYPE_IDS.A;
+      expect(type).not.toEqual(RECORD.typeId);
+      const record2 = RECORD.shallowCopy({ type });
 
       const rrset = RRSet.init(QUESTION, [RECORD, record2]);
 
@@ -65,7 +68,7 @@ describe('RRSet', () => {
     });
 
     test('Type property should be set', () => {
-      expect(RRSET.type).toEqual(RECORD.type);
+      expect(RRSET.type).toEqual(RECORD.typeId);
     });
 
     test('TTL property should be set', () => {

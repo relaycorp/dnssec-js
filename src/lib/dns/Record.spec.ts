@@ -1,4 +1,4 @@
-import { answer as ANSWER, TxtAnswer } from '@leichtgewicht/dns-packet';
+import { answer as ANSWER, mx, MxData, TxtAnswer } from '@leichtgewicht/dns-packet';
 
 import {
   RECORD,
@@ -6,8 +6,168 @@ import {
   RECORD_DATA_TXT_DATA,
   RECORD_TYPE_STR,
 } from '../../testUtils/dnsStubs';
+import { Record } from './Record';
+import { getRrTypeName, IANA_RR_TYPE_IDS, IANA_RR_TYPE_NAMES } from './ianaRrTypes';
+import { DnsError } from './DnsError';
+import { DnsClass } from './ianaClasses';
 
 describe('Record', () => {
+  describe('constructor', () => {
+    describe('Name', () => {
+      test('Missing trailing dot should be added', () => {
+        const name = 'example.com';
+        const record = new Record(
+          name,
+          RECORD.typeId,
+          DnsClass.IN,
+          RECORD.ttl,
+          RECORD.dataSerialised,
+        );
+
+        expect(record.name).toEqual(`${name}.`);
+      });
+
+      test('Present trailing dot should be left as is', () => {
+        const name = 'example.com.';
+        const record = new Record(
+          name,
+          RECORD.typeId,
+          DnsClass.IN,
+          RECORD.ttl,
+          RECORD.dataSerialised,
+        );
+
+        expect(record.name).toEqual(name);
+      });
+    });
+
+    describe('Type', () => {
+      const ID = IANA_RR_TYPE_IDS.A;
+
+      test('Id should be stored as is', () => {
+        const record = new Record(
+          RECORD.name,
+          ID,
+          RECORD.class_,
+          RECORD.ttl,
+          RECORD.dataSerialised,
+        );
+
+        expect(record.typeId).toEqual(ID);
+      });
+
+      test('Name should be converted to id', () => {
+        const record = new Record(
+          RECORD.name,
+          IANA_RR_TYPE_NAMES[ID],
+          RECORD.class_,
+          RECORD.ttl,
+          RECORD.dataSerialised,
+        );
+
+        expect(record.typeId).toEqual(ID);
+      });
+
+      test('Name not defined by IANA should cause an error', () => {
+        const invalidName = 'BAZINGA' as any;
+
+        expect(
+          () =>
+            new Record(RECORD.name, invalidName, RECORD.class_, RECORD.ttl, RECORD.dataSerialised),
+        ).toThrowWithMessage(DnsError, `RR type name "${invalidName}" is not defined by IANA`);
+      });
+    });
+
+    describe('Class', () => {
+      test('Id should be stored as is', () => {
+        const record = new Record(
+          RECORD.name,
+          RECORD.typeId,
+          DnsClass.CH,
+          RECORD.ttl,
+          RECORD.dataSerialised,
+        );
+
+        expect(record.class_).toEqual(DnsClass.CH);
+      });
+
+      test('Name should be converted to id', () => {
+        const record = new Record(
+          RECORD.name,
+          RECORD.typeId,
+          'CH',
+          RECORD.ttl,
+          RECORD.dataSerialised,
+        );
+
+        expect(record.class_).toEqual(DnsClass.CH);
+      });
+    });
+
+    describe('Data', () => {
+      const TYPE_ID = IANA_RR_TYPE_IDS.MX;
+      const TYYPE_NAME = getRrTypeName(TYPE_ID);
+      const DATA: MxData = { exchange: 'foo', preference: 3 };
+      const DATA_SERIALISED = Buffer.from(mx.encode(DATA)).subarray(2); // Chop off length prefix
+
+      describe('Serialised', () => {
+        test('Buffer should be stored as is', () => {
+          const record = new Record(
+            RECORD.name,
+            TYPE_ID,
+            RECORD.class_,
+            RECORD.ttl,
+            DATA_SERIALISED,
+          );
+
+          expect(record.dataSerialised).toEqual(DATA_SERIALISED);
+        });
+
+        test('Data should be deserialised', () => {
+          const record = new Record(
+            RECORD.name,
+            TYPE_ID,
+            RECORD.class_,
+            RECORD.ttl,
+            DATA_SERIALISED,
+          );
+
+          expect(record.data).toEqual(DATA);
+        });
+
+        test('Malformed data should be refused', () => {
+          const malformedData = Buffer.allocUnsafe(1);
+
+          expect(
+            () => new Record(RECORD.name, TYPE_ID, RECORD.class_, RECORD.ttl, malformedData),
+          ).toThrowWithMessage(DnsError, `Data for record type ${TYYPE_NAME} is malformed`);
+        });
+      });
+
+      describe('Deserialised', () => {
+        test('Buffer should be computed and stored if data is valid', () => {
+          const record = new Record(RECORD.name, TYPE_ID, RECORD.class_, RECORD.ttl, DATA);
+
+          expect(record.dataSerialised).toEqual(DATA_SERIALISED);
+        });
+
+        test('Data should be stored as is if valid', () => {
+          const record = new Record(RECORD.name, TYPE_ID, RECORD.class_, RECORD.ttl, DATA);
+
+          expect(record.data).toEqual(DATA);
+        });
+
+        test('Invalid data should be refused', () => {
+          const invalidData = {};
+
+          expect(
+            () => new Record(RECORD.name, TYPE_ID, RECORD.class_, RECORD.ttl, invalidData),
+          ).toThrowWithMessage(DnsError, `Data for record type ${TYYPE_NAME} is invalid`);
+        });
+      });
+    });
+  });
+
   describe('question', () => {
     test('Name should be set', () => {
       const question = RECORD.makeQuestion();
@@ -18,7 +178,7 @@ describe('Record', () => {
     test('Type should be set', () => {
       const question = RECORD.makeQuestion();
 
-      expect(question.typeId).toEqual(RECORD.type);
+      expect(question.typeId).toEqual(RECORD.typeId);
     });
 
     test('Class should be set', () => {
@@ -69,7 +229,7 @@ describe('Record', () => {
       const newRecord = RECORD.shallowCopy({});
 
       expect(newRecord.name).toEqual(RECORD.name);
-      expect(newRecord.type).toEqual(RECORD.type);
+      expect(newRecord.typeId).toEqual(RECORD.typeId);
       expect(newRecord.class_).toEqual(RECORD.class_);
       expect(newRecord.ttl).toEqual(RECORD.ttl);
       expect(newRecord.dataSerialised).toBe(RECORD.dataSerialised);
@@ -80,29 +240,31 @@ describe('Record', () => {
       const newRecord = RECORD.shallowCopy({ name: newName });
 
       expect(newRecord.name).toEqual(newName);
-      expect(newRecord.type).toEqual(RECORD.type);
+      expect(newRecord.typeId).toEqual(RECORD.typeId);
       expect(newRecord.class_).toEqual(RECORD.class_);
       expect(newRecord.ttl).toEqual(RECORD.ttl);
       expect(newRecord.dataSerialised).toBe(RECORD.dataSerialised);
     });
 
     test('New type should be used if set', () => {
-      const newType = RECORD.type + 1;
+      const newType = IANA_RR_TYPE_IDS.A;
+      expect(newType).not.toEqual(RECORD.typeId);
       const newRecord = RECORD.shallowCopy({ type: newType });
 
       expect(newRecord.name).toEqual(RECORD.name);
-      expect(newRecord.type).toEqual(newType);
+      expect(newRecord.typeId).toEqual(newType);
       expect(newRecord.class_).toEqual(RECORD.class_);
       expect(newRecord.ttl).toEqual(RECORD.ttl);
       expect(newRecord.dataSerialised).toBe(RECORD.dataSerialised);
     });
 
     test('New class should be used if set', () => {
-      const newClass: any = 'foobar';
+      const newClass = DnsClass.CH;
+      expect(newClass).not.toEqual(RECORD);
       const newRecord = RECORD.shallowCopy({ class: newClass });
 
       expect(newRecord.name).toEqual(RECORD.name);
-      expect(newRecord.type).toEqual(RECORD.type);
+      expect(newRecord.typeId).toEqual(RECORD.typeId);
       expect(newRecord.class_).toEqual(newClass);
       expect(newRecord.ttl).toEqual(RECORD.ttl);
       expect(newRecord.dataSerialised).toBe(RECORD.dataSerialised);
@@ -113,7 +275,7 @@ describe('Record', () => {
       const newRecord = RECORD.shallowCopy({ ttl: newTtl });
 
       expect(newRecord.name).toEqual(RECORD.name);
-      expect(newRecord.type).toEqual(RECORD.type);
+      expect(newRecord.typeId).toEqual(RECORD.typeId);
       expect(newRecord.class_).toEqual(RECORD.class_);
       expect(newRecord.ttl).toEqual(newTtl);
       expect(newRecord.dataSerialised).toBe(RECORD.dataSerialised);
@@ -124,7 +286,7 @@ describe('Record', () => {
       const newRecord = RECORD.shallowCopy({ dataSerialised: newData });
 
       expect(newRecord.name).toEqual(RECORD.name);
-      expect(newRecord.type).toEqual(RECORD.type);
+      expect(newRecord.typeId).toEqual(RECORD.typeId);
       expect(newRecord.class_).toEqual(RECORD.class_);
       expect(newRecord.ttl).toEqual(RECORD.ttl);
       expect(newRecord.dataSerialised).toBe(newData);

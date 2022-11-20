@@ -12,13 +12,13 @@ import { RRSet } from '../dns/RRSet';
 import { RrsigData } from '../rdata/RrsigData';
 import { FailureResult, SuccessfulResult } from './results';
 import { Question } from '../dns/Question';
-import { DnsClass } from '../dns/DnsClass';
+import { DnsClass } from '../dns/ianaClasses';
 import { DnssecRecordType } from '../DnssecRecordType';
-import { RCode } from '../dns/RCode';
 import { SignedRRSet } from './SignedRRSet';
 import { DatePeriod } from './DatePeriod';
 import { Record } from '../dns/Record';
 import { DnskeyResponse, DsResponse } from '../signing/responses';
+import { RCODE_IDS } from '../dns/ianaRcodes';
 
 const NOW = new Date();
 const VALIDITY_PERIOD = DatePeriod.init(subSeconds(NOW, 1), addSeconds(NOW, 1));
@@ -79,7 +79,7 @@ describe('Zone', () => {
         SIGNATURE_OPTIONS,
       );
       const dnskeyMessage = new Message(
-        { rcode: RCode.NoError },
+        { rcode: RCODE_IDS.NoError },
         [],
         [malformedDnskey, newRrsig.record],
       );
@@ -125,7 +125,7 @@ describe('Zone', () => {
       });
       const result = Zone.init(
         RECORD_TLD,
-        new Message({ rcode: RCode.NoError }, [], [tldDnskey.record, mismatchingDnskeyRrsig]),
+        new Message({ rcode: RCODE_IDS.NoError }, [], [tldDnskey.record, mismatchingDnskeyRrsig]),
         [tldDs.data],
         VALIDITY_PERIOD,
       );
@@ -153,7 +153,7 @@ describe('Zone', () => {
       });
       const result = Zone.init(
         RECORD_TLD,
-        new Message({ rcode: RCode.NoError }, [], [tldDnskey.record, mismatchingDnskeyRrsig]),
+        new Message({ rcode: RCODE_IDS.NoError }, [], [tldDnskey.record, mismatchingDnskeyRrsig]),
         [tldDs.data],
         VALIDITY_PERIOD,
       );
@@ -216,7 +216,7 @@ describe('Zone', () => {
       const result = Zone.init(
         RECORD_TLD,
         new Message(
-          { rcode: RCode.NoError },
+          { rcode: RCODE_IDS.NoError },
           [],
           [tldDnskey.record, nonZskDnskey.record, newRrsig.record],
         ),
@@ -319,7 +319,7 @@ describe('Zone', () => {
           SIGNATURE_OPTIONS,
         );
         const dsMessage = new Message(
-          { rcode: RCode.NoError },
+          { rcode: RCODE_IDS.NoError },
           [],
           [apexDs.record, apexDsRrsig.record],
         );

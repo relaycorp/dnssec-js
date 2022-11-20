@@ -9,20 +9,19 @@ import {
 
 import { Message } from './Message';
 import { Record } from './Record';
-import { DnsClass } from './DnsClass';
+import { DnsClass } from './ianaClasses';
 import {
   QUESTION,
   RECORD,
   RECORD_CLASS_STR,
-  RECORD_DATA,
   RECORD_DATA_TXT_DATA,
   RECORD_TYPE_STR,
 } from '../../testUtils/dnsStubs';
 import { Header } from './Header';
-import { RCode } from './RCode';
 import { DnsError } from './DnsError';
+import { getRcodeId, RCODE_IDS } from './ianaRcodes';
 
-const STUB_HEADER: Header = { rcode: RCode.NoError };
+const STUB_HEADER: Header = { rcode: RCODE_IDS.NoError };
 
 describe('Message', () => {
   describe('serialise', () => {
@@ -212,25 +211,26 @@ describe('Message', () => {
       class: RECORD_CLASS_STR,
       name: RECORD.name,
       ttl: RECORD.ttl,
-      data: RECORD_DATA.toString(),
+      data: RECORD_DATA_TXT_DATA,
     };
 
     describe('Header', () => {
       test('RCODE should be extracted', () => {
+        const rcodeName = 'ServFail';
         const messageSerialised = encode({
           type: 'response',
-          rcode: 'RCODE_15',
+          rcode: rcodeName,
         });
 
         const message = Message.deserialise(messageSerialised);
 
-        expect(message.header.rcode).toEqual(15);
+        expect(message.header.rcode).toEqual(getRcodeId(rcodeName));
       });
     });
 
     describe('Question', () => {
       test('No question should be output if the message had none', () => {
-        const serialisation = new Message({ rcode: RCode.NoError }, [], []).serialise();
+        const serialisation = new Message({ rcode: RCODE_IDS.NoError }, [], []).serialise();
 
         const message = Message.deserialise(serialisation);
 
@@ -238,7 +238,7 @@ describe('Message', () => {
       });
 
       test('One question should be output if the message had one', () => {
-        const serialisation = new Message({ rcode: RCode.NoError }, [QUESTION], []).serialise();
+        const serialisation = new Message({ rcode: RCODE_IDS.NoError }, [QUESTION], []).serialise();
 
         const message = Message.deserialise(serialisation);
 
@@ -249,7 +249,7 @@ describe('Message', () => {
       test('Multiple questions should be output if the message had multiple', () => {
         const additionalQuestion = QUESTION.shallowCopy({ name: `sub.${QUESTION.name}` });
         const serialisation = new Message(
-          { rcode: RCode.NoError },
+          { rcode: RCODE_IDS.NoError },
           [QUESTION, additionalQuestion],
           [],
         ).serialise();
@@ -316,16 +316,16 @@ describe('Message', () => {
         expect(message.answers).toHaveLength(1);
         expect(message.answers[0]).toMatchObject<Partial<Record>>({
           name: RECORD.name,
-          type: RECORD.type,
+          typeId: RECORD.typeId,
           class_: RECORD.class_,
           ttl: RECORD.ttl,
         });
-        expect(Buffer.from(message.answers[0].dataSerialised)).toEqual(RECORD_DATA);
+        expect(Buffer.from(message.answers[0].dataSerialised)).toEqual(RECORD.dataSerialised);
       });
 
       test('Multiple answers should be output if the message had multiple', () => {
         const record2: TxtAnswer = {
-          data: 'foo',
+          data: RECORD_DATA_TXT_DATA,
           name: 'foo.example.com.',
           type: 'TXT',
           ttl: RECORD.ttl,
@@ -340,20 +340,18 @@ describe('Message', () => {
         expect(message.answers).toHaveLength(2);
         expect(message.answers[0]).toMatchObject<Partial<Record>>({
           name: RECORD.name,
-          type: RECORD.type,
+          typeId: RECORD.typeId,
           class_: DnsClass.IN,
           ttl: RECORD.ttl,
         });
-        expect(Buffer.from(message.answers[0].dataSerialised)).toEqual(RECORD_DATA);
+        expect(Buffer.from(message.answers[0].dataSerialised)).toEqual(RECORD.dataSerialised);
         expect(message.answers[1]).toMatchObject<Partial<Record>>({
           name: record2.name,
-          type: 16,
+          typeId: 16,
           class_: DnsClass.IN,
           ttl: record2.ttl,
         });
-        expect(Buffer.from(message.answers[1].dataSerialised)).toEqual(
-          Buffer.from(record2.data as string),
-        );
+        expect(Buffer.from(message.answers[1].dataSerialised)).toEqual(RECORD.dataSerialised);
       });
 
       test('Answers should be capped at the length prefix', () => {
@@ -398,13 +396,13 @@ describe('Message', () => {
 
 describe('answersQuestion', () => {
   test('True should be returned if message contains question', () => {
-    const message = new Message({ rcode: RCode.NoError }, [QUESTION], []);
+    const message = new Message({ rcode: RCODE_IDS.NoError }, [QUESTION], []);
 
     expect(message.answersQuestion(QUESTION)).toBeTrue();
   });
 
   test('False should be returned if message does not contain question', () => {
-    const message = new Message({ rcode: RCode.NoError }, [QUESTION], []);
+    const message = new Message({ rcode: RCODE_IDS.NoError }, [QUESTION], []);
     const differentQuestion = QUESTION.shallowCopy({ type: QUESTION.typeId + 1 });
 
     expect(message.answersQuestion(differentQuestion)).toBeFalse();
