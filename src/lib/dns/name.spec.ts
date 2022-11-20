@@ -1,8 +1,7 @@
 import { name as NAME } from '@leichtgewicht/dns-packet';
 
-import { RECORD, RECORD_TLD } from '../../testUtils/dnsStubs';
-import { NAME_PARSER_OPTIONS, normaliseName, serialiseName } from './name';
-import { Parser } from 'binary-parser';
+import { RECORD } from '../../testUtils/dnsStubs';
+import {  normaliseName, serialiseName } from './name';
 
 describe('serialiseName', () => {
   const recordNameWithoutDot = RECORD.name.replace(/\.$/, '');
@@ -45,26 +44,5 @@ describe('normaliseName', () => {
     const name = '.';
 
     expect(normaliseName(name)).toEqual(name);
-  });
-});
-
-describe('Parser', () => {
-  const PARSER = new Parser().array('name', NAME_PARSER_OPTIONS);
-
-  test('Root name (dot) should be deserialised', () => {
-    const name = '.';
-    const serialisation = serialiseName(name);
-
-    const nameDeserialised = PARSER.parse(serialisation);
-
-    expect(nameDeserialised.name).toEqual(name);
-  });
-
-  test('TLD should be deserialised', () => {
-    const serialisation = serialiseName(RECORD_TLD);
-
-    const nameDeserialised = PARSER.parse(serialisation);
-
-    expect(nameDeserialised.name).toEqual(RECORD_TLD);
   });
 });

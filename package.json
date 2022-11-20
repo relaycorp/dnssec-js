@@ -58,7 +58,6 @@
   "dependencies": {
     "@leichtgewicht/dns-packet": "^6.0.3",
     "bigint-buffer": "^1.1.5",
-    "binary-parser": "^2.2.1",
     "date-fns": "^2.29.3"
   },
   "prettier": "@relaycorp/shared-config/.prettierrc.json",
