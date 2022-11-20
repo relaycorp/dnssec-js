@@ -1,7 +1,7 @@
 import { getRrTypeId, IANA_RR_TYPE_NAMES, IanaRrTypeIdOrName, IanaRrTypeName } from './ianaRrTypes';
 import { DnsError } from './DnsError';
 import { DnsClass, DnsClassIdOrName, getDnsClassId } from './ianaClasses';
-import { normaliseName, serialiseName } from './name';
+import { normaliseName } from './name';
 
 export interface QuestionFields {
   readonly name: string;
@@ -38,16 +38,6 @@ export class Question {
       this.typeId === differentQuestion.typeId &&
       this.class_ === differentQuestion.class_
     );
-  }
-
-  public serialise(): Buffer {
-    const nameSerialised = serialiseName(this.name);
-
-    const serialisation = Buffer.allocUnsafe(nameSerialised.byteLength + 4);
-    nameSerialised.copy(serialisation);
-    serialisation.writeUInt16BE(this.typeId, nameSerialised.byteLength);
-    serialisation.writeUInt16BE(this.class_, nameSerialised.byteLength + 2);
-    return serialisation;
   }
 
   public shallowCopy(fields: Partial<QuestionFields>): Question {

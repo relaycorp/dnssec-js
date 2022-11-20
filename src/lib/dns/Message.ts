@@ -8,9 +8,6 @@ import { IanaRrTypeName } from './ianaRrTypes';
 import { DnsClassName } from './ianaClasses';
 import { getRcodeId } from './ianaRcodes';
 
-// tslint:disable-next-line:no-bitwise
-const RESPONSE_FLAG = 1 << 15;
-
 /**
  * Partial representation of DNS messages (the generalisation for "queries" and "answers").
  *
@@ -43,21 +40,6 @@ export class Message {
     public readonly questions: readonly Question[],
     public readonly answers: readonly Record[],
   ) {}
-
-  public serialise(): Uint8Array {
-    const header = Buffer.alloc(12);
-
-    const queryParams = RESPONSE_FLAG + this.header.rcode;
-    header.writeUInt16BE(queryParams, 2);
-
-    header.writeUInt16BE(this.questions.length, 4);
-    header.writeUInt16BE(this.answers.length, 6);
-
-    const questions = this.questions.map((q) => q.serialise());
-    const answers = this.answers.map((a) => a.serialise());
-
-    return Buffer.concat([header, ...questions, ...answers]);
-  }
 
   /**
    * Report whether this message answers the `question`.

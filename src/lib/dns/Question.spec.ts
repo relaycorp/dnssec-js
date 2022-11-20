@@ -1,6 +1,4 @@
-import { question } from '@leichtgewicht/dns-packet';
-
-import { QUESTION, RECORD_CLASS_STR, RECORD_TYPE_STR } from '../../testUtils/dnsStubs';
+import { QUESTION, RECORD_TYPE_STR } from '../../testUtils/dnsStubs';
 import { Question } from './Question';
 import { IANA_RR_TYPE_IDS, IANA_RR_TYPE_NAMES } from './ianaRrTypes';
 import { DnsError } from './DnsError';
@@ -104,29 +102,6 @@ describe('equals', () => {
     const equivalentQuestion = QUESTION.shallowCopy({});
 
     expect(QUESTION.equals(equivalentQuestion)).toBeTrue();
-  });
-});
-
-describe('serialise', () => {
-  test('Name should be serialised', () => {
-    const serialisation = QUESTION.serialise();
-
-    const deserialisation = question.decode(serialisation);
-    expect(`${deserialisation.name}.`).toEqual(QUESTION.name);
-  });
-
-  test('Type should be serialised', () => {
-    const serialisation = QUESTION.serialise();
-
-    const deserialisation = question.decode(serialisation);
-    expect(deserialisation.type).toEqual(RECORD_TYPE_STR);
-  });
-
-  test('Class should be serialised', () => {
-    const serialisation = QUESTION.serialise();
-
-    const deserialisation = question.decode(serialisation);
-    expect(deserialisation.class).toEqual(RECORD_CLASS_STR);
   });
 });
 
