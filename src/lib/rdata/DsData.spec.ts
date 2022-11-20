@@ -88,12 +88,10 @@ describe('DsData', () => {
 
   describe('verifyDnskey', () => {
     test('Key should be refused if Zone Key flag is off', () => {
-      const invalidDnskeyData = new DnskeyData(
-        dnskey.data.publicKey,
-        dnskey.data.protocol,
-        dnskey.data.algorithm,
-        { ...dnskey.data.flags, zoneKey: false },
-      );
+      const invalidDnskeyData = new DnskeyData(dnskey.data.publicKey, dnskey.data.algorithm, {
+        ...dnskey.data.flags,
+        zoneKey: false,
+      });
       const invalidDnskey = copyDnssecRecordData(dnskey, invalidDnskeyData);
 
       expect(ds.data.verifyDnskey(invalidDnskey)).toBeFalse();
@@ -104,7 +102,6 @@ describe('DsData', () => {
       expect(differentAlgorithm).not.toEqual(dnskey.data.algorithm);
       const invalidDnskeyData = new DnskeyData(
         dnskey.data.publicKey,
-        DnskeyData.PROTOCOL,
         differentAlgorithm,
         dnskey.data.flags,
       );

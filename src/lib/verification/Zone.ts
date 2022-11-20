@@ -47,7 +47,7 @@ export class Zone {
     let dnskeys: readonly DnskeyRecord[];
     try {
       dnskeys = dnskeySignedRrset.rrset.records.map((record) => ({
-        data: DnskeyData.deserialise(record.dataSerialised),
+        data: DnskeyData.initFromPacket(record.data, record.dataSerialised),
         record,
       }));
     } catch (_) {

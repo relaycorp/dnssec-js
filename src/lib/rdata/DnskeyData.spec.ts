@@ -3,7 +3,6 @@ import { addMinutes, addSeconds, setMilliseconds, subSeconds } from 'date-fns';
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { SignatureGenerationOptions, ZoneSigner } from '../signing/ZoneSigner';
 import { DnskeyData } from './DnskeyData';
-import { MalformedRdataError } from '../verification/MalformedRdataError';
 import { RECORD_TLD, RRSET } from '../../testUtils/dnsStubs';
 import { DatePeriod } from '../verification/DatePeriod';
 import { DNSSEC_ROOT_DNSKEY_DATA, DNSSEC_ROOT_DNSKEY_KEY_TAG } from '../../testUtils/dnssec/iana';
@@ -18,21 +17,11 @@ describe('DnskeyData', () => {
     tldSigner = await ZoneSigner.generate(DnssecAlgorithm.RSASHA256, RECORD_TLD);
   });
 
-  describe('deserialise', () => {
-    test('Malformed value should be refused', () => {
-      // 3 octets means that the algorithm and public key are missing
-      const malformedDnskey = Buffer.allocUnsafe(3);
-
-      expect(() => DnskeyData.deserialise(malformedDnskey)).toThrowWithMessage(
-        MalformedRdataError,
-        'DNSKEY data is malformed',
-      );
-    });
-
+  describe('initFromPacket', () => {
     test('Public key should be extracted', () => {
       const record = tldSigner.generateDnskey().record;
 
-      const data = DnskeyData.deserialise(record.dataSerialised);
+      const data = DnskeyData.initFromPacket(record.data, record.dataSerialised);
 
       expect(data.publicKey.export({ format: 'der', type: 'spki' })).toEqual(
         tldSigner.publicKey.export({ format: 'der', type: 'spki' }),
@@ -42,25 +31,16 @@ describe('DnskeyData', () => {
     test('Algorithm should be extracted', () => {
       const record = tldSigner.generateDnskey().record;
 
-      const data = DnskeyData.deserialise(record.dataSerialised);
+      const data = DnskeyData.initFromPacket(record.data, record.dataSerialised);
 
       expect(data.algorithm).toEqual(tldSigner.algorithm);
-    });
-
-    test('Protocol should be extracted', () => {
-      const protocol = 42;
-      const record = tldSigner.generateDnskey({ protocol }).record;
-
-      const data = DnskeyData.deserialise(record.dataSerialised);
-
-      expect(data.protocol).toEqual(protocol);
     });
 
     describe('Flags', () => {
       test('Zone Key should be on if set', () => {
         const record = tldSigner.generateDnskey({ flags: { zoneKey: true } }).record;
 
-        const data = DnskeyData.deserialise(record.dataSerialised);
+        const data = DnskeyData.initFromPacket(record.data, record.dataSerialised);
 
         expect(data.flags.zoneKey).toBeTrue();
       });
@@ -68,7 +48,7 @@ describe('DnskeyData', () => {
       test('Zone Key should off if unset', () => {
         const record = tldSigner.generateDnskey({ flags: { zoneKey: false } }).record;
 
-        const data = DnskeyData.deserialise(record.dataSerialised);
+        const data = DnskeyData.initFromPacket(record.data, record.dataSerialised);
 
         expect(data.flags.zoneKey).toBeFalse();
       });
@@ -76,7 +56,7 @@ describe('DnskeyData', () => {
       test('Secure Entrypoint should be on if set', () => {
         const record = tldSigner.generateDnskey({ flags: { secureEntryPoint: true } }).record;
 
-        const data = DnskeyData.deserialise(record.dataSerialised);
+        const data = DnskeyData.initFromPacket(record.data, record.dataSerialised);
 
         expect(data.flags.secureEntryPoint).toBeTrue();
       });
@@ -84,7 +64,7 @@ describe('DnskeyData', () => {
       test('Secure Entrypoint should be off if unset', () => {
         const record = tldSigner.generateDnskey({ flags: { secureEntryPoint: false } }).record;
 
-        const data = DnskeyData.deserialise(record.dataSerialised);
+        const data = DnskeyData.initFromPacket(record.data, record.dataSerialised);
 
         expect(data.flags.secureEntryPoint).toBeFalse();
       });
@@ -93,7 +73,7 @@ describe('DnskeyData', () => {
     test('Key tag should be cached', () => {
       const record = tldSigner.generateDnskey({ flags: { secureEntryPoint: false } }).record;
 
-      const data = DnskeyData.deserialise(record.dataSerialised);
+      const data = DnskeyData.initFromPacket(record.data, record.dataSerialised);
 
       expect(data.keyTag).not.toBeNull();
     });
@@ -111,7 +91,6 @@ describe('DnskeyData', () => {
       const customKeyTag = DNSSEC_ROOT_DNSKEY_DATA.calculateKeyTag() + 1;
       const dnskeyData = new DnskeyData(
         DNSSEC_ROOT_DNSKEY_DATA.publicKey,
-        DNSSEC_ROOT_DNSKEY_DATA.protocol,
         DNSSEC_ROOT_DNSKEY_DATA.algorithm,
         DNSSEC_ROOT_DNSKEY_DATA.flags,
         customKeyTag,
@@ -131,17 +110,6 @@ describe('DnskeyData', () => {
     let dnskeyData: DnskeyData;
     beforeAll(() => {
       dnskeyData = tldSigner.generateDnskey().data;
-    });
-
-    test('Protocol should be 3', () => {
-      const invalidDnskey = tldSigner.generateDnskey({ protocol: DnskeyData.PROTOCOL + 1 }).data;
-      const { data: rrsigData } = tldSigner.generateRrsig(
-        RRSET,
-        invalidDnskey.calculateKeyTag(),
-        RRSIG_OPTIONS,
-      );
-
-      expect(invalidDnskey.verifyRrsig(rrsigData, VALIDITY_PERIOD)).toBeFalse();
     });
 
     test('Algorithm should match', async () => {
