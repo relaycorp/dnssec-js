@@ -1,7 +1,7 @@
 import { name as NAME } from '@leichtgewicht/dns-packet';
 
 import { RECORD } from '../../testUtils/dnsStubs';
-import {  normaliseName, serialiseName } from './name';
+import { normaliseName, serialiseName } from './name';
 
 describe('serialiseName', () => {
   const recordNameWithoutDot = RECORD.name.replace(/\.$/, '');
