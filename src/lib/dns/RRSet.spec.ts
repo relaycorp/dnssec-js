@@ -52,7 +52,7 @@ describe('RRSet', () => {
     });
 
     test('Multiple records should be supported', () => {
-      const record2 = RECORD.shallowCopy({ dataSerialised: Buffer.allocUnsafe(1) });
+      const record2 = RECORD.shallowCopy({ dataSerialised: Buffer.from([1, 2]) });
 
       const rrset = RRSet.init(QUESTION, [RECORD, record2]);
 
@@ -77,18 +77,17 @@ describe('RRSet', () => {
 
     describe('Ordering', () => {
       test('Smaller RDATA should come first', () => {
-        const shorterRdataRecord = RECORD.shallowCopy({
-          dataSerialised: RECORD.dataSerialised.subarray(1),
-        });
+        const longer = RECORD.shallowCopy({ dataSerialised: Buffer.from([2, 0, 1]) });
+        const shorter = RECORD.shallowCopy({ dataSerialised: Buffer.from([1, 255]) });
 
-        const rrset = RRSet.init(QUESTION, [RECORD, shorterRdataRecord]);
+        const rrset = RRSet.init(QUESTION, [longer, shorter]);
 
-        expect(rrset.records).toEqual([shorterRdataRecord, RECORD]);
+        expect(rrset.records).toEqual([shorter, longer]);
       });
 
       test('RDATA should be sorted from the left if they have same length', () => {
-        const record1 = RECORD.shallowCopy({ dataSerialised: Buffer.from([42, 0]) });
-        const record2 = RECORD.shallowCopy({ dataSerialised: Buffer.from([42, 1]) });
+        const record1 = RECORD.shallowCopy({ dataSerialised: Buffer.from([1, 0]) });
+        const record2 = RECORD.shallowCopy({ dataSerialised: Buffer.from([1, 1]) });
 
         const rrset = RRSet.init(QUESTION, [record2, record1]);
 
