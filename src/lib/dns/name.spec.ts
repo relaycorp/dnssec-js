@@ -1,8 +1,7 @@
 import { name as NAME } from '@leichtgewicht/dns-packet';
 
-import { RECORD, RECORD_TLD } from '../../testUtils/dnsStubs';
-import { NAME_PARSER_OPTIONS, serialiseName } from './name';
-import { Parser } from 'binary-parser';
+import { RECORD } from '../../testUtils/dnsStubs';
+import { normaliseName, serialiseName } from './name';
 
 describe('serialiseName', () => {
   const recordNameWithoutDot = RECORD.name.replace(/\.$/, '');
@@ -28,23 +27,22 @@ describe('serialiseName', () => {
   });
 });
 
-describe('Parser', () => {
-  const PARSER = new Parser().array('name', NAME_PARSER_OPTIONS);
+describe('normaliseName', () => {
+  test('Missing trailing dot should be added', () => {
+    const name = 'example.com';
 
-  test('Root name (dot) should be deserialised', () => {
-    const name = '.';
-    const serialisation = serialiseName(name);
-
-    const nameDeserialised = PARSER.parse(serialisation);
-
-    expect(nameDeserialised.name).toEqual(name);
+    expect(normaliseName(name)).toEqual(`${name}.`);
   });
 
-  test('TLD should be deserialised', () => {
-    const serialisation = serialiseName(RECORD_TLD);
+  test('Present trailing dot should be left as is', () => {
+    const name = 'example.com.';
 
-    const nameDeserialised = PARSER.parse(serialisation);
+    expect(normaliseName(name)).toEqual(name);
+  });
 
-    expect(nameDeserialised.name).toEqual(RECORD_TLD);
+  test('Root should be left as is', () => {
+    const name = '.';
+
+    expect(normaliseName(name)).toEqual(name);
   });
 });

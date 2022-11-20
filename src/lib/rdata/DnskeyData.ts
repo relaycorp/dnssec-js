@@ -1,55 +1,29 @@
-import { Parser } from 'binary-parser';
+import { DNSKeyData } from '@leichtgewicht/dns-packet';
 import { KeyObject } from 'node:crypto';
 
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { DnskeyFlags } from '../DnskeyFlags';
-import { MalformedRdataError } from '../verification/MalformedRdataError';
 import { DnssecRecordData } from './DnssecRecordData';
 import { RrsigData } from './RrsigData';
 import { deserialisePublicKey, serialisePublicKey } from '../utils/crypto/keySerialisation';
 import { DatePeriod } from '../verification/DatePeriod';
 
-const PARSER = new Parser()
-  .endianness('big')
-  .bit8('zoneKey')
-  .bit8('secureEntryPoint')
-  .uint8('protocol')
-  .uint8('algorithm')
-  .buffer('publicKey', { readUntil: 'eof' });
+const ZONE_KEY_MASK = 0b00000001_00000000;
+const SECURE_ENTRY_POINT_MASK = 0b00000000_00000001;
 
 export class DnskeyData implements DnssecRecordData {
-  /**
-   * Fixed protocol field.
-   *
-   * @link https://www.rfc-editor.org/rfc/rfc4034#section-2.1.2
-   */
-  public static PROTOCOL = 3;
-
-  public static deserialise(serialisation: Buffer): DnskeyData {
-    let parsingResult: any;
-    try {
-      parsingResult = PARSER.parse(serialisation);
-    } catch (_) {
-      throw new MalformedRdataError('DNSKEY data is malformed');
-    }
-    const publicKey = deserialisePublicKey(parsingResult.publicKey, parsingResult.algorithm);
+  public static initFromPacket(packet: DNSKeyData, packetSerialised: Buffer): DnskeyData {
+    const publicKey = deserialisePublicKey(packet.key as unknown as Buffer, packet.algorithm);
     const flags: DnskeyFlags = {
-      zoneKey: !!parsingResult.zoneKey,
-      secureEntryPoint: !!parsingResult.secureEntryPoint,
+      zoneKey: !!(packet.flags & ZONE_KEY_MASK),
+      secureEntryPoint: !!(packet.flags & SECURE_ENTRY_POINT_MASK),
     };
-    const keyTag = calculateKeyTag(serialisation);
-    return new DnskeyData(
-      publicKey,
-      parsingResult.protocol,
-      parsingResult.algorithm,
-      flags,
-      keyTag,
-    );
+    const keyTag = calculateKeyTag(packetSerialised);
+    return new DnskeyData(publicKey, packet.algorithm, flags, keyTag);
   }
 
   constructor(
     public readonly publicKey: KeyObject,
-    public readonly protocol: number,
     public readonly algorithm: DnssecAlgorithm,
     public readonly flags: DnskeyFlags,
     public readonly keyTag: number | null = null,
@@ -66,7 +40,7 @@ export class DnskeyData implements DnssecRecordData {
       data.writeUInt8(0b00000001, 1);
     }
 
-    data.writeUInt8(this.protocol, 2);
+    data.writeUInt8(3, 2);
 
     data.writeUInt8(this.algorithm, 3);
 
@@ -85,10 +59,6 @@ export class DnskeyData implements DnssecRecordData {
   }
 
   public verifyRrsig(rrsigData: RrsigData, datePeriod: DatePeriod): boolean {
-    if (this.protocol !== DnskeyData.PROTOCOL) {
-      return false;
-    }
-
     if (this.calculateKeyTag() !== rrsigData.keyTag) {
       return false;
     }

@@ -10,7 +10,7 @@ import { DatePeriod } from './DatePeriod';
 import { IANA_TRUST_ANCHORS } from './IANA_TRUST_ANCHORS';
 import { SignedRRSet } from './SignedRRSet';
 import { Resolver } from './Resolver';
-import { DnsClass } from '../dns/DnsClass';
+import { DnsClass } from '../dns/ianaClasses';
 
 interface MessageByKey {
   readonly [key: string]: Message;

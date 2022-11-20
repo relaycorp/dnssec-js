@@ -12,13 +12,13 @@ import { RRSet } from '../dns/RRSet';
 import { RrsigData } from '../rdata/RrsigData';
 import { FailureResult, SuccessfulResult } from './results';
 import { Question } from '../dns/Question';
-import { DnsClass } from '../dns/DnsClass';
+import { DnsClass } from '../dns/ianaClasses';
 import { DnssecRecordType } from '../DnssecRecordType';
-import { RCode } from '../dns/RCode';
 import { SignedRRSet } from './SignedRRSet';
 import { DatePeriod } from './DatePeriod';
 import { Record } from '../dns/Record';
 import { DnskeyResponse, DsResponse } from '../signing/responses';
+import { RCODE_IDS } from '../dns/ianaRcodes';
 
 const NOW = new Date();
 const VALIDITY_PERIOD = DatePeriod.init(subSeconds(NOW, 1), addSeconds(NOW, 1));
@@ -71,27 +71,6 @@ describe('Zone', () => {
       });
     });
 
-    test('Malformed DNSKEY data should be BOGUS', () => {
-      const malformedDnskey = tldDnskey.record.shallowCopy({ dataSerialised: Buffer.from('hi') });
-      const newRrsig = tldSigner.generateRrsig(
-        RRSet.init(TLD_DNSKEY_QUESTION, [malformedDnskey]),
-        tldDnskey.rrsig.data.keyTag,
-        SIGNATURE_OPTIONS,
-      );
-      const dnskeyMessage = new Message(
-        { rcode: RCode.NoError },
-        [],
-        [malformedDnskey, newRrsig.record],
-      );
-
-      const result = Zone.init(RECORD_TLD, dnskeyMessage, [tldDs.data], VALIDITY_PERIOD);
-
-      expect(result).toEqual<FailureResult>({
-        status: SecurityStatus.BOGUS,
-        reasonChain: ['Found malformed DNSKEY rdata'],
-      });
-    });
-
     test('DNSKEY without matching DS should be BOGUS', () => {
       const mismatchingDsData = new DsData(
         tldDs.data.keyTag,
@@ -125,7 +104,7 @@ describe('Zone', () => {
       });
       const result = Zone.init(
         RECORD_TLD,
-        new Message({ rcode: RCode.NoError }, [], [tldDnskey.record, mismatchingDnskeyRrsig]),
+        new Message({ rcode: RCODE_IDS.NoError }, [], [tldDnskey.record, mismatchingDnskeyRrsig]),
         [tldDs.data],
         VALIDITY_PERIOD,
       );
@@ -153,7 +132,7 @@ describe('Zone', () => {
       });
       const result = Zone.init(
         RECORD_TLD,
-        new Message({ rcode: RCode.NoError }, [], [tldDnskey.record, mismatchingDnskeyRrsig]),
+        new Message({ rcode: RCODE_IDS.NoError }, [], [tldDnskey.record, mismatchingDnskeyRrsig]),
         [tldDs.data],
         VALIDITY_PERIOD,
       );
@@ -216,7 +195,7 @@ describe('Zone', () => {
       const result = Zone.init(
         RECORD_TLD,
         new Message(
-          { rcode: RCode.NoError },
+          { rcode: RCODE_IDS.NoError },
           [],
           [tldDnskey.record, nonZskDnskey.record, newRrsig.record],
         ),
@@ -319,7 +298,7 @@ describe('Zone', () => {
           SIGNATURE_OPTIONS,
         );
         const dsMessage = new Message(
-          { rcode: RCode.NoError },
+          { rcode: RCODE_IDS.NoError },
           [],
           [apexDs.record, apexDsRrsig.record],
         );
@@ -376,36 +355,6 @@ describe('Zone', () => {
           reasonChain: [
             `Expected DS rcode to be NOERROR (0; got ${invalidDsMessage.header.rcode})`,
           ],
-        });
-      });
-
-      test('Malformed DS data should be BOGUS', () => {
-        const malformedDsRecord = tldDs.record.shallowCopy({
-          dataSerialised: Buffer.allocUnsafe(2),
-        });
-        const dsRrsig = rootSigner.generateRrsig(
-          RRSet.init(TLD_DNSKEY_QUESTION.shallowCopy({ type: DnssecRecordType.DS }), [
-            malformedDsRecord,
-          ]),
-          rootDnskey.data.calculateKeyTag(),
-          SIGNATURE_OPTIONS,
-        );
-        const invalidDsMessage = new Message(
-          tldDnskey.message.header,
-          [],
-          [malformedDsRecord, dsRrsig.record],
-        );
-
-        const result = rootZone.initChild(
-          RECORD_TLD,
-          tldDnskey.message,
-          invalidDsMessage,
-          VALIDITY_PERIOD,
-        );
-
-        expect(result).toEqual<FailureResult>({
-          status: SecurityStatus.BOGUS,
-          reasonChain: ['Found malformed DS rdata'],
         });
       });
 

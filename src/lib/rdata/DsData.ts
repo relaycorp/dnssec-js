@@ -1,36 +1,19 @@
-import { Parser } from 'binary-parser';
+import { DigestData } from '@leichtgewicht/dns-packet';
 
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { DigestType } from '../DigestType';
-import { MalformedRdataError } from '../verification/MalformedRdataError';
 import { generateDigest } from '../utils/crypto/hashing';
 import { DnssecRecordData } from './DnssecRecordData';
 import { DnskeyRecord } from '../dnssecRecords';
 import { serialiseName } from '../dns/name';
 
-const PARSER = new Parser()
-  .endianness('big')
-  .uint16('keyTag')
-  .uint8('algorithm')
-  .uint8('digestType')
-  .buffer('digest', { readUntil: 'eof' });
-
 export class DsData implements DnssecRecordData {
-  static deserialise(serialisation: Buffer): DsData {
-    let parsingResult: any;
-    try {
-      parsingResult = PARSER.parse(serialisation);
-    } catch (_) {
-      throw new MalformedRdataError('DS data is malformed');
-    }
-    if (parsingResult.digest.byteLength === 0) {
-      throw new MalformedRdataError('DS data is missing digest');
-    }
+  static initFromPacket(packet: DigestData): DsData {
     return new DsData(
-      parsingResult.keyTag,
-      parsingResult.algorithm,
-      parsingResult.digestType,
-      parsingResult.digest,
+      packet.keyTag,
+      packet.algorithm,
+      packet.digestType,
+      Buffer.from(packet.digest),
     );
   }
 

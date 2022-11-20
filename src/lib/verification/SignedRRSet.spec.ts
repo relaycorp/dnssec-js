@@ -11,6 +11,8 @@ import { DatePeriod } from './DatePeriod';
 import { serialisePublicKey } from '../utils/crypto/keySerialisation';
 import { DnskeyData } from '../rdata/DnskeyData';
 import { RrsigData } from '../rdata/RrsigData';
+import { DnsClass } from '../dns/ianaClasses';
+import { IANA_RR_TYPE_IDS } from '../dns/ianaRrTypes';
 
 describe('SignedRRSet', () => {
   const RRSIG_OPTIONS: Partial<SignatureGenerationOptions> = {
@@ -31,14 +33,6 @@ describe('SignedRRSet', () => {
       expect(signedRrset.rrsigs).toBeEmpty();
     });
 
-    test('Malformed RRSig should be ignored', () => {
-      const rrsig = signer.generateRrsig(RRSET, STUB_KEY_TAG, RRSIG_OPTIONS);
-      const malformedRrsigRecord = rrsig.record.shallowCopy({ dataSerialised: Buffer.alloc(2) });
-
-      const signedRRSet = SignedRRSet.initFromRecords(QUESTION, [RECORD, malformedRrsigRecord]);
-      expect(signedRRSet.rrsigs).toBeEmpty();
-    });
-
     test('RRSIG for different owner should be ignored', async () => {
       const differentRecord = RECORD.shallowCopy({ name: `sub.${RECORD.name}` });
       const differentRrsig = signer.generateRrsig(
@@ -54,7 +48,8 @@ describe('SignedRRSet', () => {
 
     test('RRSIG for different class should be ignored', async () => {
       const rrsig = signer.generateRrsig(RRSET, STUB_KEY_TAG, RRSIG_OPTIONS);
-      const differentRrsigRecord = rrsig.record.shallowCopy({ class: 'foobar' as any });
+      const differentRrsigRecord = rrsig.record.shallowCopy({ class: DnsClass.CH });
+      expect(differentRrsigRecord.class_).not.toEqual(rrsig.record.class_);
 
       const signedRrset = SignedRRSet.initFromRecords(QUESTION, [RECORD, differentRrsigRecord]);
 
@@ -62,9 +57,10 @@ describe('SignedRRSet', () => {
     });
 
     test('RRSIG with mismatching type field should be accepted', async () => {
-      const differentRecord = RECORD.shallowCopy({ type: RECORD.type + 1 });
+      const differentRecord = RECORD.shallowCopy({ type: IANA_RR_TYPE_IDS.A });
+      expect(differentRecord.typeId).not.toEqual(RECORD.typeId);
       const differentRrsig = signer.generateRrsig(
-        RRSet.init(QUESTION.shallowCopy({ type: differentRecord.type }), [differentRecord]),
+        RRSet.init(QUESTION.shallowCopy({ type: differentRecord.typeId }), [differentRecord]),
         STUB_KEY_TAG,
         RRSIG_OPTIONS,
       );

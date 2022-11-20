@@ -8,6 +8,7 @@ import { RRSet } from '../dns/RRSet';
 import { QUESTION, RECORD, RECORD_TLD, RECORD_TYPE_STR } from '../../testUtils/dnsStubs';
 import { generateDigest } from '../utils/crypto/hashing';
 import { serialiseName } from '../dns/name';
+import { lengthPrefixRdata } from '../rdata/utils';
 
 describe('ZoneSigner', () => {
   test('generateDnskey', async () => {
@@ -85,9 +86,3 @@ describe('ZoneSigner', () => {
     expect(parsed.algorithm).toEqual(dnssecAlgorithm);
   });
 });
-
-function lengthPrefixRdata(rdata: Buffer): Buffer {
-  const prefix = Buffer.allocUnsafe(2);
-  prefix.writeUInt16BE(rdata.byteLength);
-  return Buffer.concat([prefix, rdata]);
-}

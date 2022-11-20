@@ -15,10 +15,10 @@ const DNSSEC_ROOT_DNSKEY_SERIALISATION = Buffer.from(
  */
 export const DNSSEC_ROOT_DNSKEY_DATA = new DnskeyData(
   deserialisePublicKey(DNSSEC_ROOT_DNSKEY_SERIALISATION, DnssecAlgorithm.RSASHA256),
-  3,
   DnssecAlgorithm.RSASHA256,
   { zoneKey: true, secureEntryPoint: true },
 );
+
 /**
  * Key tag for DNSSEC root key.
  *

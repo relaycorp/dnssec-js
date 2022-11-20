@@ -3,10 +3,9 @@ import { addMinutes, setMilliseconds } from 'date-fns';
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { SignatureGenerationOptions, ZoneSigner } from '../signing/ZoneSigner';
 import { RrsigData } from './RrsigData';
-import { MalformedRdataError } from '../verification/MalformedRdataError';
-import { serialiseName } from '../dns/name';
 import { RRSet } from '../dns/RRSet';
 import { QUESTION, RECORD, RRSET } from '../../testUtils/dnsStubs';
+import { IANA_RR_TYPE_IDS } from '../dns/ianaRrTypes';
 
 describe('RrsigData', () => {
   const STUB_KEY_TAG = 12345;
@@ -22,40 +21,38 @@ describe('RrsigData', () => {
     signer = await ZoneSigner.generate(DnssecAlgorithm.RSASHA256, RECORD.name);
   });
 
-  describe('deserialise', () => {
-    test('Malformed value should be refused', () => {
-      // 18 octets means that the Signer's Name and Signature are missing
-      const malformedRrsigData = Buffer.allocUnsafe(18);
-
-      expect(() => RrsigData.deserialise(malformedRrsigData)).toThrowWithMessage(
-        MalformedRdataError,
-        'RRSIG data is malformed',
+  describe('constructor', () => {
+    test('Signer name should be normalised if necessary', () => {
+      const signerName = 'example.com';
+      const data = new RrsigData(
+        RRSET.type,
+        signer.algorithm,
+        3,
+        RRSET.ttl,
+        SIGNATURE_OPTIONS.signatureExpiry,
+        SIGNATURE_OPTIONS.signatureInception,
+        42,
+        signerName,
+        Buffer.from([]),
       );
+
+      expect(data.signerName).toEqual(`${signerName}.`);
     });
+  });
 
-    test('Empty signature should be refused', () => {
-      const nameSerialised = serialiseName(RECORD.name);
-      const serialisation = Buffer.allocUnsafe(18 + nameSerialised.byteLength);
-      nameSerialised.copy(serialisation, 18);
-
-      expect(() => RrsigData.deserialise(serialisation)).toThrowWithMessage(
-        MalformedRdataError,
-        'Signature is empty',
-      );
-    });
-
+  describe('initFromPacket', () => {
     test('Record type should be extracted', () => {
       const rrsig = signer.generateRrsig(RRSET, STUB_KEY_TAG, SIGNATURE_OPTIONS);
 
-      const rrsigData = RrsigData.deserialise(rrsig.record.dataSerialised);
+      const rrsigData = RrsigData.initFromPacket(rrsig.record.dataFields);
 
-      expect(rrsigData.type).toEqual(RECORD.type);
+      expect(rrsigData.type).toEqual(RECORD.typeId);
     });
 
     test('Algorithm should be extracted', () => {
       const rrsig = signer.generateRrsig(RRSET, STUB_KEY_TAG, SIGNATURE_OPTIONS);
 
-      const rrsigData = RrsigData.deserialise(rrsig.record.dataSerialised);
+      const rrsigData = RrsigData.initFromPacket(rrsig.record.dataFields);
 
       expect(rrsigData.algorithm).toEqual(signer.algorithm);
     });
@@ -63,7 +60,7 @@ describe('RrsigData', () => {
     test('Labels should be extracted', () => {
       const rrsig = signer.generateRrsig(RRSET, STUB_KEY_TAG, SIGNATURE_OPTIONS);
 
-      const rrsigData = RrsigData.deserialise(rrsig.record.dataSerialised);
+      const rrsigData = RrsigData.initFromPacket(rrsig.record.dataFields);
 
       const expectedLabelCount = RRSET.name.replace(/\.$/, '').split('.').length;
       expect(rrsigData.labels).toEqual(expectedLabelCount);
@@ -72,7 +69,7 @@ describe('RrsigData', () => {
     test('TTL should be extracted', () => {
       const rrsig = signer.generateRrsig(RRSET, STUB_KEY_TAG, SIGNATURE_OPTIONS);
 
-      const rrsigData = RrsigData.deserialise(rrsig.record.dataSerialised);
+      const rrsigData = RrsigData.initFromPacket(rrsig.record.dataFields);
 
       expect(rrsigData.ttl).toEqual(RRSET.ttl);
     });
@@ -80,7 +77,7 @@ describe('RrsigData', () => {
     test('Signature expiry date should be extracted', () => {
       const rrsig = signer.generateRrsig(RRSET, STUB_KEY_TAG, SIGNATURE_OPTIONS);
 
-      const rrsigData = RrsigData.deserialise(rrsig.record.dataSerialised);
+      const rrsigData = RrsigData.initFromPacket(rrsig.record.dataFields);
 
       expect(rrsigData.signatureExpiry).toEqual(SIGNATURE_OPTIONS.signatureExpiry);
     });
@@ -88,7 +85,7 @@ describe('RrsigData', () => {
     test('Signature inception date should be extracted', () => {
       const rrsig = signer.generateRrsig(RRSET, STUB_KEY_TAG, SIGNATURE_OPTIONS);
 
-      const rrsigData = RrsigData.deserialise(rrsig.record.dataSerialised);
+      const rrsigData = RrsigData.initFromPacket(rrsig.record.dataFields);
 
       expect(rrsigData.signatureInception).toEqual(SIGNATURE_OPTIONS.signatureInception);
     });
@@ -96,7 +93,7 @@ describe('RrsigData', () => {
     test('Key tag should be extracted', () => {
       const rrsig = signer.generateRrsig(RRSET, STUB_KEY_TAG, SIGNATURE_OPTIONS);
 
-      const rrsigData = RrsigData.deserialise(rrsig.record.dataSerialised);
+      const rrsigData = RrsigData.initFromPacket(rrsig.record.dataFields);
 
       expect(rrsigData.keyTag).toEqual(STUB_KEY_TAG);
     });
@@ -104,7 +101,7 @@ describe('RrsigData', () => {
     test('Signer name should be extracted', () => {
       const rrsig = signer.generateRrsig(RRSET, STUB_KEY_TAG, SIGNATURE_OPTIONS);
 
-      const rrsigData = RrsigData.deserialise(rrsig.record.dataSerialised);
+      const rrsigData = RrsigData.initFromPacket(rrsig.record.dataFields);
 
       expect(rrsigData.signerName).toEqual(signer.zoneName);
     });
@@ -112,7 +109,7 @@ describe('RrsigData', () => {
     test('Signature should be extracted', () => {
       const rrsig = signer.generateRrsig(RRSET, STUB_KEY_TAG, SIGNATURE_OPTIONS);
 
-      const rrsigData = RrsigData.deserialise(rrsig.record.dataSerialised);
+      const rrsigData = RrsigData.initFromPacket(rrsig.record.dataFields);
 
       expect(rrsigData.signature).toEqual(rrsig.data.signature);
     });
@@ -120,7 +117,8 @@ describe('RrsigData', () => {
 
   describe('verifyRrset', () => {
     test('Covered type should match RRset type', () => {
-      const type = RECORD.type + 1;
+      const type = IANA_RR_TYPE_IDS.A;
+      expect(type).not.toEqual(RECORD.typeId);
       const invalidRrset = RRSet.init(QUESTION.shallowCopy({ type }), [
         RECORD.shallowCopy({ type }),
       ]);

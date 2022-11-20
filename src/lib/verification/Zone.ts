@@ -3,13 +3,13 @@ import { VerificationResult } from './results';
 import { Message } from '../dns/Message';
 import { DnskeyData } from '../rdata/DnskeyData';
 import { SecurityStatus } from './SecurityStatus';
-import { RCode } from '../dns/RCode';
 import { DnssecRecordType } from '../DnssecRecordType';
-import { DnskeyRecord, DsRecord } from '../dnssecRecords';
+import { DnskeyRecord } from '../dnssecRecords';
 import { SignedRRSet } from './SignedRRSet';
-import { DnsClass } from '../dns/DnsClass';
+import { DnsClass } from '../dns/ianaClasses';
 import { DatePeriod } from './DatePeriod';
 import { Question } from '../dns/Question';
+import { RCODE_IDS } from '../dns/ianaRcodes';
 
 /**
  * A secure zone (in DNSSEC terms).
@@ -32,7 +32,7 @@ export class Zone {
     dsData: readonly DsData[],
     datePeriod: DatePeriod,
   ): VerificationResult<Zone> {
-    if (dnskeyMessage.header.rcode !== RCode.NoError) {
+    if (dnskeyMessage.header.rcode !== RCODE_IDS.NoError) {
       return {
         status: SecurityStatus.INDETERMINATE,
         reasonChain: [`Expected DNSKEY rcode to be NOERROR (0; got ${dnskeyMessage.header.rcode})`],
@@ -44,15 +44,10 @@ export class Zone {
       dnskeyMessage.answers,
     );
 
-    let dnskeys: readonly DnskeyRecord[];
-    try {
-      dnskeys = dnskeySignedRrset.rrset.records.map((record) => ({
-        data: DnskeyData.deserialise(record.dataSerialised),
-        record,
-      }));
-    } catch (_) {
-      return { status: SecurityStatus.BOGUS, reasonChain: ['Found malformed DNSKEY rdata'] };
-    }
+    const dnskeys = dnskeySignedRrset.rrset.records.map((record) => ({
+      data: DnskeyData.initFromPacket(record.dataFields, record.dataSerialised),
+      record,
+    }));
     const zskDnskeys = dnskeys.filter((k) => dsData.some((ds) => ds.verifyDnskey(k)));
 
     if (zskDnskeys.length === 0) {
@@ -92,7 +87,7 @@ export class Zone {
     dsMessage: Message,
     datePeriod: DatePeriod,
   ): VerificationResult<Zone> {
-    if (dsMessage.header.rcode !== RCode.NoError) {
+    if (dsMessage.header.rcode !== RCODE_IDS.NoError) {
       return {
         status: SecurityStatus.INDETERMINATE,
         reasonChain: [`Expected DS rcode to be NOERROR (0; got ${dsMessage.header.rcode})`],
@@ -111,15 +106,10 @@ export class Zone {
       };
     }
 
-    let dsRecords: readonly DsRecord[];
-    try {
-      dsRecords = dsSignedRrset.rrset.records.map((record) => ({
-        data: DsData.deserialise(record.dataSerialised),
-        record,
-      }));
-    } catch (_) {
-      return { status: SecurityStatus.BOGUS, reasonChain: ['Found malformed DS rdata'] };
-    }
+    const dsRecords = dsSignedRrset.rrset.records.map((record) => ({
+      data: DsData.initFromPacket(record.dataFields),
+      record,
+    }));
 
     const dsData = dsRecords.map((r) => r.data);
     return Zone.init(zoneName, dnskeyMessage, dsData, datePeriod);

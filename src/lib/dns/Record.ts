@@ -1,6 +1,10 @@
-import { DnsClass } from './DnsClass';
-import { serialiseName } from './name';
+import { DnsClass, DnsClassIdOrName, getDnsClassId } from './ianaClasses';
+import { normaliseName, serialiseName } from './name';
 import { Question } from './Question';
+import { getRrTypeId, getRrTypeName, IanaRrTypeIdOrName } from './ianaRrTypes';
+import { Codec, enc } from '@leichtgewicht/dns-packet';
+import { lengthPrefixRdata } from '../rdata/utils';
+import { DnsError } from './DnsError';
 
 interface RecordFields {
   readonly name: string;
@@ -14,19 +18,43 @@ interface RecordFields {
  * A "raw" DNS record with its data unserialised.
  */
 export class Record {
+  public readonly name: string;
+  public readonly typeId: number;
+  public readonly class_: DnsClass;
+  public readonly dataSerialised: Buffer;
+
+  /**
+   * @internal Avoid exposing dns-packet types
+   */
+  public readonly dataFields: any;
+
   constructor(
-    public readonly name: string,
-    public readonly type: number,
-    public readonly class_: DnsClass,
+    name: string,
+    typeIdOrName: IanaRrTypeIdOrName,
+    classIdOrName: DnsClassIdOrName,
     public readonly ttl: number,
-    public readonly dataSerialised: Buffer,
-  ) {}
+    data: Buffer | object,
+  ) {
+    this.name = normaliseName(name);
+    this.typeId = getRrTypeId(typeIdOrName);
+    this.class_ = getDnsClassId(classIdOrName);
+
+    const typeName = getRrTypeName(typeIdOrName);
+    const dnsPacketCodec = enc(typeName);
+    if (data instanceof Buffer) {
+      this.dataSerialised = data;
+      this.dataFields = deserialiseRdata(data, typeName, dnsPacketCodec);
+    } else {
+      this.dataSerialised = serialiseRdata(data, typeName, dnsPacketCodec);
+      this.dataFields = data;
+    }
+  }
 
   public serialise(): Buffer {
     const labelsSerialised = serialiseName(this.name);
 
     const typeSerialised = Buffer.allocUnsafe(2);
-    typeSerialised.writeUInt16BE(this.type);
+    typeSerialised.writeUInt16BE(this.typeId);
 
     const classSerialised = Buffer.allocUnsafe(2);
     classSerialised.writeUInt16BE(this.class_);
@@ -49,7 +77,7 @@ export class Record {
 
   public shallowCopy(partialRecord: Partial<RecordFields>): Record {
     const name = partialRecord.name ?? this.name;
-    const type = partialRecord.type ?? this.type;
+    const type = partialRecord.type ?? this.typeId;
     const class_ = partialRecord.class ?? this.class_;
     const ttl = partialRecord.ttl ?? this.ttl;
     const dataSerialised = partialRecord.dataSerialised ?? this.dataSerialised;
@@ -62,6 +90,25 @@ export class Record {
    * It may or may not equal the question in the original query message.
    */
   public makeQuestion(): Question {
-    return new Question(this.name, this.type, this.class_);
+    return new Question(this.name, this.typeId, this.class_);
   }
+}
+
+function deserialiseRdata(serialisation: Buffer, typeName: string, codec: Codec<any>): any {
+  const lengthPrefixedData = lengthPrefixRdata(serialisation);
+  try {
+    return codec.decode(lengthPrefixedData);
+  } catch (_) {
+    throw new DnsError(`Data for record type ${typeName} is malformed`);
+  }
+}
+
+function serialiseRdata(data: any, typeName: string, codec: Codec<any>): Buffer {
+  let lengthPrefixedData: Uint8Array;
+  try {
+    lengthPrefixedData = codec.encode(data);
+  } catch (_) {
+    throw new DnsError(`Data for record type ${typeName} is invalid`);
+  }
+  return Buffer.from(lengthPrefixedData.subarray(2));
 }
