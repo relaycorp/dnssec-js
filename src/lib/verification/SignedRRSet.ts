@@ -21,12 +21,7 @@ export class SignedRRSet {
           r.typeId === DnssecRecordType.RRSIG && r.name === rrset.name && r.class_ === rrset.class_,
       )
       .reduce(function deserialise(acc, record): readonly RrsigRecord[] {
-        let data: RrsigData;
-        try {
-          data = RrsigData.deserialise(record.dataSerialised);
-        } catch (_) {
-          return acc;
-        }
+        const data = RrsigData.initFromPacket(record.dataFields);
         return [...acc, { record, data }];
       }, [] as readonly RrsigRecord[]);
 

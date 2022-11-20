@@ -33,14 +33,6 @@ describe('SignedRRSet', () => {
       expect(signedRrset.rrsigs).toBeEmpty();
     });
 
-    test('Malformed RRSig should be ignored', () => {
-      const rrsig = signer.generateRrsig(RRSET, STUB_KEY_TAG, RRSIG_OPTIONS);
-      const malformedRrsigRecord = rrsig.record.shallowCopy({ dataSerialised: Buffer.alloc(2) });
-
-      const signedRRSet = SignedRRSet.initFromRecords(QUESTION, [RECORD, malformedRrsigRecord]);
-      expect(signedRRSet.rrsigs).toBeEmpty();
-    });
-
     test('RRSIG for different owner should be ignored', async () => {
       const differentRecord = RECORD.shallowCopy({ name: `sub.${RECORD.name}` });
       const differentRrsig = signer.generateRrsig(

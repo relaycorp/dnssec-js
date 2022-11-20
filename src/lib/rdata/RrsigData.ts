@@ -1,49 +1,26 @@
 import { KeyObject, sign as cryptoSign, verify as cryptoVerify } from 'node:crypto';
-import { Parser } from 'binary-parser';
+import { RRSigData } from '@leichtgewicht/dns-packet';
 import { fromUnixTime, getUnixTime } from 'date-fns';
 
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
-import { NAME_PARSER_OPTIONS, serialiseName } from '../dns/name';
-import { MalformedRdataError } from '../verification/MalformedRdataError';
+import { normaliseName, serialiseName } from '../dns/name';
 import { DnssecRecordData } from './DnssecRecordData';
 import { RRSet } from '../dns/RRSet';
 import { getNodejsHashAlgorithmFromDnssecAlgo } from '../utils/crypto/hashing';
-
-const PARSER = new Parser()
-  .endianness('big')
-  .uint16('type')
-  .uint8('algorithm')
-  .uint8('labels')
-  .uint32('ttl')
-  .uint32('signatureExpiry')
-  .uint32('signatureInception')
-  .uint16('keyTag')
-  .array('signerName', NAME_PARSER_OPTIONS)
-  .buffer('signature', { readUntil: 'eof' });
+import { getRrTypeId, IanaRrTypeName } from '../dns/ianaRrTypes';
 
 export class RrsigData implements DnssecRecordData {
-  static deserialise(serialisation: Buffer): RrsigData {
-    let parsingResult: any;
-    try {
-      parsingResult = PARSER.parse(serialisation);
-    } catch (_) {
-      throw new MalformedRdataError('RRSIG data is malformed');
-    }
-
-    if (parsingResult.signature.byteLength === 0) {
-      throw new MalformedRdataError('Signature is empty');
-    }
-
+  static initFromPacket(packet: RRSigData): RrsigData {
     return new RrsigData(
-      parsingResult.type,
-      parsingResult.algorithm,
-      parsingResult.labels,
-      parsingResult.ttl,
-      fromUnixTime(parsingResult.signatureExpiry),
-      fromUnixTime(parsingResult.signatureInception),
-      parsingResult.keyTag,
-      parsingResult.signerName,
-      parsingResult.signature,
+      getRrTypeId(packet.typeCovered as IanaRrTypeName),
+      packet.algorithm,
+      packet.labels,
+      packet.originalTTL,
+      fromUnixTime(packet.expiration),
+      fromUnixTime(packet.inception),
+      packet.keyTag,
+      packet.signersName,
+      Buffer.from(packet.signature),
     );
   }
 
@@ -78,6 +55,8 @@ export class RrsigData implements DnssecRecordData {
     );
   }
 
+  public readonly signerName: string;
+
   constructor(
     public readonly type: number,
     public readonly algorithm: DnssecAlgorithm,
@@ -86,9 +65,11 @@ export class RrsigData implements DnssecRecordData {
     public readonly signatureExpiry: Date,
     public readonly signatureInception: Date,
     public readonly keyTag: number,
-    public readonly signerName: string,
+    signerName: string,
     public readonly signature: Buffer,
-  ) {}
+  ) {
+    this.signerName = normaliseName(signerName);
+  }
 
   public serialise(): Buffer {
     const signerNameBuffer = serialiseName(this.signerName);
