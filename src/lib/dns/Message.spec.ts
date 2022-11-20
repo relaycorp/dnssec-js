@@ -216,15 +216,15 @@ describe('Message', () => {
 
     describe('Header', () => {
       test('RCODE should be extracted', () => {
-        const rcodeName = 'ServFail';
+        const rcodeId = getRcodeId('ServFail');
         const messageSerialised = encode({
           type: 'response',
-          rcode: rcodeName,
+          flags: rcodeId, // `rcode` field has no effect, so we have to pass it in the flags
         });
 
         const message = Message.deserialise(messageSerialised);
 
-        expect(message.header.rcode).toEqual(getRcodeId(rcodeName));
+        expect(message.header.rcode).toEqual(rcodeId);
       });
     });
 
