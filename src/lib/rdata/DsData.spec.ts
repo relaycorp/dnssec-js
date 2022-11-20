@@ -1,5 +1,4 @@
 import { DsData } from './DsData';
-import { MalformedRdataError } from '../verification/MalformedRdataError';
 import { ZoneSigner } from '../signing/ZoneSigner';
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { DigestType } from '../DigestType';
@@ -21,51 +20,27 @@ describe('DsData', () => {
     ds = signer.generateDs(dnskey, RECORD_TLD, dnskey.data.calculateKeyTag());
   });
 
-  describe('deserialise', () => {
-    let dsDataSerialised: Buffer;
-    beforeAll(async () => {
-      dsDataSerialised = ds.record.dataSerialised;
-    });
-
-    test('Malformed value should be refused', () => {
-      // 3 octets means that the Digest Type and Digest are missing
-      const malformedDSData = Buffer.allocUnsafe(3);
-
-      expect(() => DsData.deserialise(malformedDSData)).toThrowWithMessage(
-        MalformedRdataError,
-        'DS data is malformed',
-      );
-    });
-
-    test('Empty digest value should be refused', () => {
-      const malformedDsData = Buffer.allocUnsafe(4);
-
-      expect(() => DsData.deserialise(malformedDsData)).toThrowWithMessage(
-        MalformedRdataError,
-        'DS data is missing digest',
-      );
-    });
-
+  describe('initFromPacket', () => {
     test('Key tag should be extracted', () => {
-      const data = DsData.deserialise(dsDataSerialised);
+      const data = DsData.initFromPacket(ds.record.dataFields);
 
       expect(data.keyTag).toEqual(ds.data.keyTag);
     });
 
     test('Algorithm should be extracted', () => {
-      const data = DsData.deserialise(dsDataSerialised);
+      const data = DsData.initFromPacket(ds.record.dataFields);
 
       expect(data.algorithm).toEqual(dnskey.data.algorithm);
     });
 
     test('Digest type should be extracted', () => {
-      const data = DsData.deserialise(dsDataSerialised);
+      const data = DsData.initFromPacket(ds.record.dataFields);
 
       expect(data.digestType).toEqual(ds.data.digestType);
     });
 
     test('Digest should be extracted', () => {
-      const data = DsData.deserialise(dsDataSerialised);
+      const data = DsData.initFromPacket(ds.record.dataFields);
 
       expect(data.digest).toEqual(ds.data.digest);
     });

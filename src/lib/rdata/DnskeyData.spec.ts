@@ -21,7 +21,7 @@ describe('DnskeyData', () => {
     test('Public key should be extracted', () => {
       const record = tldSigner.generateDnskey().record;
 
-      const data = DnskeyData.initFromPacket(record.data, record.dataSerialised);
+      const data = DnskeyData.initFromPacket(record.dataFields, record.dataSerialised);
 
       expect(data.publicKey.export({ format: 'der', type: 'spki' })).toEqual(
         tldSigner.publicKey.export({ format: 'der', type: 'spki' }),
@@ -31,7 +31,7 @@ describe('DnskeyData', () => {
     test('Algorithm should be extracted', () => {
       const record = tldSigner.generateDnskey().record;
 
-      const data = DnskeyData.initFromPacket(record.data, record.dataSerialised);
+      const data = DnskeyData.initFromPacket(record.dataFields, record.dataSerialised);
 
       expect(data.algorithm).toEqual(tldSigner.algorithm);
     });
@@ -40,7 +40,7 @@ describe('DnskeyData', () => {
       test('Zone Key should be on if set', () => {
         const record = tldSigner.generateDnskey({ flags: { zoneKey: true } }).record;
 
-        const data = DnskeyData.initFromPacket(record.data, record.dataSerialised);
+        const data = DnskeyData.initFromPacket(record.dataFields, record.dataSerialised);
 
         expect(data.flags.zoneKey).toBeTrue();
       });
@@ -48,7 +48,7 @@ describe('DnskeyData', () => {
       test('Zone Key should off if unset', () => {
         const record = tldSigner.generateDnskey({ flags: { zoneKey: false } }).record;
 
-        const data = DnskeyData.initFromPacket(record.data, record.dataSerialised);
+        const data = DnskeyData.initFromPacket(record.dataFields, record.dataSerialised);
 
         expect(data.flags.zoneKey).toBeFalse();
       });
@@ -56,7 +56,7 @@ describe('DnskeyData', () => {
       test('Secure Entrypoint should be on if set', () => {
         const record = tldSigner.generateDnskey({ flags: { secureEntryPoint: true } }).record;
 
-        const data = DnskeyData.initFromPacket(record.data, record.dataSerialised);
+        const data = DnskeyData.initFromPacket(record.dataFields, record.dataSerialised);
 
         expect(data.flags.secureEntryPoint).toBeTrue();
       });
@@ -64,7 +64,7 @@ describe('DnskeyData', () => {
       test('Secure Entrypoint should be off if unset', () => {
         const record = tldSigner.generateDnskey({ flags: { secureEntryPoint: false } }).record;
 
-        const data = DnskeyData.initFromPacket(record.data, record.dataSerialised);
+        const data = DnskeyData.initFromPacket(record.dataFields, record.dataSerialised);
 
         expect(data.flags.secureEntryPoint).toBeFalse();
       });
@@ -73,7 +73,7 @@ describe('DnskeyData', () => {
     test('Key tag should be cached', () => {
       const record = tldSigner.generateDnskey({ flags: { secureEntryPoint: false } }).record;
 
-      const data = DnskeyData.initFromPacket(record.data, record.dataSerialised);
+      const data = DnskeyData.initFromPacket(record.dataFields, record.dataSerialised);
 
       expect(data.keyTag).not.toBeNull();
     });

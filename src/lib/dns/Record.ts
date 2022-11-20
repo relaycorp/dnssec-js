@@ -26,7 +26,7 @@ export class Record {
   /**
    * @internal Avoid exposing dns-packet types
    */
-  public readonly data: any;
+  public readonly dataFields: any;
 
   constructor(
     name: string,
@@ -43,10 +43,10 @@ export class Record {
     const dnsPacketCodec = enc(typeName);
     if (data instanceof Buffer) {
       this.dataSerialised = data;
-      this.data = deserialiseRdata(data, typeName, dnsPacketCodec);
+      this.dataFields = deserialiseRdata(data, typeName, dnsPacketCodec);
     } else {
       this.dataSerialised = serialiseRdata(data, typeName, dnsPacketCodec);
-      this.data = data;
+      this.dataFields = data;
     }
   }
 

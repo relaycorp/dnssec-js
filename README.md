@@ -26,6 +26,8 @@ As this is primarily a DNSSEC library, we treat DNS and DNSSEC errors differentl
 - Any input that violates DNS RFCs in ways from which we can't recover will result in errors.
 - Any input that violates DNSSEC RFCs will result in one of the three failure _security statuses_ defined in [RFC 4035 (Section 4.3)](https://www.rfc-editor.org/rfc/rfc4035#section-4.3): insecure, bogus or indeterminate.
 
+However, errors are thrown upon attempting to parse malformed RDATA values for DNSSEC records -- we use a third-party library that parses the DNS message eagerly.
+
 ### Denial of Existence record support
 
 We don't need DoE records in Vera, so [we won't be implementing that functionality ourselves](https://github.com/relaycorp/dnssec-js/issues/17), but PRs are welcomed.

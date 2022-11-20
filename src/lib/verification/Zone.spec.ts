@@ -71,27 +71,6 @@ describe('Zone', () => {
       });
     });
 
-    test('Malformed DNSKEY data should be BOGUS', () => {
-      const malformedDnskey = tldDnskey.record.shallowCopy({ dataSerialised: Buffer.from('hi') });
-      const newRrsig = tldSigner.generateRrsig(
-        RRSet.init(TLD_DNSKEY_QUESTION, [malformedDnskey]),
-        tldDnskey.rrsig.data.keyTag,
-        SIGNATURE_OPTIONS,
-      );
-      const dnskeyMessage = new Message(
-        { rcode: RCODE_IDS.NoError },
-        [],
-        [malformedDnskey, newRrsig.record],
-      );
-
-      const result = Zone.init(RECORD_TLD, dnskeyMessage, [tldDs.data], VALIDITY_PERIOD);
-
-      expect(result).toEqual<FailureResult>({
-        status: SecurityStatus.BOGUS,
-        reasonChain: ['Found malformed DNSKEY rdata'],
-      });
-    });
-
     test('DNSKEY without matching DS should be BOGUS', () => {
       const mismatchingDsData = new DsData(
         tldDs.data.keyTag,
@@ -376,36 +355,6 @@ describe('Zone', () => {
           reasonChain: [
             `Expected DS rcode to be NOERROR (0; got ${invalidDsMessage.header.rcode})`,
           ],
-        });
-      });
-
-      test('Malformed DS data should be BOGUS', () => {
-        const malformedDsRecord = tldDs.record.shallowCopy({
-          dataSerialised: Buffer.allocUnsafe(2),
-        });
-        const dsRrsig = rootSigner.generateRrsig(
-          RRSet.init(TLD_DNSKEY_QUESTION.shallowCopy({ type: DnssecRecordType.DS }), [
-            malformedDsRecord,
-          ]),
-          rootDnskey.data.calculateKeyTag(),
-          SIGNATURE_OPTIONS,
-        );
-        const invalidDsMessage = new Message(
-          tldDnskey.message.header,
-          [],
-          [malformedDsRecord, dsRrsig.record],
-        );
-
-        const result = rootZone.initChild(
-          RECORD_TLD,
-          tldDnskey.message,
-          invalidDsMessage,
-          VALIDITY_PERIOD,
-        );
-
-        expect(result).toEqual<FailureResult>({
-          status: SecurityStatus.BOGUS,
-          reasonChain: ['Found malformed DS rdata'],
         });
       });
 

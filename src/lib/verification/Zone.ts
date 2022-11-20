@@ -4,7 +4,7 @@ import { Message } from '../dns/Message';
 import { DnskeyData } from '../rdata/DnskeyData';
 import { SecurityStatus } from './SecurityStatus';
 import { DnssecRecordType } from '../DnssecRecordType';
-import { DnskeyRecord, DsRecord } from '../dnssecRecords';
+import { DnskeyRecord } from '../dnssecRecords';
 import { SignedRRSet } from './SignedRRSet';
 import { DnsClass } from '../dns/ianaClasses';
 import { DatePeriod } from './DatePeriod';
@@ -44,15 +44,10 @@ export class Zone {
       dnskeyMessage.answers,
     );
 
-    let dnskeys: readonly DnskeyRecord[];
-    try {
-      dnskeys = dnskeySignedRrset.rrset.records.map((record) => ({
-        data: DnskeyData.initFromPacket(record.data, record.dataSerialised),
-        record,
-      }));
-    } catch (_) {
-      return { status: SecurityStatus.BOGUS, reasonChain: ['Found malformed DNSKEY rdata'] };
-    }
+    const dnskeys = dnskeySignedRrset.rrset.records.map((record) => ({
+      data: DnskeyData.initFromPacket(record.dataFields, record.dataSerialised),
+      record,
+    }));
     const zskDnskeys = dnskeys.filter((k) => dsData.some((ds) => ds.verifyDnskey(k)));
 
     if (zskDnskeys.length === 0) {
@@ -111,15 +106,10 @@ export class Zone {
       };
     }
 
-    let dsRecords: readonly DsRecord[];
-    try {
-      dsRecords = dsSignedRrset.rrset.records.map((record) => ({
-        data: DsData.deserialise(record.dataSerialised),
-        record,
-      }));
-    } catch (_) {
-      return { status: SecurityStatus.BOGUS, reasonChain: ['Found malformed DS rdata'] };
-    }
+    const dsRecords = dsSignedRrset.rrset.records.map((record) => ({
+      data: DsData.initFromPacket(record.dataFields),
+      record,
+    }));
 
     const dsData = dsRecords.map((r) => r.data);
     return Zone.init(zoneName, dnskeyMessage, dsData, datePeriod);

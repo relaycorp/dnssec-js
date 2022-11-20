@@ -132,7 +132,7 @@ describe('Record', () => {
             DATA_SERIALISED,
           );
 
-          expect(record.data).toEqual(DATA);
+          expect(record.dataFields).toEqual(DATA);
         });
 
         test('Malformed data should be refused', () => {
@@ -154,7 +154,7 @@ describe('Record', () => {
         test('Data should be stored as is if valid', () => {
           const record = new Record(RECORD.name, TYPE_ID, RECORD.class_, RECORD.ttl, DATA);
 
-          expect(record.data).toEqual(DATA);
+          expect(record.dataFields).toEqual(DATA);
         });
 
         test('Invalid data should be refused', () => {
