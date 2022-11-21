@@ -59,14 +59,20 @@ export class RRSet {
  */
 function canonicallySortRecords(originalRecords: readonly Record[]): readonly Record[] {
   const recordSorted = [...originalRecords].sort((a, b) => {
-    const byteLengthDifference = a.dataSerialised.byteLength - b.dataSerialised.byteLength;
-    if (byteLengthDifference !== 0) {
-      return byteLengthDifference;
-    }
-
-    for (let index = 0; index < a.dataSerialised.byteLength; index++) {
+    const maxLength = Math.max(a.dataSerialised.byteLength, b.dataSerialised.byteLength);
+    for (let index = 0; index < maxLength; index++) {
       const aOctet = a.dataSerialised[index];
+      // istanbul ignore next
+      if (aOctet === undefined) {
+        return -1;
+      }
+
       const bOctet = b.dataSerialised[index];
+      // istanbul ignore next
+      if (bOctet === undefined) {
+        return 1;
+      }
+
       if (aOctet !== bOctet) {
         return aOctet - bOctet;
       }
