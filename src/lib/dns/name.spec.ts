@@ -1,7 +1,7 @@
 import { name as NAME } from '@leichtgewicht/dns-packet';
 
-import { RECORD } from '../../testUtils/dnsStubs';
-import { normaliseName, serialiseName } from './name';
+import { RECORD, RECORD_TLD } from '../../testUtils/dnsStubs';
+import { countLabels, normaliseName, serialiseName } from './name';
 
 describe('serialiseName', () => {
   const recordNameWithoutDot = RECORD.name.replace(/\.$/, '');
@@ -44,5 +44,23 @@ describe('normaliseName', () => {
     const name = '.';
 
     expect(normaliseName(name)).toEqual(name);
+  });
+});
+
+describe('countLabels', () => {
+  test('Root name should have zero labels', () => {
+    expect(countLabels('.')).toEqual(0);
+  });
+
+  test('TLD should have one label', () => {
+    expect(countLabels(RECORD_TLD)).toEqual(1);
+  });
+
+  test('Apex domain should have two labels', () => {
+    expect(countLabels(RECORD.name)).toEqual(2);
+  });
+
+  test('Wildcard should not count towards labels', () => {
+    expect(countLabels(`*.${RECORD.name}`)).toEqual(2);
   });
 });

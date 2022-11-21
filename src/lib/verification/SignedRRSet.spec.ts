@@ -131,8 +131,13 @@ describe('SignedRRSet', () => {
     test('Verification should fail if not deemed valid by any RRSig', () => {
       const dnskey = signer.generateDnskey();
       const rrsig = signer.generateRrsig(RRSET, dnskey.data.calculateKeyTag(), RRSIG_OPTIONS);
-      const invalidRecords = RRSET.records.map((r) => r.shallowCopy({ ttl: r.ttl + 1 }));
-      const signedRrset = SignedRRSet.initFromRecords(QUESTION, [...invalidRecords, rrsig.record]);
+      const type = IANA_RR_TYPE_IDS.A;
+      expect(type).not.toEqual(RRSET.type); // Make sure we're picking something different indeed
+      const invalidRecords = RRSET.records.map((r) => r.shallowCopy({ type }));
+      const signedRrset = SignedRRSet.initFromRecords(QUESTION.shallowCopy({ type }), [
+        ...invalidRecords,
+        rrsig.record,
+      ]);
 
       expect(signedRrset.verify([dnskey], VALIDITY_PERIOD)).toBeFalse();
     });

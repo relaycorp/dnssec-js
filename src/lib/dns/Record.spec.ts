@@ -215,6 +215,14 @@ describe('Record', () => {
       expect(ANSWER.decode(serialisation)).toHaveProperty('ttl', RECORD.ttl);
     });
 
+    test('Record TTL should be overridable', () => {
+      const differentTtl = RECORD.ttl + 1;
+
+      const serialisation = RECORD.serialise(differentTtl);
+
+      expect(ANSWER.decode(serialisation)).toHaveProperty('ttl', differentTtl);
+    });
+
     test('Record data should be serialised', () => {
       const serialisation = RECORD.serialise();
 

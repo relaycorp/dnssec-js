@@ -50,7 +50,7 @@ export class Record {
     }
   }
 
-  public serialise(): Buffer {
+  public serialise(ttl: number | null = null): Buffer {
     const labelsSerialised = serialiseName(this.name);
 
     const typeSerialised = Buffer.allocUnsafe(2);
@@ -60,7 +60,7 @@ export class Record {
     classSerialised.writeUInt16BE(this.class_);
 
     const ttlSerialised = Buffer.allocUnsafe(4);
-    ttlSerialised.writeUInt32BE(this.ttl);
+    ttlSerialised.writeUInt32BE(ttl ?? this.ttl);
 
     const dataLengthSerialised = Buffer.allocUnsafe(2);
     dataLengthSerialised.writeUInt16BE(this.dataSerialised.length);
