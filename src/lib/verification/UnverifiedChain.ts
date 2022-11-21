@@ -2,7 +2,7 @@ import { Question } from '../dns/Question';
 import { Message } from '../dns/Message';
 import { DnssecRecordType } from '../DnssecRecordType';
 import { VerificationOptions } from './VerificationOptions';
-import { augmentFailureResult, VerificationResult } from './results';
+import { augmentFailureResult, FailureResult, SuccessfulResult } from './results';
 import { RRSet } from '../dns/RRSet';
 import { SecurityStatus } from './SecurityStatus';
 import { Zone } from './Zone';
@@ -11,6 +11,9 @@ import { IANA_TRUST_ANCHORS } from './IANA_TRUST_ANCHORS';
 import { SignedRRSet } from './SignedRRSet';
 import { Resolver } from './Resolver';
 import { DnsClass } from '../dns/ianaClasses';
+
+export type VerifiedChainResult = SuccessfulResult<RRSet>;
+export type ChainVerificationResult = VerifiedChainResult | FailureResult;
 
 interface MessageByKey {
   readonly [key: string]: Message;
@@ -72,7 +75,7 @@ export class UnverifiedChain {
     public readonly zoneMessageByKey: MessageByKey,
   ) {}
 
-  public verify(options: Partial<VerificationOptions> = {}): VerificationResult<RRSet> {
+  public verify(options: Partial<VerificationOptions> = {}): ChainVerificationResult {
     const rootDnskeyMessage = this.zoneMessageByKey[`./${DnssecRecordType.DNSKEY}`];
     if (!rootDnskeyMessage) {
       return {
