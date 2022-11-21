@@ -37,7 +37,7 @@
     "node": ">=16"
   },
   "devDependencies": {
-    "@relaycorp/eslint-config": "^1.0.4",
+    "@relaycorp/eslint-config": "^1.0.7",
     "@relaycorp/shared-config": "^1.9.2",
     "@types/jest": "^27.5.0",
     "@typescript-eslint/eslint-plugin": "^5.42.1",
