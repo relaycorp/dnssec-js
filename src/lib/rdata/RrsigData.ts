@@ -33,14 +33,14 @@ export class RrsigData implements DnssecRecordData {
     signerKeyTag: number,
     dnssecAlgorithm: DnssecAlgorithm,
   ): RrsigData {
-    const rdataFirstPart = generateRdataFirstPart(
+    const plaintext = computeSignedData(
       signatureExpiry,
       signatureInception,
       signerKeyTag,
       dnssecAlgorithm,
       rrset,
+      signerName,
     );
-    const plaintext = Buffer.concat([rdataFirstPart, serialiseRrset(rrset)]);
     const signature = sign(plaintext, signerPrivateKey, dnssecAlgorithm);
     return new RrsigData(
       rrset.type,
@@ -105,37 +105,45 @@ export class RrsigData implements DnssecRecordData {
       return false;
     }
 
-    const rdataFirstPart = generateRdataFirstPart(
+    const plaintext = computeSignedData(
       this.signatureExpiry,
       this.signatureInception,
       this.keyTag,
       this.algorithm,
       rrset,
+      this.signerName,
     );
-    const plaintext = Buffer.concat([rdataFirstPart, serialiseRrset(rrset)]);
     return verifySignature(plaintext, this.signature, dnskeyPublicKey, this.algorithm);
   }
 }
 
-// Calling this "first part" for lack of a better name, as RFC 4034 doesn't give it a name.
-function generateRdataFirstPart(
+function computeSignedData(
   signatureExpiry: Date,
   signatureInception: Date,
   signerKeyTag: number,
   algorithm: DnssecAlgorithm,
   rrset: RRSet,
+  signerName: string,
 ): Buffer {
-  const partialRrsigRdata = Buffer.allocUnsafe(18);
+  const rrsetSerialised = serialiseRrset(rrset);
+  const signerNameSerialised = serialiseName(signerName);
 
-  partialRrsigRdata.writeUInt16BE(rrset.type, 0);
-  partialRrsigRdata.writeUInt8(algorithm, 2);
-  partialRrsigRdata.writeUInt8(countLabels(rrset.name), 3);
-  partialRrsigRdata.writeUInt32BE(rrset.ttl, 4);
-  partialRrsigRdata.writeUInt32BE(getUnixTime(signatureExpiry), 8);
-  partialRrsigRdata.writeUInt32BE(getUnixTime(signatureInception), 12);
-  partialRrsigRdata.writeUInt16BE(signerKeyTag, 16);
+  const signedData = Buffer.allocUnsafe(
+    18 + signerNameSerialised.byteLength + rrsetSerialised.byteLength,
+  );
 
-  return partialRrsigRdata;
+  signedData.writeUInt16BE(rrset.type, 0);
+  signedData.writeUInt8(algorithm, 2);
+  signedData.writeUInt8(countLabels(rrset.name), 3);
+  signedData.writeUInt32BE(rrset.ttl, 4);
+  signedData.writeUInt32BE(getUnixTime(signatureExpiry), 8);
+  signedData.writeUInt32BE(getUnixTime(signatureInception), 12);
+  signedData.writeUInt16BE(signerKeyTag, 16);
+  signerNameSerialised.copy(signedData, 18);
+
+  rrsetSerialised.copy(signedData, 18 + signerNameSerialised.byteLength);
+
+  return rrsetSerialised;
 }
 
 function serialiseRrset(rrset: RRSet): Buffer {

@@ -10,4 +10,8 @@ export { RRSet } from './lib/dns/RRSet';
 // DNSSEC-related
 export { DatePeriod } from './lib/verification/DatePeriod';
 export { Resolver } from './lib/verification/Resolver';
-export { UnverifiedChain } from './lib/verification/UnverifiedChain';
+export {
+  ChainVerificationResult,
+  UnverifiedChain,
+  VerifiedChainResult,
+} from './lib/verification/UnverifiedChain';

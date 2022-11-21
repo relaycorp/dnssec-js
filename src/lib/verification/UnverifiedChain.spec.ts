@@ -5,12 +5,11 @@ import { SignatureGenerationOptions, ZoneSigner } from '../signing/ZoneSigner';
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { Message } from '../dns/Message';
 import { QUESTION, RECORD, RECORD_TLD, RRSET } from '../../testUtils/dnsStubs';
-import { UnverifiedChain } from './UnverifiedChain';
+import { ChainVerificationResult, UnverifiedChain, VerifiedChainResult } from './UnverifiedChain';
 import { ZoneResponseSet } from '../signing/responses';
 import { DnssecRecordType } from '../DnssecRecordType';
 import { Question } from '../dns/Question';
-import { FailureResult, SuccessfulResult, VerificationResult } from './results';
-import { RRSet } from '../dns/RRSet';
+import { FailureResult } from './results';
 import { SecurityStatus } from './SecurityStatus';
 import { DsData } from '../rdata/DsData';
 import { IANA_TRUST_ANCHORS } from './IANA_TRUST_ANCHORS';
@@ -266,7 +265,7 @@ describe('verify', () => {
 
       const result = chain.verify({ trustAnchors });
 
-      expect(result).toEqual<VerificationResult<RRSet>>({
+      expect(result).toEqual<ChainVerificationResult>({
         status: SecurityStatus.INDETERMINATE,
         reasonChain: [`Cannot initialise root zone without a DNSKEY response`],
       });
@@ -288,7 +287,7 @@ describe('verify', () => {
 
       const result = chain.verify({ trustAnchors: [rootDs.data] });
 
-      expect(result).toEqual<VerificationResult<RRSet>>({
+      expect(result).toEqual<ChainVerificationResult>({
         status: SecurityStatus.BOGUS,
         reasonChain: [`Got invalid DNSKEY for root zone`, expect.anything()],
       });
@@ -302,7 +301,7 @@ describe('verify', () => {
 
       const result = chain.verify({ trustAnchors });
 
-      expect(result).toEqual<VerificationResult<RRSet>>({
+      expect(result).toEqual<ChainVerificationResult>({
         status: SecurityStatus.INDETERMINATE,
         reasonChain: [`Cannot verify zone ${RECORD_TLD} without a DNSKEY response`],
       });
@@ -314,7 +313,7 @@ describe('verify', () => {
 
       const result = chain.verify({ trustAnchors });
 
-      expect(result).toEqual<VerificationResult<RRSet>>({
+      expect(result).toEqual<ChainVerificationResult>({
         status: SecurityStatus.INDETERMINATE,
         reasonChain: [`Cannot verify zone ${RECORD_TLD} without a DS response`],
       });
@@ -336,7 +335,7 @@ describe('verify', () => {
 
       const result = chain.verify({ trustAnchors });
 
-      expect(result).toEqual<VerificationResult<RRSet>>({
+      expect(result).toEqual<ChainVerificationResult>({
         status: SecurityStatus.BOGUS,
         reasonChain: [`Failed to verify zone ${RECORD_TLD}`, expect.anything()],
       });
@@ -358,7 +357,7 @@ describe('verify', () => {
 
       const result = chain.verify({ trustAnchors });
 
-      expect(result).toEqual<VerificationResult<RRSet>>({
+      expect(result).toEqual<ChainVerificationResult>({
         status: SecurityStatus.BOGUS,
         reasonChain: [`Failed to verify zone ${RECORD.name}`, expect.anything()],
       });
@@ -448,7 +447,7 @@ describe('verify', () => {
 
     const result = chain.verify({ trustAnchors });
 
-    expect(result).toEqual<SuccessfulResult<RRSet>>({
+    expect(result).toEqual<VerifiedChainResult>({
       status: SecurityStatus.SECURE,
       result: RRSET,
     });
