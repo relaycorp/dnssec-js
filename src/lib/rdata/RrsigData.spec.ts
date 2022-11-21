@@ -127,13 +127,6 @@ describe('RrsigData', () => {
       expect(data.verifyRrset(RRSET, signer.publicKey)).toBeFalse();
     });
 
-    test('Original TTL should match RRset TTL', () => {
-      const invalidRrset = RRSet.init(QUESTION, [RECORD.shallowCopy({ ttl: RECORD.ttl + 1 })]);
-      const { data } = signer.generateRrsig(invalidRrset, STUB_KEY_TAG, SIGNATURE_OPTIONS);
-
-      expect(data.verifyRrset(RRSET, signer.publicKey)).toBeFalse();
-    });
-
     describe('Label count', () => {
       test('RRset owner labels greater than RRSig count should be SECURE', async () => {
         const name = `subdomain.${RECORD.name}`;

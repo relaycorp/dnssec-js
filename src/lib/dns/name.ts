@@ -16,3 +16,12 @@ export function serialiseName(name: string): Buffer {
 export function normaliseName(name: string): string {
   return name.endsWith('.') ? name : `${name}.`;
 }
+
+export function countLabels(name: string): number {
+  const nameWithoutTrailingDot = name.replace(/\.$/, '');
+  if (nameWithoutTrailingDot === '') {
+    return 0;
+  }
+  const labels = nameWithoutTrailingDot.split('.').filter((label) => label !== '*');
+  return labels.length;
+}
