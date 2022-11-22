@@ -17,6 +17,7 @@ import { Message } from '../dns/Message';
 import { Question } from '../dns/Question';
 import { DnskeyResponse, DsResponse, RrsigResponse, ZoneResponseSet } from './responses';
 import { RCODE_IDS } from '../dns/ianaRcodes';
+import { isChildZone } from '../dns/name';
 
 const FIVE_MINUTES_IN_SECONDS = 5 * 60;
 
@@ -78,7 +79,7 @@ export class ZoneSigner {
     options: Partial<DsGenerationOptions> = {},
   ): DsResponse {
     const isRootZone = childZoneName === this.zoneName && this.zoneName === '.';
-    if (!isRootZone && !this.isChildZone(childZoneName)) {
+    if (!isRootZone && !isChildZone(this.zoneName, childZoneName)) {
       throw new Error(`${childZoneName} isn't a child of ${this.zoneName}`);
     }
     const digestType = options.digestType ?? DigestType.SHA256;
@@ -108,9 +109,6 @@ export class ZoneSigner {
     keyTag: number,
     options: Partial<SignatureGenerationOptions> = {},
   ): RrsigResponse {
-    if (rrset.name !== this.zoneName && !this.isChildZone(rrset.name)) {
-      throw new Error(`RRset for ${rrset.name} isn't a child of ${this.zoneName}`);
-    }
     const signatureInception = options.signatureInception ?? new Date();
     const signatureExpiry = options.signatureExpiry ?? addSeconds(signatureInception, rrset.ttl);
     const data = RrsigData.generate(
@@ -153,12 +151,5 @@ export class ZoneSigner {
       options.ds,
     );
     return { ds, dnskey };
-  }
-
-  private isChildZone(zoneName: string): boolean {
-    if (this.zoneName === '.') {
-      return true;
-    }
-    return zoneName.endsWith(`.${this.zoneName}`);
   }
 }

@@ -443,6 +443,29 @@ describe('verify', () => {
   });
 
   describe('Query response', () => {
+    test('RRset signed by indirect ancestor should be allowed', () => {
+      const newQueryResponse = tldSigner.generateRrsig(
+        RRSET,
+        tldResponses.ds.data.keyTag,
+        SIGNATURE_OPTIONS,
+      ).message;
+      const messagesWithoutApexZone = filterMessagesOut(chainMessages, [
+        apexResponses.dnskey.record.makeQuestion(),
+        apexResponses.ds.record.makeQuestion(),
+      ]);
+      const chain = UnverifiedChain.initFromMessages(
+        QUESTION,
+        replaceMessages(messagesWithoutApexZone, [newQueryResponse]),
+      );
+
+      const result = chain.verify({ trustAnchors });
+
+      expect(result).toEqual<VerifiedChainResult>({
+        status: SecurityStatus.SECURE,
+        result: RRSET,
+      });
+    });
+
     test('Invalid signature for query response should be refused', () => {
       const expiredQueryResponse = apexSigner.generateRrsig(RRSET, apexResponses.ds.data.keyTag, {
         signatureExpiry: SIGNATURE_OPTIONS.signatureInception,

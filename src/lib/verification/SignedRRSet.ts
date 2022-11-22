@@ -6,6 +6,7 @@ import { RrsigData } from '../rdata/RrsigData';
 import { Question } from '../dns/Question';
 import { DatePeriod } from './DatePeriod';
 import { DnskeyData } from '../rdata/DnskeyData';
+import { isChildZone } from '../dns/name';
 
 /**
  * RRSet with one or more corresponding RRSigs.
@@ -22,6 +23,10 @@ export class SignedRRSet {
       )
       .reduce(function deserialise(acc, record): readonly RrsigRecord[] {
         const data = RrsigData.initFromPacket(record.dataFields);
+        if (data.signerName !== rrset.name && !isChildZone(data.signerName, rrset.name)) {
+          // Signer is off tree
+          return acc;
+        }
         return [...acc, { record, data }];
       }, [] as readonly RrsigRecord[]);
 
@@ -32,6 +37,12 @@ export class SignedRRSet {
     public readonly rrset: RRSet,
     public readonly rrsigs: readonly RrsigRecord[],
   ) {}
+
+  get signerNames(): readonly string[] {
+    const names = this.rrsigs.map((s) => s.data.signerName);
+    const uniqueNames = new Set(names);
+    return [...uniqueNames];
+  }
 
   public verify(
     dnsKeys: readonly DnskeyRecord[],

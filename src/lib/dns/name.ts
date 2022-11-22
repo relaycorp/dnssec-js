@@ -25,3 +25,10 @@ export function countLabels(name: string): number {
   const labels = nameWithoutTrailingDot.split('.').filter((label) => label !== '*');
   return labels.length;
 }
+
+export function isChildZone(parentName: string, presumedChildName: string): boolean {
+  if (parentName === '.') {
+    return true;
+  }
+  return presumedChildName.endsWith(`.${parentName}`);
+}
