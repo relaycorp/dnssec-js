@@ -78,7 +78,7 @@ describe('RRSet', () => {
     describe('Ordering', () => {
       test('Absence of an octet should sort before a zero octet', () => {
         const longer = RECORD.shallowCopy({});
-        const shorter = RECORD.shallowCopy({ dataSerialised: Buffer.from([1, 255]) });
+        const shorter = RECORD.shallowCopy({});
         // @ts-ignore
         longer.dataSerialised = Buffer.from([1, 0]);
         // @ts-ignore
