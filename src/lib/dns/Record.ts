@@ -1,8 +1,9 @@
+import { Codec, enc } from '@leichtgewicht/dns-packet';
+
 import { DnsClass, DnsClassIdOrName, getDnsClassId } from './ianaClasses';
 import { normaliseName, serialiseName } from './name';
 import { Question } from './Question';
 import { getRrTypeId, getRrTypeName, IanaRrTypeIdOrName } from './ianaRrTypes';
-import { Codec, enc } from '@leichtgewicht/dns-packet';
 import { lengthPrefixRdata } from '../utils/dns';
 import { DnsError } from './DnsError';
 
