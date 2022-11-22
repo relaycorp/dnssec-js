@@ -94,11 +94,8 @@ export class UnverifiedChain {
         reasonChain: ['Cannot initialise root zone without a DNSKEY response'],
       };
     }
-    const dateOrPeriod = options.dateOrPeriod ?? new Date();
-    const datePeriod =
-      dateOrPeriod instanceof DatePeriod
-        ? dateOrPeriod
-        : DatePeriod.init(dateOrPeriod, dateOrPeriod);
+
+    const datePeriod = getDatePeriod(options.dateOrPeriod);
     const rootDsData = options.trustAnchors ?? IANA_TRUST_ANCHORS;
     const rootZoneResult = Zone.initRoot(rootDnskeyMessage, rootDsData, datePeriod);
     if (rootZoneResult.status !== SecurityStatus.SECURE) {
@@ -106,13 +103,13 @@ export class UnverifiedChain {
     }
     const rootZone = rootZoneResult.result;
 
-    const zoneResult = this.getIntermediateZones(rootZone, datePeriod);
-    if (zoneResult.status !== SecurityStatus.SECURE) {
-      return zoneResult;
+    const intermediateZonesResult = this.getIntermediateZones(rootZone, datePeriod);
+    if (intermediateZonesResult.status !== SecurityStatus.SECURE) {
+      return intermediateZonesResult;
     }
-    const zones = zoneResult.result;
+    const intermediateZones = intermediateZonesResult.result;
 
-    const apexZone = zones[zones.length - 1];
+    const apexZone = intermediateZones[intermediateZones.length - 1];
     const answers = SignedRRSet.initFromRecords(this.query, this.response.answers);
     if (!apexZone.verifyRrset(answers, datePeriod)) {
       return {
@@ -158,6 +155,13 @@ export class UnverifiedChain {
     }
     return { status: SecurityStatus.SECURE, result: zones };
   }
+}
+
+function getDatePeriod(dateOrPeriod?: Date | DatePeriod): DatePeriod {
+  const finalDateOrPeriod = dateOrPeriod ?? new Date();
+  return finalDateOrPeriod instanceof DatePeriod
+    ? finalDateOrPeriod
+    : DatePeriod.init(finalDateOrPeriod, finalDateOrPeriod);
 }
 
 function getZonesInChain(zoneName: string, includeRoot: boolean = true): readonly string[] {
