@@ -94,15 +94,13 @@ export class UnverifiedChain {
     if (rootZoneResult.status !== SecurityStatus.SECURE) {
       return rootZoneResult;
     }
-    const rootZone = rootZoneResult.result;
 
-    const intermediateZonesResult = this.getIntermediateZones(rootZone, datePeriod);
+    const intermediateZonesResult = this.getIntermediateZones(rootZoneResult.result, datePeriod);
     if (intermediateZonesResult.status !== SecurityStatus.SECURE) {
       return intermediateZonesResult;
     }
-    const intermediateZones = intermediateZonesResult.result;
 
-    return this.verifyResponse(intermediateZones, datePeriod);
+    return this.verifyResponse(intermediateZonesResult.result, datePeriod);
   }
 
   protected getRootZone(
