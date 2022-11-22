@@ -2,7 +2,12 @@ import { Question } from '../dns/Question';
 import { Message } from '../dns/Message';
 import { DnssecRecordType } from '../DnssecRecordType';
 import { VerificationOptions } from './VerificationOptions';
-import { augmentFailureResult, FailureResult, SuccessfulResult } from './results';
+import {
+  augmentFailureResult,
+  FailureResult,
+  SuccessfulResult,
+  VerificationResult,
+} from './results';
 import { RRSet } from '../dns/RRSet';
 import { SecurityStatus } from './SecurityStatus';
 import { Zone } from './Zone';
@@ -101,6 +106,31 @@ export class UnverifiedChain {
     }
     const rootZone = rootZoneResult.result;
 
+    const zoneResult = this.getIntermediateZones(rootZone, datePeriod);
+    if (zoneResult.status !== SecurityStatus.SECURE) {
+      return zoneResult;
+    }
+    const zones = zoneResult.result;
+
+    const apexZone = zones[zones.length - 1];
+    const answers = SignedRRSet.initFromRecords(this.query, this.response.answers);
+    if (!apexZone.verifyRrset(answers, datePeriod)) {
+      return {
+        status: SecurityStatus.BOGUS,
+        reasonChain: ['Query response does not have a valid signature'],
+      };
+    }
+
+    return {
+      status: SecurityStatus.SECURE,
+      result: answers.rrset,
+    };
+  }
+
+  protected getIntermediateZones(
+    rootZone: Zone,
+    datePeriod: DatePeriod,
+  ): VerificationResult<readonly Zone[]> {
     let zones = [rootZone];
     for (const zoneName of getZonesInChain(this.query.name, false)) {
       const zoneDnskeyMessage = this.zoneMessageByKey[`${zoneName}/${DnssecRecordType.DNSKEY}`];
@@ -126,20 +156,7 @@ export class UnverifiedChain {
 
       zones = [...zones, zone];
     }
-
-    const apexZone = zones[zones.length - 1];
-    const answers = SignedRRSet.initFromRecords(this.query, this.response.answers);
-    if (!apexZone.verifyRrset(answers, datePeriod)) {
-      return {
-        status: SecurityStatus.BOGUS,
-        reasonChain: ['Query response does not have a valid signature'],
-      };
-    }
-
-    return {
-      status: SecurityStatus.SECURE,
-      result: answers.rrset,
-    };
+    return { status: SecurityStatus.SECURE, result: zones };
   }
 }
 
