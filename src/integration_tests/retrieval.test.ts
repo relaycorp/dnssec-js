@@ -15,12 +15,16 @@ afterAll(() => {
 });
 
 const RESOLVER: Resolver = async (question) => {
-  const messageRaw = await DOH_CLIENT.lookup(question.name, {
-    rrtype: question.getTypeName(),
-    json: false,
-    decode: false,
-    dnssec: true, // Retrieve RRSig records
-  });
+  const messageRaw = await retryUponFailure(
+    async () =>
+      DOH_CLIENT.lookup(question.name, {
+        rrtype: question.getTypeName(),
+        json: false,
+        decode: false,
+        dnssec: true, // Retrieve RRSig records
+      }),
+    3,
+  );
   return Message.deserialise(messageRaw as Buffer);
 };
 
@@ -47,3 +51,14 @@ test('Response from insecure zone should be INSECURE', async () => {
     reasonChain: expect.arrayContaining([`Failed to verify zone ${question.name}`]),
   });
 });
+
+async function retryUponFailure<T>(func: () => Promise<T>, attempts: number): Promise<T> {
+  try {
+    return func();
+  } catch (err) {
+    if (attempts <= 1) {
+      throw err;
+    }
+    return retryUponFailure(func, attempts - 1);
+  }
+}
