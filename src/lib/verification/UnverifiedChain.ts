@@ -19,23 +19,29 @@ interface MessageByKey {
   readonly [key: string]: Message;
 }
 
+type FinalResolver = (question: Question) => Promise<Message>;
+
 export class UnverifiedChain {
   public static async retrieve(question: Question, resolver: Resolver): Promise<UnverifiedChain> {
+    const finalResolver: FinalResolver = async (q) => {
+      const message = await resolver(q);
+      return message instanceof Message ? message : Message.deserialise(message);
+    };
     const zoneNames = getZonesInChain(question.name);
     const dnskeyMessages = await retrieveZoneMessages(
       zoneNames,
       DnssecRecordType.DNSKEY,
       question.class_,
-      resolver,
+      finalResolver,
     );
     const dsMessages = await retrieveZoneMessages(
       zoneNames.slice(1), // Skip the root DS
       DnssecRecordType.DS,
       question.class_,
-      resolver,
+      finalResolver,
     );
     const zoneMessageByKey: MessageByKey = { ...dnskeyMessages, ...dsMessages };
-    const response = await resolver(question);
+    const response = await finalResolver(question);
     return new UnverifiedChain(question, response, zoneMessageByKey);
   }
 
@@ -150,7 +156,7 @@ async function retrieveZoneMessages(
   zoneNames: readonly string[],
   recordType: DnssecRecordType,
   class_: DnsClass,
-  resolver: Resolver,
+  resolver: FinalResolver,
 ): Promise<MessageByKey> {
   const question = new Question('.', recordType, class_);
   return zoneNames.reduce(async (messages, zoneName) => {
