@@ -102,19 +102,7 @@ export class UnverifiedChain {
     }
     const intermediateZones = intermediateZonesResult.result;
 
-    const apexZone = intermediateZones[intermediateZones.length - 1];
-    const answers = SignedRRSet.initFromRecords(this.query, this.response.answers);
-    if (!apexZone.verifyRrset(answers, datePeriod)) {
-      return {
-        status: SecurityStatus.BOGUS,
-        reasonChain: ['Query response does not have a valid signature'],
-      };
-    }
-
-    return {
-      status: SecurityStatus.SECURE,
-      result: answers.rrset,
-    };
+    return this.verifyResponse(intermediateZones, datePeriod);
   }
 
   protected getRootZone(
@@ -166,6 +154,25 @@ export class UnverifiedChain {
       zones = [...zones, zone];
     }
     return { status: SecurityStatus.SECURE, result: zones };
+  }
+
+  protected verifyResponse(
+    intermediateZones: readonly Zone[],
+    datePeriod: DatePeriod,
+  ): VerificationResult<RRSet> {
+    const apexZone = intermediateZones[intermediateZones.length - 1];
+    const answers = SignedRRSet.initFromRecords(this.query, this.response.answers);
+    if (!apexZone.verifyRrset(answers, datePeriod)) {
+      return {
+        status: SecurityStatus.BOGUS,
+        reasonChain: ['Query response does not have a valid signature'],
+      };
+    }
+
+    return {
+      status: SecurityStatus.SECURE,
+      result: answers.rrset,
+    };
   }
 }
 
