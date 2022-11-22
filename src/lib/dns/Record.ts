@@ -3,7 +3,7 @@ import { normaliseName, serialiseName } from './name';
 import { Question } from './Question';
 import { getRrTypeId, getRrTypeName, IanaRrTypeIdOrName } from './ianaRrTypes';
 import { Codec, enc } from '@leichtgewicht/dns-packet';
-import { lengthPrefixRdata } from '../rdata/utils';
+import { lengthPrefixRdata } from '../utils/dns';
 import { DnsError } from './DnsError';
 
 interface RecordFields {
