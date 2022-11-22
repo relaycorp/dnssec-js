@@ -62,13 +62,11 @@ function canonicallySortRecords(originalRecords: readonly Record[]): readonly Re
     const maxLength = Math.max(a.dataSerialised.byteLength, b.dataSerialised.byteLength);
     for (let index = 0; index < maxLength; index++) {
       const aOctet = a.dataSerialised[index];
-      // istanbul ignore next
       if (aOctet === undefined) {
         return -1;
       }
 
       const bOctet = b.dataSerialised[index];
-      // istanbul ignore next
       if (bOctet === undefined) {
         return 1;
       }
