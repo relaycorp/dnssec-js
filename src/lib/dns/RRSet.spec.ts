@@ -76,13 +76,16 @@ describe('RRSet', () => {
     });
 
     describe('Ordering', () => {
-      test('Smaller RDATA should come first', () => {
-        const longer = RECORD.shallowCopy({ dataSerialised: Buffer.from([2, 0, 1]) });
+      test('Absence of an octet should sort before a zero octet', () => {
+        const longer = RECORD.shallowCopy({});
         const shorter = RECORD.shallowCopy({ dataSerialised: Buffer.from([1, 255]) });
+        // @ts-ignore
+        longer.dataSerialised = Buffer.from([1, 0]);
+        // @ts-ignore
+        shorter.dataSerialised = Buffer.from([1]);
 
-        const rrset = RRSet.init(QUESTION, [longer, shorter]);
-
-        expect(rrset.records).toEqual([shorter, longer]);
+        expect(RRSet.init(QUESTION, [longer, shorter]).records).toEqual([shorter, longer]);
+        expect(RRSet.init(QUESTION, [shorter, longer]).records).toEqual([shorter, longer]);
       });
 
       test('RDATA should be sorted from the left if they have same length', () => {
