@@ -16,6 +16,7 @@ import { IANA_TRUST_ANCHORS } from './IANA_TRUST_ANCHORS';
 import { SignedRRSet } from './SignedRRSet';
 import { Resolver } from './Resolver';
 import { DnsClass } from '../dns/ianaClasses';
+import { DsData } from '../rdata/DsData';
 
 export type VerifiedChainResult = SuccessfulResult<RRSet>;
 export type ChainVerificationResult = VerifiedChainResult | FailureResult;
@@ -87,19 +88,11 @@ export class UnverifiedChain {
   ) {}
 
   public verify(options: Partial<VerificationOptions> = {}): ChainVerificationResult {
-    const rootDnskeyMessage = this.zoneMessageByKey[`./${DnssecRecordType.DNSKEY}`];
-    if (!rootDnskeyMessage) {
-      return {
-        status: SecurityStatus.INDETERMINATE,
-        reasonChain: ['Cannot initialise root zone without a DNSKEY response'],
-      };
-    }
-
     const datePeriod = getDatePeriod(options.dateOrPeriod);
-    const rootDsData = options.trustAnchors ?? IANA_TRUST_ANCHORS;
-    const rootZoneResult = Zone.initRoot(rootDnskeyMessage, rootDsData, datePeriod);
+
+    const rootZoneResult = this.getRootZone(options.trustAnchors, datePeriod);
     if (rootZoneResult.status !== SecurityStatus.SECURE) {
-      return augmentFailureResult(rootZoneResult, 'Got invalid DNSKEY for root zone');
+      return rootZoneResult;
     }
     const rootZone = rootZoneResult.result;
 
@@ -122,6 +115,25 @@ export class UnverifiedChain {
       status: SecurityStatus.SECURE,
       result: answers.rrset,
     };
+  }
+
+  protected getRootZone(
+    trustAnchors: readonly DsData[] | undefined,
+    datePeriod: DatePeriod,
+  ): VerificationResult<Zone> {
+    const dnskeyMessage = this.zoneMessageByKey[`./${DnssecRecordType.DNSKEY}`];
+    if (!dnskeyMessage) {
+      return {
+        status: SecurityStatus.INDETERMINATE,
+        reasonChain: ['Cannot initialise root zone without a DNSKEY response'],
+      };
+    }
+    const rootDsData = trustAnchors ?? IANA_TRUST_ANCHORS;
+    const result = Zone.initRoot(dnskeyMessage, rootDsData, datePeriod);
+    if (result.status !== SecurityStatus.SECURE) {
+      return augmentFailureResult(result, 'Got invalid DNSKEY for root zone');
+    }
+    return result;
   }
 
   protected getIntermediateZones(
