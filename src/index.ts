@@ -8,6 +8,8 @@ export { Record } from './lib/dns/Record';
 export { RRSet } from './lib/dns/RRSet';
 
 // DNSSEC-related
+export { DnssecAlgorithm } from './lib/DnssecAlgorithm';
+export { ZoneSigner } from './lib/signing/ZoneSigner';
 export { DatePeriod } from './lib/verification/DatePeriod';
 export { Resolver } from './lib/verification/Resolver';
 export {
