@@ -3,6 +3,8 @@ import { toBufferBE } from 'bigint-buffer';
 
 import { getIntegerByteLength } from '../integers';
 import { DnssecAlgorithm } from '../../DnssecAlgorithm';
+import { ECDSA_CURVE_LENGTH } from './curves';
+import { DnssecError } from '../../DnssecError';
 
 export function serialisePublicKey(publicKey: KeyObject, dnssecAlgorithm: DnssecAlgorithm): Buffer {
   switch (dnssecAlgorithm) {
@@ -120,15 +122,13 @@ function deserialiseEcDsaPublicKey(
   serialisation: Buffer,
   algorithm: DnssecAlgorithm.ECDSAP256SHA256 | DnssecAlgorithm.ECDSAP384SHA384,
 ): KeyObject {
-  const serialisationLength = serialisation.byteLength;
-  if (algorithm === DnssecAlgorithm.ECDSAP256SHA256 && serialisationLength !== 64) {
-    throw new Error(`P-256 public key should span 64 octets (got ${serialisationLength})`);
-  }
-  if (algorithm === DnssecAlgorithm.ECDSAP384SHA384 && serialisationLength !== 96) {
-    throw new Error(`P-384 public key should span 96 octets (got ${serialisationLength})`);
+  const length = serialisation.byteLength;
+  const expectedLength = ECDSA_CURVE_LENGTH[algorithm];
+  if (length !== expectedLength) {
+    throw new DnssecError(`ECDSA public key should span ${expectedLength} octets (got ${length})`);
   }
 
-  const paramsLength = serialisationLength / 2;
+  const paramsLength = length / 2;
   const x = serialisation.subarray(0, paramsLength).toString('base64url');
   const y = serialisation.subarray(paramsLength).toString('base64url');
   const curveName = algorithm === DnssecAlgorithm.ECDSAP256SHA256 ? 'P-256' : 'P-384';

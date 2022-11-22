@@ -57,6 +57,7 @@
   },
   "dependencies": {
     "@leichtgewicht/dns-packet": "^6.0.3",
+    "@peculiar/asn1-schema": "^2.3.3",
     "bigint-buffer": "^1.1.5",
     "date-fns": "^2.29.3"
   },

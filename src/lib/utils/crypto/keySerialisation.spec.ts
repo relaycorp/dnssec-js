@@ -2,6 +2,7 @@ import { createPublicKey, KeyObject } from 'node:crypto';
 
 import { deserialisePublicKey, serialisePublicKey } from './keySerialisation';
 import { DnssecAlgorithm } from '../../DnssecAlgorithm';
+import { DnssecError } from '../../DnssecError';
 
 // Parameters taken from https://www.rfc-editor.org/rfc/rfc5702.html#section-6.1
 const RSA_PUB_KEY = {
@@ -217,8 +218,8 @@ describe('deserialisePublicKey', () => {
       ).subarray(1);
 
       expect(() => deserialisePublicKey(serialisation, algorithm)).toThrowWithMessage(
-        Error,
-        `P-256 public key should span 64 octets (got ${serialisation.byteLength})`,
+        DnssecError,
+        `ECDSA public key should span 64 octets (got ${serialisation.byteLength})`,
       );
     });
 
@@ -242,8 +243,8 @@ describe('deserialisePublicKey', () => {
       ).subarray(1);
 
       expect(() => deserialisePublicKey(serialisation, algorithm)).toThrowWithMessage(
-        Error,
-        `P-384 public key should span 96 octets (got ${serialisation.byteLength})`,
+        DnssecError,
+        `ECDSA public key should span 96 octets (got ${serialisation.byteLength})`,
       );
     });
   });

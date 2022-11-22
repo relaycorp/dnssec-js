@@ -8,7 +8,7 @@ import { RRSet } from '../dns/RRSet';
 import { QUESTION, RECORD, RECORD_TLD, RECORD_TYPE_STR } from '../../testUtils/dnsStubs';
 import { generateDigest } from '../utils/crypto/hashing';
 import { serialiseName } from '../dns/name';
-import { lengthPrefixRdata } from '../rdata/utils';
+import { lengthPrefixRdata } from '../utils/dns';
 
 describe('ZoneSigner', () => {
   test('generateDnskey', async () => {

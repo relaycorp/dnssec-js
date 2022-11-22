@@ -6,8 +6,12 @@ import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { countLabels, normaliseName, serialiseName } from '../dns/name';
 import { DnssecRecordData } from './DnssecRecordData';
 import { RRSet } from '../dns/RRSet';
-import { getNodejsHashAlgorithmFromDnssecAlgo } from '../utils/crypto/hashing';
+import { getNodejsSignatureHashFromDnssecAlgo } from '../utils/crypto/hashing';
 import { getRrTypeId, IanaRrTypeName } from '../dns/ianaRrTypes';
+import {
+  convertSignatureFromDnssec,
+  convertSignatureToDnssec,
+} from '../utils/crypto/signatureSerialisation';
 
 export class RrsigData implements DnssecRecordData {
   static initFromPacket(packet: RRSigData): RrsigData {
@@ -150,16 +154,18 @@ function serialiseRrset(rrset: RRSet, ttl: number): Buffer {
 }
 
 function sign(plaintext: Buffer, privateKey: KeyObject, dnssecAlgorithm: DnssecAlgorithm): Buffer {
-  const nodejsHashAlgorithm = getNodejsHashAlgorithmFromDnssecAlgo(dnssecAlgorithm);
-  return cryptoSign(nodejsHashAlgorithm, plaintext, privateKey);
+  const nodejsHashAlgorithm = getNodejsSignatureHashFromDnssecAlgo(dnssecAlgorithm);
+  const signature = cryptoSign(nodejsHashAlgorithm, plaintext, privateKey);
+  return convertSignatureToDnssec(signature, dnssecAlgorithm);
 }
 
 function verifySignature(
   plaintext: Buffer,
-  signature: Buffer,
+  dnssecSignature: Buffer,
   publicKey: KeyObject,
   dnssecAlgorithm: DnssecAlgorithm,
 ): boolean {
-  const nodejsHashAlgorithm = getNodejsHashAlgorithmFromDnssecAlgo(dnssecAlgorithm);
+  const signature = convertSignatureFromDnssec(dnssecSignature, dnssecAlgorithm);
+  const nodejsHashAlgorithm = getNodejsSignatureHashFromDnssecAlgo(dnssecAlgorithm);
   return cryptoVerify(nodejsHashAlgorithm, plaintext, publicKey, signature);
 }

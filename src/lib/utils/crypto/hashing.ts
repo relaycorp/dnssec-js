@@ -13,7 +13,7 @@ const HASH_BY_DNSSEC_ALGO: { readonly [algo in DnssecAlgorithm]: string | null }
   [DnssecAlgorithm.ED448]: null,
 };
 
-export function getNodejsHashAlgorithmFromDnssecAlgo(
+export function getNodejsSignatureHashFromDnssecAlgo(
   dnssecAlgorithm: DnssecAlgorithm,
 ): string | null {
   const hash = HASH_BY_DNSSEC_ALGO[dnssecAlgorithm];

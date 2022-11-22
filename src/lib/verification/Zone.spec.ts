@@ -111,7 +111,7 @@ describe('Zone', () => {
 
       expect(result).toEqual<FailureResult>({
         status: SecurityStatus.BOGUS,
-        reasonChain: ['No valid RRSig was found'],
+        reasonChain: ['No valid DNSKEY RRSig was found'],
       });
     });
 
@@ -139,7 +139,7 @@ describe('Zone', () => {
 
       expect(result).toEqual<FailureResult>({
         status: SecurityStatus.BOGUS,
-        reasonChain: ['No valid RRSig was found'],
+        reasonChain: ['No valid DNSKEY RRSig was found'],
       });
     });
 
@@ -153,7 +153,7 @@ describe('Zone', () => {
 
       expect(result).toEqual<FailureResult>({
         status: SecurityStatus.BOGUS,
-        reasonChain: ['No valid RRSig was found'],
+        reasonChain: ['No valid DNSKEY RRSig was found'],
       });
     });
 
@@ -257,7 +257,7 @@ describe('Zone', () => {
 
       expect(result).toEqual<FailureResult>({
         status: SecurityStatus.BOGUS,
-        reasonChain: ['No valid RRSig was found'],
+        reasonChain: ['No valid DNSKEY RRSig was found'],
       });
     });
   });
