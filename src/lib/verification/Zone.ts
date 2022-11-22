@@ -34,7 +34,7 @@ export class Zone {
   ): VerificationResult<Zone> {
     if (dnskeyMessage.header.rcode !== RCODE_IDS.NoError) {
       return {
-        status: SecurityStatus.INDETERMINATE,
+        status: SecurityStatus.INSECURE,
         reasonChain: [`Expected DNSKEY rcode to be NOERROR (0; got ${dnskeyMessage.header.rcode})`],
       };
     }
@@ -89,7 +89,7 @@ export class Zone {
   ): VerificationResult<Zone> {
     if (dsMessage.header.rcode !== RCODE_IDS.NoError) {
       return {
-        status: SecurityStatus.INDETERMINATE,
+        status: SecurityStatus.INSECURE,
         reasonChain: [`Expected DS rcode to be NOERROR (0; got ${dsMessage.header.rcode})`],
       };
     }

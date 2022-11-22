@@ -59,14 +59,14 @@ describe('Zone', () => {
   });
 
   describe('init', () => {
-    test('Message with rcode other than NOERROR should be INDETERMINATE', () => {
+    test('DNSKEY message with rcode other than NOERROR should be INSECURE', () => {
       const rcode = 1;
       const dnskeyMessage = new Message({ rcode }, [], [tldDnskey.record, tldDnskey.rrsig.record]);
 
       const result = Zone.init(RECORD_TLD, dnskeyMessage, [tldDs.data], VALIDITY_PERIOD);
 
       expect(result).toEqual<FailureResult>({
-        status: SecurityStatus.INDETERMINATE,
+        status: SecurityStatus.INSECURE,
         reasonChain: [`Expected DNSKEY rcode to be NOERROR (0; got ${rcode})`],
       });
     });
@@ -333,7 +333,7 @@ describe('Zone', () => {
     });
 
     describe('DS', () => {
-      test('DS message with rcode other than NOERROR should be INDETERMINATE', () => {
+      test('DS message with rcode other than NOERROR should be INSECURE', () => {
         const invalidDsMessage = new Message(
           {
             ...tldDs.message.header,
@@ -351,7 +351,7 @@ describe('Zone', () => {
         );
 
         expect(result).toEqual<FailureResult>({
-          status: SecurityStatus.INDETERMINATE,
+          status: SecurityStatus.INSECURE,
           reasonChain: [
             `Expected DS rcode to be NOERROR (0; got ${invalidDsMessage.header.rcode})`,
           ],
