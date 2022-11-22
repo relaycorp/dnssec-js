@@ -55,7 +55,7 @@ export class Zone {
     }
 
     if (!dnskeySignedRrset.verify(zskDnskeys, datePeriod)) {
-      return { status: SecurityStatus.BOGUS, reasonChain: ['No valid RRSig was found'] };
+      return { status: SecurityStatus.BOGUS, reasonChain: ['No valid DNSKEY RRSig was found'] };
     }
 
     return {

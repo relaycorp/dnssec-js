@@ -1,6 +1,7 @@
 {
   "extends": "@relaycorp/shared-config",
   "compilerOptions": {
+    "experimentalDecorators": true,
     "module": "esnext",
     "outDir": "build/lib",
     "rootDir": "src",
