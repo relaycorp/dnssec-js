@@ -1,7 +1,6 @@
 import { DNSoverHTTPS } from 'dohdec';
 
 import { Resolver } from '../lib/verification/Resolver';
-import { Message } from '../lib/dns/Message';
 import { UnverifiedChain, VerifiedChainResult } from '../lib/verification/UnverifiedChain';
 import { Question } from '../lib/dns/Question';
 import { SecurityStatus } from '../lib/verification/SecurityStatus';
@@ -14,8 +13,8 @@ afterAll(() => {
   DOH_CLIENT.close();
 });
 
-const RESOLVER: Resolver = async (question) => {
-  const messageRaw = await retryUponFailure(
+const RESOLVER: Resolver = async (question) =>
+  (await retryUponFailure(
     async () =>
       DOH_CLIENT.lookup(question.name, {
         rrtype: question.getTypeName(),
@@ -24,9 +23,7 @@ const RESOLVER: Resolver = async (question) => {
         dnssec: true, // Retrieve RRSig records
       }),
     3,
-  );
-  return Message.deserialise(messageRaw as Buffer);
-};
+  )) as Promise<Buffer>;
 
 test('Positive response in valid DNSSEC zone should be SECURE', async () => {
   const question = new Question('dnssec-deployment.org.', 'A', DnsClass.IN);

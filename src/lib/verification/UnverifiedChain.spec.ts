@@ -1,6 +1,7 @@
 import { jest } from '@jest/globals';
-import { addSeconds, subSeconds } from 'date-fns';
+import { encode } from '@leichtgewicht/dns-packet';
 
+import { addSeconds, subSeconds } from 'date-fns';
 import { SignatureGenerationOptions, ZoneSigner } from '../signing/ZoneSigner';
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { Message } from '../dns/Message';
@@ -16,7 +17,7 @@ import { IANA_TRUST_ANCHORS } from './IANA_TRUST_ANCHORS';
 import { DatePeriod } from './DatePeriod';
 import { Resolver } from './Resolver';
 import { DnsClass } from '../dns/ianaClasses';
-import { RCODE_IDS } from '../dns/ianaRcodes';
+import { getRcodeId, RCODE_IDS } from '../dns/ianaRcodes';
 
 const NOW = new Date();
 const SIGNATURE_OPTIONS: SignatureGenerationOptions = {
@@ -142,6 +143,21 @@ describe('retrieve', () => {
     const chain = await UnverifiedChain.retrieve(QUESTION, RESOLVER);
 
     expect(chain.query).toEqual(QUESTION);
+  });
+
+  test('Returned message should be deserialised if given as a Buffer', async () => {
+    const rcode = getRcodeId('YXRRSet');
+    const messageSerialised = Buffer.from(
+      encode({
+        flags: rcode, // `rcode` field has no effect, so we have to pass it in the flags
+      }),
+    );
+    const resolver = async () => messageSerialised;
+
+    const chain = await UnverifiedChain.retrieve(QUESTION, resolver);
+
+    expect(chain.response.header.rcode).toEqual(rcode);
+    expect(chain.zoneMessageByKey[`./${DnssecRecordType.DNSKEY}`].header.rcode).toEqual(rcode);
   });
 });
 
