@@ -150,6 +150,12 @@ describe('SignedRRSet', () => {
   });
 
   describe('signerNames', () => {
+    test('Nothing should be output if there are no RRSigs', () => {
+      const signedRrset = SignedRRSet.initFromRecords(QUESTION, [RECORD]);
+
+      expect(signedRrset.signerNames).toBeEmpty();
+    });
+
     test('A single name should be output if there is only one RRSig', () => {
       const dnskey = apexSigner.generateDnskey();
       const rrsig = apexSigner.generateRrsig(RRSET, dnskey.data.calculateKeyTag(), RRSIG_OPTIONS);
@@ -166,6 +172,23 @@ describe('SignedRRSet', () => {
         ...RRSET.records,
         rrsig1.record,
         rrsig2.record,
+      ]);
+
+      expect(signedRrset.signerNames).toContainAllValues([apexSigner.zoneName, tldSigner.zoneName]);
+    });
+
+    test('Names should be sorted from longest to shortest', () => {
+      const dnskey = apexSigner.generateDnskey();
+      const apexRrsig = apexSigner.generateRrsig(
+        RRSET,
+        dnskey.data.calculateKeyTag(),
+        RRSIG_OPTIONS,
+      );
+      const tldRrsig = tldSigner.generateRrsig(RRSET, dnskey.data.calculateKeyTag(), RRSIG_OPTIONS);
+      const signedRrset = SignedRRSet.initFromRecords(QUESTION, [
+        ...RRSET.records,
+        tldRrsig.record,
+        apexRrsig.record,
       ]);
 
       expect(signedRrset.signerNames).toEqual([apexSigner.zoneName, tldSigner.zoneName]);

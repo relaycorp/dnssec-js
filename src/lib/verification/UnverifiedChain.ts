@@ -96,11 +96,8 @@ export class UnverifiedChain {
     }
 
     const answers = SignedRRSet.initFromRecords(this.query, this.response.answers);
-    const leafZoneName = answers.signerNames.reduce(
-      (acc, name) => (name.length < acc.length ? acc : name),
-      '',
-    );
-    const zonesResult = this.getZones(rootZoneResult.result, leafZoneName, datePeriod);
+    const apexZoneName = answers.signerNames[0] ?? answers.rrset.name;
+    const zonesResult = this.getZones(rootZoneResult.result, apexZoneName, datePeriod);
     if (zonesResult.status !== SecurityStatus.SECURE) {
       return zonesResult;
     }
@@ -129,11 +126,11 @@ export class UnverifiedChain {
 
   protected getZones(
     rootZone: Zone,
-    leafZoneName: string,
+    apexZoneName: string,
     datePeriod: DatePeriod,
   ): VerificationResult<readonly Zone[]> {
     let zones = [rootZone];
-    for (const zoneName of getZonesInChain(leafZoneName, false)) {
+    for (const zoneName of getZonesInChain(apexZoneName, false)) {
       const zoneDnskeyMessage = this.zoneMessageByKey[`${zoneName}/${DnssecRecordType.DNSKEY}`];
       if (!zoneDnskeyMessage) {
         return {
@@ -162,10 +159,10 @@ export class UnverifiedChain {
 
   protected verifyAnswers(
     answers: SignedRRSet,
-    intermediateZones: readonly Zone[],
+    zones: readonly Zone[],
     datePeriod: DatePeriod,
   ): VerificationResult<RRSet> {
-    const apexZone = intermediateZones[intermediateZones.length - 1];
+    const apexZone = zones[zones.length - 1];
     if (!apexZone.verifyRrset(answers, datePeriod)) {
       return {
         status: SecurityStatus.BOGUS,

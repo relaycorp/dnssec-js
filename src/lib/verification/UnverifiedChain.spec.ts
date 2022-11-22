@@ -466,7 +466,20 @@ describe('verify', () => {
       });
     });
 
-    test('Invalid signature for query response should be refused', () => {
+    test('Missing RRSIG for query response should be refused', () => {
+      const response = new Message({ rcode: RCODE_IDS.NoError }, [QUESTION], [RECORD]);
+      const messages = replaceMessages(chainMessages, [response]);
+      const chain = UnverifiedChain.initFromMessages(QUESTION, messages);
+
+      const result = chain.verify({ trustAnchors });
+
+      expect(result).toEqual<FailureResult>({
+        status: SecurityStatus.BOGUS,
+        reasonChain: ['Query response does not have a valid signature'],
+      });
+    });
+
+    test('Invalid RRSIG for query response should be refused', () => {
       const expiredQueryResponse = apexSigner.generateRrsig(RRSET, apexResponses.ds.data.keyTag, {
         signatureExpiry: SIGNATURE_OPTIONS.signatureInception,
       }).message;

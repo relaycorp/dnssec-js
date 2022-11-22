@@ -41,7 +41,7 @@ export class SignedRRSet {
   get signerNames(): readonly string[] {
     const names = this.rrsigs.map((s) => s.data.signerName);
     const uniqueNames = new Set(names);
-    return [...uniqueNames];
+    return [...uniqueNames].sort((a, b) => b.length - a.length);
   }
 
   public verify(
