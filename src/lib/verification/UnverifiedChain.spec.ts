@@ -442,30 +442,32 @@ describe('verify', () => {
     });
   });
 
-  test('Invalid signature for query response should be refused', () => {
-    const expiredQueryResponse = apexSigner.generateRrsig(RRSET, apexResponses.ds.data.keyTag, {
-      signatureExpiry: SIGNATURE_OPTIONS.signatureInception,
-    }).message;
-    const messages = replaceMessages(chainMessages, [expiredQueryResponse]);
-    const chain = UnverifiedChain.initFromMessages(QUESTION, messages);
-    const date = addSeconds(SIGNATURE_OPTIONS.signatureInception, 1);
+  describe('Query response', () => {
+    test('Invalid signature for query response should be refused', () => {
+      const expiredQueryResponse = apexSigner.generateRrsig(RRSET, apexResponses.ds.data.keyTag, {
+        signatureExpiry: SIGNATURE_OPTIONS.signatureInception,
+      }).message;
+      const messages = replaceMessages(chainMessages, [expiredQueryResponse]);
+      const chain = UnverifiedChain.initFromMessages(QUESTION, messages);
+      const date = addSeconds(SIGNATURE_OPTIONS.signatureInception, 1);
 
-    const result = chain.verify({ dateOrPeriod: date, trustAnchors });
+      const result = chain.verify({ dateOrPeriod: date, trustAnchors });
 
-    expect(result).toEqual<FailureResult>({
-      status: SecurityStatus.BOGUS,
-      reasonChain: ['Query response does not have a valid signature'],
+      expect(result).toEqual<FailureResult>({
+        status: SecurityStatus.BOGUS,
+        reasonChain: ['Query response does not have a valid signature'],
+      });
     });
-  });
 
-  test('RRset should be returned if chain is valid', () => {
-    const chain = UnverifiedChain.initFromMessages(QUESTION, chainMessages);
+    test('RRset should be returned if chain is valid', () => {
+      const chain = UnverifiedChain.initFromMessages(QUESTION, chainMessages);
 
-    const result = chain.verify({ trustAnchors });
+      const result = chain.verify({ trustAnchors });
 
-    expect(result).toEqual<VerifiedChainResult>({
-      status: SecurityStatus.SECURE,
-      result: RRSET,
+      expect(result).toEqual<VerifiedChainResult>({
+        status: SecurityStatus.SECURE,
+        result: RRSET,
+      });
     });
   });
 });
