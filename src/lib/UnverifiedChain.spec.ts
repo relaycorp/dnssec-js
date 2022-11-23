@@ -1,23 +1,23 @@
 import { jest } from '@jest/globals';
 import { encode } from '@leichtgewicht/dns-packet';
-
 import { addSeconds, subSeconds } from 'date-fns';
-import { SignatureGenerationOptions, ZoneSigner } from '../../testUtils/dnssec/ZoneSigner';
-import { DnssecAlgorithm } from '../DnssecAlgorithm';
-import { Message } from '../dns/Message';
-import { QUESTION, RECORD, RECORD_TLD, RRSET } from '../../testUtils/dnsStubs';
-import { ChainVerificationResult, UnverifiedChain, VerifiedChainResult } from './UnverifiedChain';
-import { ZoneResponseSet } from '../../testUtils/dnssec/responses';
-import { DnssecRecordType } from '../DnssecRecordType';
-import { Question } from '../dns/Question';
-import { FailureResult } from './results';
+
+import { SignatureGenerationOptions, ZoneSigner } from '../testUtils/dnssec/ZoneSigner';
+import { DnssecAlgorithm } from './DnssecAlgorithm';
+import { Message } from './dns/Message';
+import { QUESTION, RECORD, RECORD_TLD, RRSET } from '../testUtils/dnsStubs';
+import { UnverifiedChain } from './UnverifiedChain';
+import { ZoneResponseSet } from '../testUtils/dnssec/responses';
+import { DnssecRecordType } from './DnssecRecordType';
+import { Question } from './dns/Question';
+import { ChainVerificationResult, FailureResult, VerifiedRRSet } from './results';
 import { SecurityStatus } from './SecurityStatus';
-import { DsData } from '../rdata/DsData';
+import { DsData } from './rdata/DsData';
 import { IANA_TRUST_ANCHORS } from './IANA_TRUST_ANCHORS';
 import { DatePeriod } from './DatePeriod';
 import { Resolver } from './Resolver';
-import { DnsClass } from '../dns/ianaClasses';
-import { getRcodeId, RCODE_IDS } from '../dns/ianaRcodes';
+import { DnsClass } from './dns/ianaClasses';
+import { getRcodeId, RCODE_IDS } from './dns/ianaRcodes';
 
 const NOW = new Date();
 const SIGNATURE_OPTIONS: SignatureGenerationOptions = {
@@ -463,7 +463,7 @@ describe('verify', () => {
 
     const result = chain.verify({ trustAnchors });
 
-    expect(result).toEqual<VerifiedChainResult>({
+    expect(result).toEqual<VerifiedRRSet>({
       status: SecurityStatus.SECURE,
       result: RRSET,
     });

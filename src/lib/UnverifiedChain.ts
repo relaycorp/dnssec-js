@@ -1,19 +1,15 @@
-import { Question } from '../dns/Question';
-import { Message } from '../dns/Message';
-import { DnssecRecordType } from '../DnssecRecordType';
+import { Question } from './dns/Question';
+import { Message } from './dns/Message';
+import { DnssecRecordType } from './DnssecRecordType';
 import { VerificationOptions } from './VerificationOptions';
-import { augmentFailureResult, FailureResult, SuccessfulResult } from './results';
-import { RRSet } from '../dns/RRSet';
+import { augmentFailureResult, ChainVerificationResult } from './results';
 import { SecurityStatus } from './SecurityStatus';
 import { Zone } from './Zone';
 import { DatePeriod } from './DatePeriod';
 import { IANA_TRUST_ANCHORS } from './IANA_TRUST_ANCHORS';
 import { SignedRRSet } from './SignedRRSet';
 import { Resolver } from './Resolver';
-import { DnsClass } from '../dns/ianaClasses';
-
-export type VerifiedChainResult = SuccessfulResult<RRSet>;
-export type ChainVerificationResult = VerifiedChainResult | FailureResult;
+import { DnsClass } from './dns/ianaClasses';
 
 interface MessageByKey {
   readonly [key: string]: Message;

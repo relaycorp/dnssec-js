@@ -1,11 +1,11 @@
 import { DNSoverHTTPS } from 'dohdec';
 
-import { Resolver } from '../lib/verification/Resolver';
-import { UnverifiedChain, VerifiedChainResult } from '../lib/verification/UnverifiedChain';
+import { Resolver } from '../lib/Resolver';
+import { UnverifiedChain } from '../lib/UnverifiedChain';
 import { Question } from '../lib/dns/Question';
-import { SecurityStatus } from '../lib/verification/SecurityStatus';
+import { SecurityStatus } from '../lib/SecurityStatus';
 import { RRSet } from '../lib/dns/RRSet';
-import { FailureResult } from '../lib/verification/results';
+import { FailureResult, VerifiedRRSet } from '../lib/results';
 
 const DOH_CLIENT = new DNSoverHTTPS({ url: 'https://cloudflare-dns.com/dns-query' });
 afterAll(() => {
@@ -30,7 +30,7 @@ test('Positive response in valid DNSSEC zone should be SECURE', async () => {
 
   const result = chain.verify();
 
-  expect(result).toEqual<VerifiedChainResult>({
+  expect(result).toEqual<VerifiedRRSet>({
     status: SecurityStatus.SECURE,
     result: expect.any(RRSet),
   });

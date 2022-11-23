@@ -8,10 +8,7 @@ export { Record } from './lib/dns/Record';
 export { RRSet } from './lib/dns/RRSet';
 
 // DNSSEC-related
-export { DatePeriod } from './lib/verification/DatePeriod';
-export { Resolver } from './lib/verification/Resolver';
-export {
-  ChainVerificationResult,
-  UnverifiedChain,
-  VerifiedChainResult,
-} from './lib/verification/UnverifiedChain';
+export { DatePeriod } from './lib/DatePeriod';
+export { Resolver } from './lib/Resolver';
+// export { dnssecLookup } from './lib/lookup';
+export { ChainVerificationResult, FailureResult, VerifiedRRSet } from './lib/results';

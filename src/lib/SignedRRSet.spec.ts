@@ -2,17 +2,17 @@ import { jest } from '@jest/globals';
 import { addSeconds, setMilliseconds, subSeconds } from 'date-fns';
 
 import { SignedRRSet } from './SignedRRSet';
-import { QUESTION, RECORD, RRSET } from '../../testUtils/dnsStubs';
-import { SignatureGenerationOptions, ZoneSigner } from '../../testUtils/dnssec/ZoneSigner';
-import { DnssecAlgorithm } from '../DnssecAlgorithm';
-import { RRSet } from '../dns/RRSet';
-import { DnskeyRecord } from '../dnssecRecords';
+import { QUESTION, RECORD, RRSET } from '../testUtils/dnsStubs';
+import { SignatureGenerationOptions, ZoneSigner } from '../testUtils/dnssec/ZoneSigner';
+import { DnssecAlgorithm } from './DnssecAlgorithm';
+import { RRSet } from './dns/RRSet';
+import { DnskeyRecord } from './dnssecRecords';
 import { DatePeriod } from './DatePeriod';
-import { serialisePublicKey } from '../utils/crypto/keySerialisation';
-import { DnskeyData } from '../rdata/DnskeyData';
-import { RrsigData } from '../rdata/RrsigData';
-import { DnsClass } from '../dns/ianaClasses';
-import { IANA_RR_TYPE_IDS } from '../dns/ianaRrTypes';
+import { serialisePublicKey } from './utils/crypto/keySerialisation';
+import { DnskeyData } from './rdata/DnskeyData';
+import { RrsigData } from './rdata/RrsigData';
+import { DnsClass } from './dns/ianaClasses';
+import { IANA_RR_TYPE_IDS } from './dns/ianaRrTypes';
 
 describe('SignedRRSet', () => {
   const RRSIG_OPTIONS: Partial<SignatureGenerationOptions> = {
