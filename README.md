@@ -14,16 +14,16 @@ npm install @relaycorp/dnssec
 
 Here's an example using DoH with Cloudflare:
 
-```typescript
-import { dnssecLookUp, Question, RRSet, SecurityStatus } from '@relaycorp/dnssec';
+```js
+import { dnssecLookUp, Question, SecurityStatus } from '@relaycorp/dnssec';
 import { DNSoverHTTPS } from 'dohdec';
 
 const doh = new DNSoverHTTPS({ url: 'https://cloudflare-dns.com/dns-query' });
 
-async function getARecord(domain: string): Promise<RRSet> {
+async function getARecord(domain) {
   const question = new Question(domain, 'A');
   const result = await dnssecLookUp(question, async () =>
-    DOH_CLIENT.lookup(question.name, {
+    doh.lookup(question.name, {
       rrtype: question.getTypeName(),
       json: false,
       decode: false,
@@ -38,6 +38,13 @@ async function getARecord(domain: string): Promise<RRSet> {
   }
   return result.result;
 }
+
+getARecord('example.com').then((rrset) =>
+  console.log(
+    'example.com:',
+    rrset.records.map((r) => r.dataFields),
+  ),
+);
 ```
 
 ## Alternatives considered
