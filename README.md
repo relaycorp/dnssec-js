@@ -1,6 +1,44 @@
 # `@relaycorp/dnssec`
 
-Resolver-agnostic DNSSEC library for Node.js.
+[![npm version](https://badge.fury.io/js/@relaycorp%2Fdnssec.svg)](https://badge.fury.io/js/@relaycorp%2Fdnssec)
+
+This is a resolver-agnostic DNSSEC verification library for Node.js. You're free to use whatever transport you want: UDP, DNS-over-TLS (DoT), DNS-over-HTTP (DoH), etc.
+
+The latest version can be installed from NPM:
+
+```shell
+npm install @relaycorp/dnssec
+```
+
+## Usage
+
+Here's an example using DoH with Cloudflare:
+
+```typescript
+import { dnssecLookUp, Question, RRSet, SecurityStatus } from '@relaycorp/dnssec';
+import { DNSoverHTTPS } from 'dohdec';
+
+const doh = new DNSoverHTTPS({ url: 'https://cloudflare-dns.com/dns-query' });
+
+async function getARecord(domain: string): Promise<RRSet> {
+  const question = new Question(domain, 'A');
+  const result = await dnssecLookUp(question, async () =>
+    DOH_CLIENT.lookup(question.name, {
+      rrtype: question.getTypeName(),
+      json: false,
+      decode: false,
+      dnssec: true, // Retrieve RRSig records
+      dnssecCd: true, // Prevent Cloudflare from doing DNSSEC validation
+    }),
+  );
+
+  if (result.status !== SecurityStatus.SECURE) {
+    const reason = result.reasonChain.join(', ');
+    throw new Error(`DNSSEC verification for ${domain}/A failed: ${reason}`);
+  }
+  return result.result;
+}
+```
 
 ## Alternatives considered
 
@@ -40,3 +78,5 @@ We support all the _Zone Signing_ [DNSSEC algorithms](https://www.iana.org/assig
 - NSEC3 (`6` and `7`) because [we don't currently support Denial of Existence records](https://github.com/relaycorp/dnssec-js/issues/17).
 - [GOST](https://en.wikipedia.org/wiki/GOST) (`12`) due to lack of support in Node.js, and its lack of popularity and security doesn't seem to justify integrating a third party NPM package supporting it (assuming a suitable one exists).
 - Private algorithms (`253` and `254`) because we have no use for those, but we'd welcome PRs to implement them.
+
+## Node.js version support
