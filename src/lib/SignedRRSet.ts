@@ -1,11 +1,11 @@
-import { RRSet } from '../dns/RRSet';
-import { Record } from '../dns/Record';
-import { DnskeyRecord, RrsigRecord } from '../dnssecRecords';
-import { DnssecRecordType } from '../DnssecRecordType';
-import { RrsigData } from '../rdata/RrsigData';
-import { Question } from '../dns/Question';
+import { RRSet } from './dns/RRSet';
+import { Record } from './dns/Record';
+import { DnskeyRecord, RrsigRecord } from './dnssecRecords';
+import { DnssecRecordType } from './DnssecRecordType';
+import { RrsigData } from './rdata/RrsigData';
+import { Question } from './dns/Question';
 import { DatePeriod } from './DatePeriod';
-import { DnskeyData } from '../rdata/DnskeyData';
+import { DnskeyData } from './rdata/DnskeyData';
 import { isChildZone } from '../dns/name';
 
 /**

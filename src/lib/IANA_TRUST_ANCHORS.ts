@@ -1,6 +1,6 @@
-import { DsData } from '../rdata/DsData';
-import { DnssecAlgorithm } from '../DnssecAlgorithm';
-import { DigestType } from '../DigestType';
+import { DsData } from './rdata/DsData';
+import { DnssecAlgorithm } from './DnssecAlgorithm';
+import { DigestType } from './DigestType';
 
 /**
  * Set of root Key-Signing Keys (KSKs) as published by IANA.

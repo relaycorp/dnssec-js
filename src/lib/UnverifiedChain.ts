@@ -1,25 +1,14 @@
-import { Question } from '../dns/Question';
-import { Message } from '../dns/Message';
-import { DnssecRecordType } from '../DnssecRecordType';
-import { VerificationOptions } from './VerificationOptions';
-import {
-  augmentFailureResult,
-  FailureResult,
-  SuccessfulResult,
-  VerificationResult,
-} from './results';
-import { RRSet } from '../dns/RRSet';
+import { Question } from './dns/Question';
+import { Message } from './dns/Message';
+import { DnssecRecordType } from './DnssecRecordType';
+import { augmentFailureResult, ChainVerificationResult } from './results';
 import { SecurityStatus } from './SecurityStatus';
 import { Zone } from './Zone';
 import { DatePeriod } from './DatePeriod';
-import { IANA_TRUST_ANCHORS } from './IANA_TRUST_ANCHORS';
 import { SignedRRSet } from './SignedRRSet';
 import { Resolver } from './Resolver';
-import { DnsClass } from '../dns/ianaClasses';
-import { DsData } from '../rdata/DsData';
-
-export type VerifiedChainResult = SuccessfulResult<RRSet>;
-export type ChainVerificationResult = VerifiedChainResult | FailureResult;
+import { DnsClass } from './dns/ianaClasses';
+import { DsData } from './rdata/DsData';
 
 interface MessageByKey {
   readonly [key: string]: Message;
@@ -87,7 +76,7 @@ export class UnverifiedChain {
     public readonly zoneMessageByKey: MessageByKey,
   ) {}
 
-  public verify(options: Partial<VerificationOptions> = {}): ChainVerificationResult {
+  public verify(datePeriod: DatePeriod, trustAnchors: readonly DsData[]): ChainVerificationResult {
     const datePeriod = getDatePeriod(options.dateOrPeriod);
 
     const rootZoneResult = this.getRootZone(options.trustAnchors, datePeriod);
@@ -116,10 +105,9 @@ export class UnverifiedChain {
         reasonChain: ['Cannot initialise root zone without a DNSKEY response'],
       };
     }
-    const rootDsData = trustAnchors ?? IANA_TRUST_ANCHORS;
-    const result = Zone.initRoot(dnskeyMessage, rootDsData, datePeriod);
-    if (result.status !== SecurityStatus.SECURE) {
-      return augmentFailureResult(result, 'Got invalid DNSKEY for root zone');
+    const rootZoneResult = Zone.initRoot(rootDnskeyMessage, trustAnchors, datePeriod);
+    if (rootZoneResult.status !== SecurityStatus.SECURE) {
+      return augmentFailureResult(rootZoneResult, 'Got invalid DNSKEY for root zone');
     }
     return result;
   }

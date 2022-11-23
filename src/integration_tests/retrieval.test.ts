@@ -1,12 +1,11 @@
 import { DNSoverHTTPS } from 'dohdec';
 
-import { Resolver } from '../lib/verification/Resolver';
-import { UnverifiedChain, VerifiedChainResult } from '../lib/verification/UnverifiedChain';
+import { Resolver } from '../lib/Resolver';
 import { Question } from '../lib/dns/Question';
-import { SecurityStatus } from '../lib/verification/SecurityStatus';
+import { SecurityStatus } from '../lib/SecurityStatus';
 import { RRSet } from '../lib/dns/RRSet';
-import { DnsClass } from '../lib/dns/ianaClasses';
-import { FailureResult } from '../lib/verification/results';
+import { FailureResult, VerifiedRRSet } from '../lib/results';
+import { dnssecLookUp } from '../lib/lookup';
 
 const DOH_CLIENT = new DNSoverHTTPS({ url: 'https://cloudflare-dns.com/dns-query' });
 afterAll(() => {
@@ -27,22 +26,20 @@ const RESOLVER: Resolver = async (question) =>
   )) as Promise<Buffer>;
 
 test('Positive response in valid DNSSEC zone should be SECURE', async () => {
-  const question = new Question('dnssec-deployment.org.', 'A', DnsClass.IN);
-  const chain = await UnverifiedChain.retrieve(question, RESOLVER);
+  const question = new Question('dnssec-deployment.org.', 'A');
 
-  const result = chain.verify();
+  const result = await dnssecLookUp(question, RESOLVER);
 
-  expect(result).toEqual<VerifiedChainResult>({
+  expect(result).toEqual<VerifiedRRSet>({
     status: SecurityStatus.SECURE,
     result: expect.any(RRSet),
   });
 });
 
 test('Response from bogus secure zone should be BOGUS', async () => {
-  const question = new Question('dnssec-failed.org.', 'A', DnsClass.IN);
-  const chain = await UnverifiedChain.retrieve(question, RESOLVER);
+  const question = new Question('dnssec-failed.org.', 'A');
 
-  const result = chain.verify();
+  const result = await dnssecLookUp(question, RESOLVER);
 
   expect(result).toEqual<FailureResult>({
     status: SecurityStatus.BOGUS,

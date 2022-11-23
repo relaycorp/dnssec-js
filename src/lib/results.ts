@@ -1,4 +1,5 @@
 import { SecurityStatus } from './SecurityStatus';
+import { RRSet } from './dns/RRSet';
 
 interface BaseResult {
   readonly status: SecurityStatus;
@@ -15,6 +16,9 @@ export interface FailureResult extends BaseResult {
 }
 
 export type VerificationResult<R = void> = SuccessfulResult<R> | FailureResult;
+
+export type VerifiedRRSet = SuccessfulResult<RRSet>;
+export type ChainVerificationResult = VerifiedRRSet | FailureResult;
 
 export function augmentFailureResult(
   originalResult: FailureResult,

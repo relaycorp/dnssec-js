@@ -1,15 +1,15 @@
-import { DsData } from '../rdata/DsData';
+import { DsData } from './rdata/DsData';
 import { VerificationResult } from './results';
-import { Message } from '../dns/Message';
-import { DnskeyData } from '../rdata/DnskeyData';
+import { Message } from './dns/Message';
+import { DnskeyData } from './rdata/DnskeyData';
 import { SecurityStatus } from './SecurityStatus';
-import { DnssecRecordType } from '../DnssecRecordType';
-import { DnskeyRecord } from '../dnssecRecords';
+import { DnssecRecordType } from './DnssecRecordType';
+import { DnskeyRecord } from './dnssecRecords';
 import { SignedRRSet } from './SignedRRSet';
-import { DnsClass } from '../dns/ianaClasses';
+import { DnsClass } from './dns/ianaClasses';
 import { DatePeriod } from './DatePeriod';
-import { Question } from '../dns/Question';
-import { RCODE_IDS } from '../dns/ianaRcodes';
+import { Question } from './dns/Question';
+import { RCODE_IDS } from './dns/ianaRcodes';
 
 /**
  * A secure zone (in DNSSEC terms).

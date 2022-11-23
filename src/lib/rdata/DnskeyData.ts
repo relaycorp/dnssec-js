@@ -6,7 +6,7 @@ import { DnskeyFlags } from '../DnskeyFlags';
 import { DnssecRecordData } from './DnssecRecordData';
 import { RrsigData } from './RrsigData';
 import { deserialisePublicKey, serialisePublicKey } from '../utils/crypto/keySerialisation';
-import { DatePeriod } from '../verification/DatePeriod';
+import { DatePeriod } from '../DatePeriod';
 
 const ZONE_KEY_MASK = 0b00000001_00000000;
 const SECURE_ENTRY_POINT_MASK = 0b00000000_00000001;

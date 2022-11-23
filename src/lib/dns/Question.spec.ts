@@ -39,6 +39,12 @@ describe('constructor', () => {
   });
 
   describe('Class', () => {
+    test('IN class should be used by default', () => {
+      const question = new Question(QUESTION.name, IANA_RR_TYPE_IDS.A);
+
+      expect(question.class_).toEqual(DnsClass.IN);
+    });
+
     test('Id should be stored as is', () => {
       const question = new Question(QUESTION.name, IANA_RR_TYPE_IDS.A, DnsClass.IN);
 
