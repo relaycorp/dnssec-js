@@ -6,7 +6,7 @@ import { RrsigData } from './rdata/RrsigData';
 import { Question } from './dns/Question';
 import { DatePeriod } from './DatePeriod';
 import { DnskeyData } from './rdata/DnskeyData';
-import { isChildZone } from '../dns/name';
+import { isChildZone } from './dns/name';
 
 /**
  * RRSet with one or more corresponding RRSigs.

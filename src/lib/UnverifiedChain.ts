@@ -1,7 +1,7 @@
 import { Question } from './dns/Question';
 import { Message } from './dns/Message';
 import { DnssecRecordType } from './DnssecRecordType';
-import { augmentFailureResult, ChainVerificationResult } from './results';
+import { augmentFailureResult, ChainVerificationResult, VerificationResult } from './results';
 import { SecurityStatus } from './SecurityStatus';
 import { Zone } from './Zone';
 import { DatePeriod } from './DatePeriod';
@@ -9,6 +9,7 @@ import { SignedRRSet } from './SignedRRSet';
 import { Resolver } from './Resolver';
 import { DnsClass } from './dns/ianaClasses';
 import { DsData } from './rdata/DsData';
+import { RRSet } from './dns/RRSet';
 
 interface MessageByKey {
   readonly [key: string]: Message;
@@ -77,9 +78,7 @@ export class UnverifiedChain {
   ) {}
 
   public verify(datePeriod: DatePeriod, trustAnchors: readonly DsData[]): ChainVerificationResult {
-    const datePeriod = getDatePeriod(options.dateOrPeriod);
-
-    const rootZoneResult = this.getRootZone(options.trustAnchors, datePeriod);
+    const rootZoneResult = this.getRootZone(trustAnchors, datePeriod);
     if (rootZoneResult.status !== SecurityStatus.SECURE) {
       return rootZoneResult;
     }
@@ -95,7 +94,7 @@ export class UnverifiedChain {
   }
 
   protected getRootZone(
-    trustAnchors: readonly DsData[] | undefined,
+    trustAnchors: readonly DsData[],
     datePeriod: DatePeriod,
   ): VerificationResult<Zone> {
     const dnskeyMessage = this.zoneMessageByKey[`./${DnssecRecordType.DNSKEY}`];
@@ -105,9 +104,9 @@ export class UnverifiedChain {
         reasonChain: ['Cannot initialise root zone without a DNSKEY response'],
       };
     }
-    const rootZoneResult = Zone.initRoot(rootDnskeyMessage, trustAnchors, datePeriod);
-    if (rootZoneResult.status !== SecurityStatus.SECURE) {
-      return augmentFailureResult(rootZoneResult, 'Got invalid DNSKEY for root zone');
+    const result = Zone.initRoot(dnskeyMessage, trustAnchors, datePeriod);
+    if (result.status !== SecurityStatus.SECURE) {
+      return augmentFailureResult(result, 'Got invalid DNSKEY for root zone');
     }
     return result;
   }
@@ -163,13 +162,6 @@ export class UnverifiedChain {
       result: answers.rrset,
     };
   }
-}
-
-function getDatePeriod(dateOrPeriod?: Date | DatePeriod): DatePeriod {
-  const finalDateOrPeriod = dateOrPeriod ?? new Date();
-  return finalDateOrPeriod instanceof DatePeriod
-    ? finalDateOrPeriod
-    : DatePeriod.init(finalDateOrPeriod, finalDateOrPeriod);
 }
 
 function getZonesInChain(zoneName: string, includeRoot: boolean = true): readonly string[] {

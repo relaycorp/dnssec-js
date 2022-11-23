@@ -17,7 +17,7 @@ import { Message } from '../../lib/dns/Message';
 import { Question } from '../../lib/dns/Question';
 import { DnskeyResponse, DsResponse, RrsigResponse, ZoneResponseSet } from './responses';
 import { RCODE_IDS } from '../../lib/dns/ianaRcodes';
-import { isChildZone } from '../dns/name';
+import { isChildZone } from '../../lib/dns/name';
 
 const FIVE_MINUTES_IN_SECONDS = 5 * 60;
 

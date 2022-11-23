@@ -444,9 +444,9 @@ describe('verify', () => {
         replaceMessages(messagesWithoutApexZone, [newQueryResponse]),
       );
 
-      const result = chain.verify({ trustAnchors });
+      const result = chain.verify(DATE_PERIOD, trustAnchors);
 
-      expect(result).toEqual<VerifiedChainResult>({
+      expect(result).toEqual<VerifiedRRSet>({
         status: SecurityStatus.SECURE,
         result: RRSET,
       });
@@ -457,7 +457,7 @@ describe('verify', () => {
       const messages = replaceMessages(chainMessages, [response]);
       const chain = UnverifiedChain.initFromMessages(QUESTION, messages);
 
-      const result = chain.verify({ trustAnchors });
+      const result = chain.verify(DATE_PERIOD, trustAnchors);
 
       expect(result).toEqual<FailureResult>({
         status: SecurityStatus.BOGUS,
