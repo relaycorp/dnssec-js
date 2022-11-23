@@ -13,16 +13,16 @@ import { Question } from './dns/Question';
 import { ChainVerificationResult, FailureResult, VerifiedRRSet } from './results';
 import { SecurityStatus } from './SecurityStatus';
 import { DsData } from './rdata/DsData';
-import { IANA_TRUST_ANCHORS } from './IANA_TRUST_ANCHORS';
 import { DatePeriod } from './DatePeriod';
 import { Resolver } from './Resolver';
 import { DnsClass } from './dns/ianaClasses';
 import { getRcodeId, RCODE_IDS } from './dns/ianaRcodes';
 
 const NOW = new Date();
+const DATE_PERIOD = DatePeriod.init(NOW, addSeconds(NOW, 60));
 const SIGNATURE_OPTIONS: SignatureGenerationOptions = {
-  signatureExpiry: addSeconds(NOW, 60),
-  signatureInception: NOW,
+  signatureExpiry: DATE_PERIOD.end,
+  signatureInception: DATE_PERIOD.start,
 };
 const RESPONSE_GENERATION_OPTIONS = {
   dnskey: SIGNATURE_OPTIONS,
@@ -279,7 +279,7 @@ describe('verify', () => {
       ]);
       const chain = UnverifiedChain.initFromMessages(QUESTION, messages);
 
-      const result = chain.verify({ trustAnchors });
+      const result = chain.verify(DATE_PERIOD, trustAnchors);
 
       expect(result).toEqual<ChainVerificationResult>({
         status: SecurityStatus.INDETERMINATE,
@@ -301,7 +301,7 @@ describe('verify', () => {
         SIGNATURE_OPTIONS,
       );
 
-      const result = chain.verify({ trustAnchors: [rootDs.data] });
+      const result = chain.verify(DATE_PERIOD, [rootDs.data]);
 
       expect(result).toEqual<ChainVerificationResult>({
         status: SecurityStatus.BOGUS,
@@ -315,7 +315,7 @@ describe('verify', () => {
       ]);
       const chain = UnverifiedChain.initFromMessages(QUESTION, messages);
 
-      const result = chain.verify({ trustAnchors });
+      const result = chain.verify(DATE_PERIOD, trustAnchors);
 
       expect(result).toEqual<ChainVerificationResult>({
         status: SecurityStatus.INDETERMINATE,
@@ -327,7 +327,7 @@ describe('verify', () => {
       const messages = filterMessagesOut(chainMessages, [tldResponses.ds.record.makeQuestion()]);
       const chain = UnverifiedChain.initFromMessages(QUESTION, messages);
 
-      const result = chain.verify({ trustAnchors });
+      const result = chain.verify(DATE_PERIOD, trustAnchors);
 
       expect(result).toEqual<ChainVerificationResult>({
         status: SecurityStatus.INDETERMINATE,
@@ -349,7 +349,7 @@ describe('verify', () => {
       const messages = replaceMessages(chainMessages, [invalidTldDnskey.message, tldDs.message]);
       const chain = UnverifiedChain.initFromMessages(QUESTION, messages);
 
-      const result = chain.verify({ trustAnchors });
+      const result = chain.verify(DATE_PERIOD, trustAnchors);
 
       expect(result).toEqual<ChainVerificationResult>({
         status: SecurityStatus.BOGUS,
@@ -371,7 +371,7 @@ describe('verify', () => {
       const messages = replaceMessages(chainMessages, [invalidApexDnskey.message, apexDs.message]);
       const chain = UnverifiedChain.initFromMessages(QUESTION, messages);
 
-      const result = chain.verify({ trustAnchors });
+      const result = chain.verify(DATE_PERIOD, trustAnchors);
 
       expect(result).toEqual<ChainVerificationResult>({
         status: SecurityStatus.BOGUS,
@@ -381,45 +381,28 @@ describe('verify', () => {
   });
 
   describe('Trust anchors', () => {
-    const ianaRootDsDataSpy = jest.spyOn(IANA_TRUST_ANCHORS[0], 'verifyDnskey');
+    let dsDataSpy: jest.SpyInstance;
     beforeEach(() => {
-      ianaRootDsDataSpy.mockReset();
+      dsDataSpy = jest.spyOn(rootResponses.ds.data, 'verifyDnskey') as any;
+      dsDataSpy.mockReset();
     });
     afterAll(() => {
-      ianaRootDsDataSpy.mockRestore();
+      dsDataSpy.mockRestore();
     });
 
-    test('IANA trust anchors should be used by default', () => {
+    test('Specified trust anchor should be used to verify root DNSKEY', () => {
       const chain = UnverifiedChain.initFromMessages(QUESTION, chainMessages);
 
-      chain.verify();
+      chain.verify(DATE_PERIOD, trustAnchors);
 
-      expect(ianaRootDsDataSpy).toBeCalledWith(
+      expect(dsDataSpy).toBeCalledTimes(1);
+      expect(dsDataSpy).toBeCalledWith(
         expect.toSatisfy((k) => k.data.keyTag === rootResponses.dnskey.data.calculateKeyTag()),
       );
-    });
-
-    test('Trust anchors should be customizable', () => {
-      const chain = UnverifiedChain.initFromMessages(QUESTION, chainMessages);
-
-      chain.verify({ trustAnchors });
-
-      expect(ianaRootDsDataSpy).not.toBeCalled();
     });
   });
 
   describe('Validity period', () => {
-    test('Single date should be within date period of chain', () => {
-      const chain = UnverifiedChain.initFromMessages(QUESTION, chainMessages);
-
-      const result = chain.verify({
-        dateOrPeriod: SIGNATURE_OPTIONS.signatureInception,
-        trustAnchors,
-      });
-
-      expect(result.status).toEqual(SecurityStatus.SECURE);
-    });
-
     test('Date period should overlap with that of chain', () => {
       const chain = UnverifiedChain.initFromMessages(QUESTION, chainMessages);
       const period = DatePeriod.init(
@@ -427,16 +410,19 @@ describe('verify', () => {
         subSeconds(SIGNATURE_OPTIONS.signatureExpiry, 60),
       );
 
-      const result = chain.verify({ dateOrPeriod: period, trustAnchors });
+      const result = chain.verify(period, trustAnchors);
 
       expect(result.status).toEqual(SecurityStatus.SECURE);
     });
 
     test('Date outside validity period should be refused', () => {
       const chain = UnverifiedChain.initFromMessages(QUESTION, chainMessages);
-      const date = subSeconds(SIGNATURE_OPTIONS.signatureInception, 1);
+      const period = DatePeriod.init(
+        subSeconds(SIGNATURE_OPTIONS.signatureInception, 90),
+        subSeconds(SIGNATURE_OPTIONS.signatureInception, 60),
+      );
 
-      const result = chain.verify({ dateOrPeriod: date, trustAnchors });
+      const result = chain.verify(period, trustAnchors);
 
       expect(result.status).toEqual(SecurityStatus.BOGUS);
     });
@@ -450,7 +436,7 @@ describe('verify', () => {
     const chain = UnverifiedChain.initFromMessages(QUESTION, messages);
     const date = addSeconds(SIGNATURE_OPTIONS.signatureInception, 1);
 
-    const result = chain.verify({ dateOrPeriod: date, trustAnchors });
+    const result = chain.verify(DatePeriod.init(date, date), trustAnchors);
 
     expect(result).toEqual<FailureResult>({
       status: SecurityStatus.BOGUS,
@@ -461,7 +447,7 @@ describe('verify', () => {
   test('RRset should be returned if chain is valid', () => {
     const chain = UnverifiedChain.initFromMessages(QUESTION, chainMessages);
 
-    const result = chain.verify({ trustAnchors });
+    const result = chain.verify(DATE_PERIOD, trustAnchors);
 
     expect(result).toEqual<VerifiedRRSet>({
       status: SecurityStatus.SECURE,

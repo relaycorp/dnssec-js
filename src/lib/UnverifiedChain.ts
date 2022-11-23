@@ -1,15 +1,14 @@
 import { Question } from './dns/Question';
 import { Message } from './dns/Message';
 import { DnssecRecordType } from './DnssecRecordType';
-import { VerificationOptions } from './VerificationOptions';
 import { augmentFailureResult, ChainVerificationResult } from './results';
 import { SecurityStatus } from './SecurityStatus';
 import { Zone } from './Zone';
 import { DatePeriod } from './DatePeriod';
-import { IANA_TRUST_ANCHORS } from './IANA_TRUST_ANCHORS';
 import { SignedRRSet } from './SignedRRSet';
 import { Resolver } from './Resolver';
 import { DnsClass } from './dns/ianaClasses';
+import { DsData } from './rdata/DsData';
 
 interface MessageByKey {
   readonly [key: string]: Message;
@@ -77,7 +76,7 @@ export class UnverifiedChain {
     public readonly zoneMessageByKey: MessageByKey,
   ) {}
 
-  public verify(options: Partial<VerificationOptions> = {}): ChainVerificationResult {
+  public verify(datePeriod: DatePeriod, trustAnchors: readonly DsData[]): ChainVerificationResult {
     const rootDnskeyMessage = this.zoneMessageByKey[`./${DnssecRecordType.DNSKEY}`];
     if (!rootDnskeyMessage) {
       return {
@@ -85,13 +84,7 @@ export class UnverifiedChain {
         reasonChain: ['Cannot initialise root zone without a DNSKEY response'],
       };
     }
-    const dateOrPeriod = options.dateOrPeriod ?? new Date();
-    const datePeriod =
-      dateOrPeriod instanceof DatePeriod
-        ? dateOrPeriod
-        : DatePeriod.init(dateOrPeriod, dateOrPeriod);
-    const rootDsData = options.trustAnchors ?? IANA_TRUST_ANCHORS;
-    const rootZoneResult = Zone.initRoot(rootDnskeyMessage, rootDsData, datePeriod);
+    const rootZoneResult = Zone.initRoot(rootDnskeyMessage, trustAnchors, datePeriod);
     if (rootZoneResult.status !== SecurityStatus.SECURE) {
       return augmentFailureResult(rootZoneResult, 'Got invalid DNSKEY for root zone');
     }
