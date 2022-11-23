@@ -56,7 +56,7 @@ export class ZoneSigner {
     const finalFlags: DnskeyFlags = {
       zoneKey: true,
       secureEntryPoint: false,
-      ...(options.flags ?? {}),
+      ...options.flags,
     };
     const data = new DnskeyData(this.publicKey, this.algorithm, finalFlags);
     const ttl = options.ttl ?? FIVE_MINUTES_IN_SECONDS;

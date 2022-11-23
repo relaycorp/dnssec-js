@@ -32,8 +32,8 @@ export type RcodeName = keyof typeof RCODE_IDS;
 export type RcodeIdOrName = number | RcodeName;
 
 const RCODE_IDS_NORMALISED: { readonly [name: string]: number } = Object.entries(RCODE_IDS).reduce(
-  (acc, [name, id]) => {
-    return { ...acc, [name.toUpperCase()]: id };
+  (accumulator, [name, id]) => {
+    return { ...accumulator, [name.toUpperCase()]: id };
   },
   {},
 );

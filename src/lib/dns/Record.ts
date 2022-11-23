@@ -99,7 +99,7 @@ function deserialiseRdata(serialisation: Buffer, typeName: string, codec: Codec<
   const lengthPrefixedData = lengthPrefixRdata(serialisation);
   try {
     return codec.decode(lengthPrefixedData);
-  } catch (_) {
+  } catch {
     throw new DnsError(`Data for record type ${typeName} is malformed`);
   }
 }
@@ -108,7 +108,7 @@ function serialiseRdata(data: any, typeName: string, codec: Codec<any>): Buffer 
   let lengthPrefixedData: Uint8Array;
   try {
     lengthPrefixedData = codec.encode(data);
-  } catch (_) {
+  } catch {
     throw new DnsError(`Data for record type ${typeName} is invalid`);
   }
   return Buffer.from(lengthPrefixedData.subarray(2));

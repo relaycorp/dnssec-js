@@ -42,22 +42,22 @@ export class UnverifiedChain {
   }
 
   public static initFromMessages(query: Question, messages: readonly Message[]): UnverifiedChain {
-    const allMessages = messages.reduce((acc, m) => {
+    const allMessages = messages.reduce((accumulator, m) => {
       const question = m.questions[0];
       if (!question) {
-        return acc;
+        return accumulator;
       }
       const key = question.key;
-      return { ...acc, [key]: m };
+      return { ...accumulator, [key]: m };
     }, {} as MessageByKey);
     const zoneNames = getZonesInChain(query.name);
-    const messageByKey = zoneNames.reduce((acc, zoneName) => {
+    const messageByKey = zoneNames.reduce((accumulator, zoneName) => {
       const dsKey = `${zoneName}/${DnssecRecordType.DS}`;
       const dsMessage = zoneName === '.' ? null : allMessages[dsKey];
       const dnskeyKey = `${zoneName}/${DnssecRecordType.DNSKEY}`;
       const dnskeyMessage = allMessages[dnskeyKey];
       return {
-        ...acc,
+        ...accumulator,
         ...(dsMessage ? { [dsKey]: dsMessage } : {}),
         ...(dnskeyMessage ? { [dnskeyKey]: dnskeyMessage } : {}),
       };
@@ -164,7 +164,7 @@ export class UnverifiedChain {
   }
 }
 
-function getZonesInChain(zoneName: string, includeRoot: boolean = true): readonly string[] {
+function getZonesInChain(zoneName: string, includeRoot = true): readonly string[] {
   if (zoneName === '') {
     return includeRoot ? ['.'] : [];
   }

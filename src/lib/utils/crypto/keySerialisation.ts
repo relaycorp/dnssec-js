@@ -10,16 +10,20 @@ export function serialisePublicKey(publicKey: KeyObject, dnssecAlgorithm: Dnssec
   switch (dnssecAlgorithm) {
     case DnssecAlgorithm.RSASHA1:
     case DnssecAlgorithm.RSASHA256:
-    case DnssecAlgorithm.RSASHA512:
+    case DnssecAlgorithm.RSASHA512: {
       return serialiseRsaPublicKey(publicKey);
+    }
     case DnssecAlgorithm.ECDSAP256SHA256:
-    case DnssecAlgorithm.ECDSAP384SHA384:
+    case DnssecAlgorithm.ECDSAP384SHA384: {
       return serialiseEcDsaPublicKey(publicKey);
+    }
     case DnssecAlgorithm.ED25519:
-    case DnssecAlgorithm.ED448:
+    case DnssecAlgorithm.ED448: {
       return serialiseEdDsaPublicKey(publicKey);
-    default:
+    }
+    default: {
       throw new Error(`Unsupported DNSSEC algorithm (${dnssecAlgorithm})`);
+    }
   }
 }
 
@@ -82,16 +86,20 @@ export function deserialisePublicKey(
   switch (dnssecAlgorithm) {
     case DnssecAlgorithm.RSASHA1:
     case DnssecAlgorithm.RSASHA256:
-    case DnssecAlgorithm.RSASHA512:
+    case DnssecAlgorithm.RSASHA512: {
       return deserialiseRsaPublicKey(serialisation);
+    }
     case DnssecAlgorithm.ECDSAP256SHA256:
-    case DnssecAlgorithm.ECDSAP384SHA384:
+    case DnssecAlgorithm.ECDSAP384SHA384: {
       return deserialiseEcDsaPublicKey(serialisation, dnssecAlgorithm);
+    }
     case DnssecAlgorithm.ED25519:
-    case DnssecAlgorithm.ED448:
+    case DnssecAlgorithm.ED448: {
       return deserialiseEdDsaPublicKey(serialisation, dnssecAlgorithm);
-    default:
+    }
+    default: {
       throw new Error(`Unsupported DNSSEC algorithm (${dnssecAlgorithm})`);
+    }
   }
 }
 
@@ -128,9 +136,9 @@ function deserialiseEcDsaPublicKey(
     throw new DnssecError(`ECDSA public key should span ${expectedLength} octets (got ${length})`);
   }
 
-  const paramsLength = length / 2;
-  const x = serialisation.subarray(0, paramsLength).toString('base64url');
-  const y = serialisation.subarray(paramsLength).toString('base64url');
+  const parametersLength = length / 2;
+  const x = serialisation.subarray(0, parametersLength).toString('base64url');
+  const y = serialisation.subarray(parametersLength).toString('base64url');
   const curveName = algorithm === DnssecAlgorithm.ECDSAP256SHA256 ? 'P-256' : 'P-384';
   return createPublicKey({
     key: { kty: 'EC', crv: curveName, x, y },

@@ -96,15 +96,15 @@ export const IANA_RR_TYPE_IDS = {
   AVC: 258,
   DOA: 259,
   AMTRELAY: 260,
-  TA: 32768,
-  DLV: 32769,
+  TA: 32_768,
+  DLV: 32_769,
 };
 
 export type IanaRrTypeName = keyof typeof IANA_RR_TYPE_IDS;
 export type IanaRrTypeIdOrName = number | IanaRrTypeName;
 
-export const IANA_RR_TYPE_NAMES = Object.entries(IANA_RR_TYPE_IDS).reduce((acc, [name, id]) => {
-  return { ...acc, [id]: name as IanaRrTypeName };
+export const IANA_RR_TYPE_NAMES = Object.entries(IANA_RR_TYPE_IDS).reduce((accumulator, [name, id]) => {
+  return { ...accumulator, [id]: name as IanaRrTypeName };
 }, {} as { [key: number]: IanaRrTypeName });
 
 export function getRrTypeId(typeName: IanaRrTypeIdOrName): number {

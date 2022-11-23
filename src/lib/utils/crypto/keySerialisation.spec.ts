@@ -319,9 +319,9 @@ function importRsaPubKey(exponent: string, modulus: string): KeyObject {
 
 function importEcPubKey(publicKeyBase64: string, curveName: string): KeyObject {
   const publicKeyBuffer = Buffer.from(publicKeyBase64, 'base64url');
-  const paramsLength = publicKeyBuffer.byteLength / 2;
-  const x = publicKeyBuffer.subarray(0, paramsLength).toString('base64url');
-  const y = publicKeyBuffer.subarray(paramsLength).toString('base64url');
+  const parametersLength = publicKeyBuffer.byteLength / 2;
+  const x = publicKeyBuffer.subarray(0, parametersLength).toString('base64url');
+  const y = publicKeyBuffer.subarray(parametersLength).toString('base64url');
   return createPublicKey({
     key: { kty: 'EC', crv: curveName, x, y },
     format: 'jwk',

@@ -8,7 +8,7 @@ import { QUESTION, RECORD, RRSET } from '../../testUtils/dnsStubs';
 import { IANA_RR_TYPE_IDS } from '../dns/ianaRrTypes';
 
 describe('RrsigData', () => {
-  const STUB_KEY_TAG = 12345;
+  const STUB_KEY_TAG = 12_345;
 
   const NOW = setMilliseconds(new Date(), 0);
   const SIGNATURE_OPTIONS: SignatureGenerationOptions = {

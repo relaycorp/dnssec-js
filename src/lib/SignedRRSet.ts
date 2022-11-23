@@ -21,13 +21,13 @@ export class SignedRRSet {
         (r) =>
           r.typeId === DnssecRecordType.RRSIG && r.name === rrset.name && r.class_ === rrset.class_,
       )
-      .reduce(function deserialise(acc, record): readonly RrsigRecord[] {
+      .reduce(function deserialise(accumulator, record): readonly RrsigRecord[] {
         const data = RrsigData.initFromPacket(record.dataFields);
         if (data.signerName !== rrset.name && !isChildZone(data.signerName, rrset.name)) {
           // Signer is off tree
-          return acc;
+          return accumulator;
         }
-        return [...acc, { record, data }];
+        return [...accumulator, { record, data }];
       }, [] as readonly RrsigRecord[]);
 
     return new SignedRRSet(rrset, rrsigRecords);
@@ -49,7 +49,7 @@ export class SignedRRSet {
     datePeriod: DatePeriod,
     expectedSigner?: string,
   ): boolean {
-    const validRrsigs = this.rrsigs.reduce((acc, rrsig) => {
+    const validRrsigs = this.rrsigs.reduce((accumulator, rrsig) => {
       const matchingDnskeys = dnsKeys.filter(
         (dnskey) =>
           dnskey.data.verifyRrsig(rrsig.data, datePeriod) &&
@@ -59,7 +59,7 @@ export class SignedRRSet {
         dnskey: dnskey.data,
         rrsig: rrsig.data,
       }));
-      return [...acc, ...additionalItems];
+      return [...accumulator, ...additionalItems];
     }, [] as readonly { readonly rrsig: RrsigData; readonly dnskey: DnskeyData }[]);
 
     return validRrsigs.some(({ dnskey, rrsig }) => rrsig.verifyRrset(this.rrset, dnskey.publicKey));

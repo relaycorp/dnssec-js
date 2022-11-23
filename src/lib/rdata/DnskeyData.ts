@@ -8,8 +8,8 @@ import { RrsigData } from './RrsigData';
 import { deserialisePublicKey, serialisePublicKey } from '../utils/crypto/keySerialisation';
 import { DatePeriod } from '../DatePeriod';
 
-const ZONE_KEY_MASK = 0b00000001_00000000;
-const SECURE_ENTRY_POINT_MASK = 0b00000000_00000001;
+const ZONE_KEY_MASK = 0b0000_0001_0000_0000;
+const SECURE_ENTRY_POINT_MASK = 0b0000_0000_0000_0001;
 
 export class DnskeyData implements DnssecRecordData {
   public static initFromPacket(packet: DNSKeyData, packetSerialised: Buffer): DnskeyData {
@@ -34,10 +34,10 @@ export class DnskeyData implements DnssecRecordData {
     const data = Buffer.alloc(4 + publicKeyEncoded.byteLength);
 
     if (this.flags.zoneKey) {
-      data.writeUInt8(0b00000001, 0);
+      data.writeUInt8(0b0000_0001, 0);
     }
     if (this.flags.secureEntryPoint) {
-      data.writeUInt8(0b00000001, 1);
+      data.writeUInt8(0b0000_0001, 1);
     }
 
     data.writeUInt8(3, 2);
@@ -84,6 +84,6 @@ function calculateKeyTag(rdata: Buffer) {
   for (let index = 0; index < rdata.byteLength; ++index) {
     accumulator += index & 1 ? rdata[index] : rdata[index] << 8;
   }
-  accumulator += (accumulator >> 16) & 0xffff;
-  return accumulator & 0xffff;
+  accumulator += (accumulator >> 16) & 0xFF_FF;
+  return accumulator & 0xFF_FF;
 }

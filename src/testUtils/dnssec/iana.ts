@@ -24,4 +24,4 @@ export const DNSSEC_ROOT_DNSKEY_DATA = new DnskeyData(
  *
  * @see {DNSSEC_ROOT_DNSKEY_DATA}
  */
-export const DNSSEC_ROOT_DNSKEY_KEY_TAG = 20326;
+export const DNSSEC_ROOT_DNSKEY_KEY_TAG = 20_326;

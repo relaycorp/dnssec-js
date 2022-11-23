@@ -27,7 +27,7 @@ describe('SignedRRSet', () => {
   });
 
   describe('initFromRecords', () => {
-    const STUB_KEY_TAG = 12345;
+    const STUB_KEY_TAG = 12_345;
 
     test('Empty RRSIGs should be allowed', () => {
       const signedRrset = SignedRRSet.initFromRecords(QUESTION, [RECORD]);

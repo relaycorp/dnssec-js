@@ -21,7 +21,7 @@ export class Message {
     let messageParts: Packet;
     try {
       messageParts = decode(serialisation);
-    } catch (_) {
+    } catch {
       throw new DnsError('Message serialisation does not comply with RFC 1035 (Section 4)');
     }
 

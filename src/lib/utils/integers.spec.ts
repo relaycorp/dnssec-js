@@ -13,10 +13,10 @@ describe('getIntegerBitLength', () => {
     [1n, 1],
     [255n, 1],
     [256n, 2],
-    [65535n, 2],
-    [65536n, 3],
-    [16777215n, 3],
-    [16777216n, 4],
+    [65_535n, 2],
+    [65_536n, 3],
+    [16_777_215n, 3],
+    [16_777_216n, 4],
   ])('%s should have bit length %s', (integer, expectedBitLength) => {
     const bitLength = getIntegerByteLength(integer);
 

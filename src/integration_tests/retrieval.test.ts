@@ -47,13 +47,13 @@ test('Response from bogus secure zone should be BOGUS', async () => {
   });
 });
 
-async function retryUponFailure<T>(func: () => Promise<T>, attempts: number): Promise<T> {
+async function retryUponFailure<T>(function_: () => Promise<T>, attempts: number): Promise<T> {
   try {
-    return func();
-  } catch (err) {
+    return function_();
+  } catch (error) {
     if (attempts <= 1) {
-      throw err;
+      throw error;
     }
-    return retryUponFailure(func, attempts - 1);
+    return retryUponFailure(function_, attempts - 1);
   }
 }

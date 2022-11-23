@@ -9,8 +9,8 @@ export interface DnssecRecord<Data extends DnssecRecordData> {
   readonly data: Data;
 }
 
-export interface DnskeyRecord extends DnssecRecord<DnskeyData> {}
+export type DnskeyRecord = DnssecRecord<DnskeyData>;
 
-export interface DsRecord extends DnssecRecord<DsData> {}
+export type DsRecord = DnssecRecord<DsData>;
 
-export interface RrsigRecord extends DnssecRecord<RrsigData> {}
+export type RrsigRecord = DnssecRecord<RrsigData>;

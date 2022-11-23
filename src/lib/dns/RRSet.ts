@@ -79,10 +79,10 @@ function canonicallySortRecords(originalRecords: readonly Record[]): readonly Re
     return 0;
   });
 
-  return recordSorted.reduce((acc, record) => {
-    const previousRecord = acc[acc.length - 1];
+  return recordSorted.reduce((accumulator, record) => {
+    const previousRecord = accumulator[accumulator.length - 1];
     const isDuplicated =
       previousRecord && record.dataSerialised.equals(previousRecord.dataSerialised);
-    return isDuplicated ? acc : [...acc, record];
+    return isDuplicated ? accumulator : [...accumulator, record];
   }, [] as readonly Record[]);
 }

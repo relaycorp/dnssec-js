@@ -18,10 +18,12 @@ export function convertSignatureToDnssec(
 ): Buffer {
   switch (algorithm) {
     case DnssecAlgorithm.ECDSAP256SHA256:
-    case DnssecAlgorithm.ECDSAP384SHA384:
+    case DnssecAlgorithm.ECDSAP384SHA384: {
       return convertEcdsaSignatureToDnssec(originalSignature, algorithm);
-    default:
+    }
+    default: {
       return originalSignature;
+    }
   }
 }
 
@@ -32,7 +34,7 @@ function convertEcdsaSignatureToDnssec(
   let signature: EcdsaSignature;
   try {
     signature = AsnParser.parse(originalSignature, EcdsaSignature);
-  } catch (err) {
+  } catch {
     throw new DnssecError('DER-encoded ECDSA signature is malformed');
   }
   const length = ECDSA_CURVE_LENGTH[algorithm] / 2;
@@ -53,10 +55,12 @@ export function convertSignatureFromDnssec(
 ): Buffer {
   switch (algorithm) {
     case DnssecAlgorithm.ECDSAP256SHA256:
-    case DnssecAlgorithm.ECDSAP384SHA384:
+    case DnssecAlgorithm.ECDSAP384SHA384: {
       return convertEcdsaSignatureFromDnssec(dnssecSignature, algorithm);
-    default:
+    }
+    default: {
       return dnssecSignature;
+    }
   }
 }
 
@@ -70,9 +74,9 @@ function convertEcdsaSignatureFromDnssec(
     throw new DnssecError(`ECDSA signature should span ${expectedLength} octets (got ${length})`);
   }
 
-  const paramsLength = length / 2;
-  const rSerialised = dnssecSignature.subarray(0, paramsLength);
-  const sSerialised = dnssecSignature.subarray(paramsLength);
+  const parametersLength = length / 2;
+  const rSerialised = dnssecSignature.subarray(0, parametersLength);
+  const sSerialised = dnssecSignature.subarray(parametersLength);
   const asn1Signature = new EcdsaSignature();
   asn1Signature.r = toBigIntBE(rSerialised);
   asn1Signature.s = toBigIntBE(sSerialised);
