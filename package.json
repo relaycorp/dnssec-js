@@ -9,7 +9,7 @@
   "description": "Resolver-agnostic DNSSEC library",
   "type": "module",
   "typings": "build/lib/index.d.ts",
-  "module": "build/lib/index.js",
+  "main": "build/lib/index.js",
   "repository": "https://github.com/relaycorp/dnssec-js",
   "homepage": "https://docs.relaycorp.tech/dnssec-js/",
   "license": "MIT",
