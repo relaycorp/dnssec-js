@@ -5,7 +5,7 @@ import { Question } from '../lib/dns/Question';
 import { SecurityStatus } from '../lib/SecurityStatus';
 import { RRSet } from '../lib/dns/RRSet';
 import { FailureResult, VerifiedRRSet } from '../lib/results';
-import { dnssecLookup } from '../lib/lookup';
+import { dnssecLookUp } from '../lib/lookup';
 
 const DOH_CLIENT = new DNSoverHTTPS({ url: 'https://cloudflare-dns.com/dns-query' });
 afterAll(() => {
@@ -27,7 +27,7 @@ const RESOLVER: Resolver = async (question) =>
 test('Positive response in valid DNSSEC zone should be SECURE', async () => {
   const question = new Question('dnssec-deployment.org.', 'A');
 
-  const result = await dnssecLookup(question, RESOLVER);
+  const result = await dnssecLookUp(question, RESOLVER);
 
   expect(result).toEqual<VerifiedRRSet>({
     status: SecurityStatus.SECURE,
@@ -38,7 +38,7 @@ test('Positive response in valid DNSSEC zone should be SECURE', async () => {
 test('Response from insecure zone should be INSECURE', async () => {
   const question = new Question('dnssec-failed.org.', 'A');
 
-  const result = await dnssecLookup(question, RESOLVER);
+  const result = await dnssecLookUp(question, RESOLVER);
 
   expect(result).toEqual<FailureResult>({
     status: SecurityStatus.INSECURE,

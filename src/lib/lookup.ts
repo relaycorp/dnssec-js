@@ -15,7 +15,7 @@ import { DsData } from './rdata/DsData';
  * @param resolver
  * @param options
  */
-export async function dnssecLookup(
+export async function dnssecLookUp(
   question: Question,
   resolver: Resolver,
   options: Partial<VerificationOptions> = {},

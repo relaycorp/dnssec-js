@@ -10,6 +10,6 @@ export { RRSet } from './lib/dns/RRSet';
 // DNSSEC-related
 export { DatePeriod } from './lib/DatePeriod';
 export { Resolver } from './lib/Resolver';
-export { dnssecLookup } from './lib/lookup';
+export { dnssecLookUp } from './lib/lookup';
 export { ChainVerificationResult, FailureResult, VerifiedRRSet } from './lib/results';
 export { TrustAnchor } from './lib/TrustAnchor';
