@@ -5,7 +5,6 @@ import { UnverifiedChain, VerifiedChainResult } from '../lib/verification/Unveri
 import { Question } from '../lib/dns/Question';
 import { SecurityStatus } from '../lib/verification/SecurityStatus';
 import { RRSet } from '../lib/dns/RRSet';
-import { DnsClass } from '../lib/dns/ianaClasses';
 import { FailureResult } from '../lib/verification/results';
 
 const DOH_CLIENT = new DNSoverHTTPS({ url: 'https://cloudflare-dns.com/dns-query' });
@@ -26,7 +25,7 @@ const RESOLVER: Resolver = async (question) =>
   )) as Promise<Buffer>;
 
 test('Positive response in valid DNSSEC zone should be SECURE', async () => {
-  const question = new Question('dnssec-deployment.org.', 'A', DnsClass.IN);
+  const question = new Question('dnssec-deployment.org.', 'A');
   const chain = await UnverifiedChain.retrieve(question, RESOLVER);
 
   const result = chain.verify();
@@ -38,7 +37,7 @@ test('Positive response in valid DNSSEC zone should be SECURE', async () => {
 });
 
 test('Response from insecure zone should be INSECURE', async () => {
-  const question = new Question('dnssec-failed.org.', 'A', DnsClass.IN);
+  const question = new Question('dnssec-failed.org.', 'A');
   const chain = await UnverifiedChain.retrieve(question, RESOLVER);
 
   const result = chain.verify();
