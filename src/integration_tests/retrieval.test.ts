@@ -20,7 +20,7 @@ const RESOLVER: Resolver = async (question) =>
         json: false,
         decode: false,
         dnssec: true, // Retrieve RRSig records
-        dnssecCd: true,
+        dnssecCheckingDisabled: true,
       }),
     3,
   )) as Promise<Buffer>;
