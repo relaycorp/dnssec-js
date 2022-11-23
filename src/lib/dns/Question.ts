@@ -14,7 +14,7 @@ export class Question {
   public readonly typeId: number;
   public readonly class_: DnsClass;
 
-  constructor(name: string, type: IanaRrTypeIdOrName, class_: DnsClassIdOrName) {
+  constructor(name: string, type: IanaRrTypeIdOrName, class_: DnsClassIdOrName = DnsClass.IN) {
     this.name = normaliseName(name);
     this.typeId = getRrTypeId(type);
     this.class_ = getDnsClassId(class_);

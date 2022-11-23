@@ -8,12 +8,8 @@ export { Record } from './lib/dns/Record';
 export { RRSet } from './lib/dns/RRSet';
 
 // DNSSEC-related
-export { DnssecAlgorithm } from './lib/DnssecAlgorithm';
-export { ZoneSigner } from './lib/signing/ZoneSigner';
-export { DatePeriod } from './lib/verification/DatePeriod';
-export { Resolver } from './lib/verification/Resolver';
-export {
-  ChainVerificationResult,
-  UnverifiedChain,
-  VerifiedChainResult,
-} from './lib/verification/UnverifiedChain';
+export { DatePeriod } from './lib/DatePeriod';
+export { Resolver } from './lib/Resolver';
+export { dnssecLookUp } from './lib/lookup';
+export { ChainVerificationResult, FailureResult, VerifiedRRSet } from './lib/results';
+export { TrustAnchor } from './lib/TrustAnchor';

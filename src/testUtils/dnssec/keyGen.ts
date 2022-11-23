@@ -1,9 +1,9 @@
 import { generateKeyPair as cryptoGenerateKeyPair, KeyObject } from 'node:crypto';
 import { promisify } from 'node:util';
 
-import { DnssecAlgorithm } from '../DnssecAlgorithm';
+import { DnssecAlgorithm } from '../../lib/DnssecAlgorithm';
 
-export const generateKeyPairAsync = promisify(cryptoGenerateKeyPair);
+const generateKeyPairAsync = promisify(cryptoGenerateKeyPair);
 
 interface KeyGenOptions {
   readonly type: string;

@@ -32,10 +32,6 @@ However, errors are thrown upon attempting to parse malformed RDATA values for D
 
 We don't need DoE records in Vera, so [we won't be implementing that functionality ourselves](https://github.com/relaycorp/dnssec-js/issues/17), but PRs are welcomed.
 
-### Signature production support
-
-This library supports producing RRSig records simply for testing purposes: It makes it very easy to test valid and invalid signatures both internally and from any software using this library, without mocking anything.
-
 ### Cryptographic Algorithms support
 
 We support all the _Zone Signing_ [DNSSEC algorithms](https://www.iana.org/assignments/dns-sec-alg-numbers/dns-sec-alg-numbers.xhtml#dns-sec-alg-numbers-1) as of 2022, except for:

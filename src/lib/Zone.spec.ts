@@ -1,24 +1,24 @@
 import { addSeconds, subSeconds } from 'date-fns';
 
-import { SignatureGenerationOptions, ZoneSigner } from '../signing/ZoneSigner';
-import { DnssecAlgorithm } from '../DnssecAlgorithm';
-import { QUESTION, RECORD, RECORD_TLD } from '../../testUtils/dnsStubs';
+import { SignatureGenerationOptions, ZoneSigner } from '../testUtils/dnssec/ZoneSigner';
+import { DnssecAlgorithm } from './DnssecAlgorithm';
+import { QUESTION, RECORD, RECORD_TLD } from '../testUtils/dnsStubs';
 import { Zone } from './Zone';
-import { Message } from '../dns/Message';
+import { Message } from './dns/Message';
 import { SecurityStatus } from './SecurityStatus';
-import { DsRecord } from '../dnssecRecords';
-import { DsData } from '../rdata/DsData';
-import { RRSet } from '../dns/RRSet';
-import { RrsigData } from '../rdata/RrsigData';
+import { DsRecord } from './dnssecRecords';
+import { DsData } from './rdata/DsData';
+import { RRSet } from './dns/RRSet';
+import { RrsigData } from './rdata/RrsigData';
 import { FailureResult, SuccessfulResult } from './results';
-import { Question } from '../dns/Question';
-import { DnsClass } from '../dns/ianaClasses';
-import { DnssecRecordType } from '../DnssecRecordType';
+import { Question } from './dns/Question';
+import { DnsClass } from './dns/ianaClasses';
+import { DnssecRecordType } from './DnssecRecordType';
 import { SignedRRSet } from './SignedRRSet';
 import { DatePeriod } from './DatePeriod';
-import { Record } from '../dns/Record';
-import { DnskeyResponse, DsResponse } from '../signing/responses';
-import { RCODE_IDS } from '../dns/ianaRcodes';
+import { Record } from './dns/Record';
+import { DnskeyResponse, DsResponse } from '../testUtils/dnssec/responses';
+import { RCODE_IDS } from './dns/ianaRcodes';
 
 const NOW = new Date();
 const VALIDITY_PERIOD = DatePeriod.init(subSeconds(NOW, 1), addSeconds(NOW, 1));

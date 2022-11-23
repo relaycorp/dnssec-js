@@ -1,5 +1,5 @@
 import { DsData } from './DsData';
-import { ZoneSigner } from '../signing/ZoneSigner';
+import { ZoneSigner } from '../../testUtils/dnssec/ZoneSigner';
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { DigestType } from '../DigestType';
 import { DnskeyData } from './DnskeyData';

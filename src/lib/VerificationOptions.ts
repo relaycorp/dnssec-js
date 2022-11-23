@@ -1,7 +1,7 @@
 import { DatePeriod } from './DatePeriod';
-import { DsData } from '../rdata/DsData';
+import { TrustAnchor } from './TrustAnchor';
 
 export interface VerificationOptions {
   readonly dateOrPeriod: Date | DatePeriod;
-  readonly trustAnchors: readonly DsData[];
+  readonly trustAnchors: readonly TrustAnchor[];
 }

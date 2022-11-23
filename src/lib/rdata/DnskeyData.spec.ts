@@ -1,10 +1,10 @@
 import { addMinutes, addSeconds, setMilliseconds, subSeconds } from 'date-fns';
 
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
-import { SignatureGenerationOptions, ZoneSigner } from '../signing/ZoneSigner';
+import { SignatureGenerationOptions, ZoneSigner } from '../../testUtils/dnssec/ZoneSigner';
 import { DnskeyData } from './DnskeyData';
 import { RECORD_TLD, RRSET } from '../../testUtils/dnsStubs';
-import { DatePeriod } from '../verification/DatePeriod';
+import { DatePeriod } from '../DatePeriod';
 import { DNSSEC_ROOT_DNSKEY_DATA, DNSSEC_ROOT_DNSKEY_KEY_TAG } from '../../testUtils/dnssec/iana';
 
 describe('DnskeyData', () => {
