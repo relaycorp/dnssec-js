@@ -2,12 +2,12 @@ import { jest } from '@jest/globals';
 import { encode } from '@leichtgewicht/dns-packet';
 
 import { addSeconds, subSeconds } from 'date-fns';
-import { SignatureGenerationOptions, ZoneSigner } from '../signing/ZoneSigner';
+import { SignatureGenerationOptions, ZoneSigner } from '../../testUtils/dnssec/ZoneSigner';
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { Message } from '../dns/Message';
 import { QUESTION, RECORD, RECORD_TLD, RRSET } from '../../testUtils/dnsStubs';
 import { ChainVerificationResult, UnverifiedChain, VerifiedChainResult } from './UnverifiedChain';
-import { ZoneResponseSet } from '../signing/responses';
+import { ZoneResponseSet } from '../../testUtils/dnssec/responses';
 import { DnssecRecordType } from '../DnssecRecordType';
 import { Question } from '../dns/Question';
 import { FailureResult } from './results';

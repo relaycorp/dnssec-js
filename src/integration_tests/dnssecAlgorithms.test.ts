@@ -1,7 +1,7 @@
 import { addSeconds, subSeconds } from 'date-fns';
 
 import { DnssecAlgorithm } from '../lib/DnssecAlgorithm';
-import { SignatureGenerationOptions, ZoneSigner } from '../lib/signing/ZoneSigner';
+import { SignatureGenerationOptions, ZoneSigner } from '../testUtils/dnssec/ZoneSigner';
 import { Zone } from '../lib/verification/Zone';
 import { DatePeriod } from '../lib/verification/DatePeriod';
 import { SecurityStatus } from '../lib/verification/SecurityStatus';

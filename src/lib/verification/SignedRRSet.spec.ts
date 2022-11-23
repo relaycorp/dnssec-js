@@ -3,7 +3,7 @@ import { addSeconds, setMilliseconds, subSeconds } from 'date-fns';
 
 import { SignedRRSet } from './SignedRRSet';
 import { QUESTION, RECORD, RRSET } from '../../testUtils/dnsStubs';
-import { SignatureGenerationOptions, ZoneSigner } from '../signing/ZoneSigner';
+import { SignatureGenerationOptions, ZoneSigner } from '../../testUtils/dnssec/ZoneSigner';
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { RRSet } from '../dns/RRSet';
 import { DnskeyRecord } from '../dnssecRecords';

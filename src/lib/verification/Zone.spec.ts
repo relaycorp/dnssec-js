@@ -1,6 +1,6 @@
 import { addSeconds, subSeconds } from 'date-fns';
 
-import { SignatureGenerationOptions, ZoneSigner } from '../signing/ZoneSigner';
+import { SignatureGenerationOptions, ZoneSigner } from '../../testUtils/dnssec/ZoneSigner';
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { QUESTION, RECORD, RECORD_TLD } from '../../testUtils/dnsStubs';
 import { Zone } from './Zone';
@@ -17,7 +17,7 @@ import { DnssecRecordType } from '../DnssecRecordType';
 import { SignedRRSet } from './SignedRRSet';
 import { DatePeriod } from './DatePeriod';
 import { Record } from '../dns/Record';
-import { DnskeyResponse, DsResponse } from '../signing/responses';
+import { DnskeyResponse, DsResponse } from '../../testUtils/dnssec/responses';
 import { RCODE_IDS } from '../dns/ianaRcodes';
 
 const NOW = new Date();
