@@ -43,7 +43,7 @@
     "@typescript-eslint/eslint-plugin": "^5.42.1",
     "@typescript-eslint/parser": "^5.43.0",
     "del-cli": "^5.0.0",
-    "dohdec": "^5.0.3",
+    "dohdec": "https://gitpkg.now.sh/relaycorp/dohdec/pkg/dohdec?b802ac161a5cc9788b82df26e1d83b16d8deaff0",
     "eslint": "^8.28.0",
     "jest": "^28.1.3",
     "jest-date-mock": "^1.0.8",

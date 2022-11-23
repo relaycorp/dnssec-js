@@ -21,6 +21,7 @@ const RESOLVER: Resolver = async (question) =>
         json: false,
         decode: false,
         dnssec: true, // Retrieve RRSig records
+        dnssecCd: true,
       }),
     3,
   )) as Promise<Buffer>;
@@ -37,14 +38,14 @@ test('Positive response in valid DNSSEC zone should be SECURE', async () => {
   });
 });
 
-test('Response from insecure zone should be INSECURE', async () => {
+test('Response from bogus secure zone should be BOGUS', async () => {
   const question = new Question('dnssec-failed.org.', 'A', DnsClass.IN);
   const chain = await UnverifiedChain.retrieve(question, RESOLVER);
 
   const result = chain.verify();
 
   expect(result).toEqual<FailureResult>({
-    status: SecurityStatus.INSECURE,
+    status: SecurityStatus.BOGUS,
     reasonChain: expect.arrayContaining([`Failed to verify zone ${question.name}`]),
   });
 });
