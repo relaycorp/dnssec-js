@@ -9,6 +9,7 @@
 import { DnsError } from './DnsError';
 
 export const IANA_RR_TYPE_IDS = {
+  // eslint-disable-next-line id-length
   A: 1,
   NS: 2,
   MD: 3,
@@ -103,9 +104,13 @@ export const IANA_RR_TYPE_IDS = {
 export type IanaRrTypeName = keyof typeof IANA_RR_TYPE_IDS;
 export type IanaRrTypeIdOrName = number | IanaRrTypeName;
 
-export const IANA_RR_TYPE_NAMES = Object.entries(IANA_RR_TYPE_IDS).reduce((accumulator, [name, id]) => {
-  return { ...accumulator, [id]: name as IanaRrTypeName };
-}, {} as { [key: number]: IanaRrTypeName });
+export const IANA_RR_TYPE_NAMES: { [key: number]: IanaRrTypeName } = Object.entries(
+  IANA_RR_TYPE_IDS,
+).reduce(
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  (accumulator, [name, id]) => ({ ...accumulator, [id]: name as IanaRrTypeName }),
+  {},
+);
 
 export function getRrTypeId(typeName: IanaRrTypeIdOrName): number {
   if (typeof typeName === 'number') {
