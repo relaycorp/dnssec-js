@@ -1,7 +1,7 @@
 import { Question } from './dns/Question';
 import { Message } from './dns/Message';
 import { DnssecRecordType } from './DnssecRecordType';
-import { augmentFailureResult, ChainVerificationResult } from './results';
+import { augmentFailureResult, ChainVerificationResult, VerificationResult } from './results';
 import { SecurityStatus } from './SecurityStatus';
 import { Zone } from './Zone';
 import { DatePeriod } from './DatePeriod';
@@ -9,6 +9,7 @@ import { SignedRRSet } from './SignedRRSet';
 import { Resolver } from './Resolver';
 import { DnsClass } from './dns/ianaClasses';
 import { DsData } from './rdata/DsData';
+import { RRSet } from './dns/RRSet';
 
 interface MessageByKey {
   readonly [key: string]: Message;
@@ -77,21 +78,46 @@ export class UnverifiedChain {
   ) {}
 
   public verify(datePeriod: DatePeriod, trustAnchors: readonly DsData[]): ChainVerificationResult {
-    const rootDnskeyMessage = this.zoneMessageByKey[`./${DnssecRecordType.DNSKEY}`];
-    if (!rootDnskeyMessage) {
+    const rootZoneResult = this.getRootZone(trustAnchors, datePeriod);
+    if (rootZoneResult.status !== SecurityStatus.SECURE) {
+      return rootZoneResult;
+    }
+
+    const answers = SignedRRSet.initFromRecords(this.query, this.response.answers);
+    const apexZoneName = answers.signerNames[0] ?? answers.rrset.name;
+    const zonesResult = this.getZones(rootZoneResult.result, apexZoneName, datePeriod);
+    if (zonesResult.status !== SecurityStatus.SECURE) {
+      return zonesResult;
+    }
+
+    return this.verifyAnswers(answers, zonesResult.result, datePeriod);
+  }
+
+  protected getRootZone(
+    trustAnchors: readonly DsData[],
+    datePeriod: DatePeriod,
+  ): VerificationResult<Zone> {
+    const dnskeyMessage = this.zoneMessageByKey[`./${DnssecRecordType.DNSKEY}`];
+    if (!dnskeyMessage) {
       return {
         status: SecurityStatus.INDETERMINATE,
         reasonChain: ['Cannot initialise root zone without a DNSKEY response'],
       };
     }
-    const rootZoneResult = Zone.initRoot(rootDnskeyMessage, trustAnchors, datePeriod);
-    if (rootZoneResult.status !== SecurityStatus.SECURE) {
-      return augmentFailureResult(rootZoneResult, 'Got invalid DNSKEY for root zone');
+    const result = Zone.initRoot(dnskeyMessage, trustAnchors, datePeriod);
+    if (result.status !== SecurityStatus.SECURE) {
+      return augmentFailureResult(result, 'Got invalid DNSKEY for root zone');
     }
-    const rootZone = rootZoneResult.result;
+    return result;
+  }
 
+  protected getZones(
+    rootZone: Zone,
+    apexZoneName: string,
+    datePeriod: DatePeriod,
+  ): VerificationResult<readonly Zone[]> {
     let zones = [rootZone];
-    for (const zoneName of getZonesInChain(this.query.name, false)) {
+    for (const zoneName of getZonesInChain(apexZoneName, false)) {
       const zoneDnskeyMessage = this.zoneMessageByKey[`${zoneName}/${DnssecRecordType.DNSKEY}`];
       if (!zoneDnskeyMessage) {
         return {
@@ -115,9 +141,15 @@ export class UnverifiedChain {
 
       zones = [...zones, zone];
     }
+    return { status: SecurityStatus.SECURE, result: zones };
+  }
 
+  protected verifyAnswers(
+    answers: SignedRRSet,
+    zones: readonly Zone[],
+    datePeriod: DatePeriod,
+  ): VerificationResult<RRSet> {
     const apexZone = zones[zones.length - 1];
-    const answers = SignedRRSet.initFromRecords(this.query, this.response.answers);
     if (!apexZone.verifyRrset(answers, datePeriod)) {
       return {
         status: SecurityStatus.BOGUS,

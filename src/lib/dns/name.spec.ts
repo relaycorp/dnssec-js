@@ -1,7 +1,7 @@
 import { name as NAME } from '@leichtgewicht/dns-packet';
 
 import { RECORD, RECORD_TLD } from '../../testUtils/dnsStubs';
-import { countLabels, normaliseName, serialiseName } from './name';
+import { countLabels, isChildZone, normaliseName, serialiseName } from './name';
 
 describe('serialiseName', () => {
   const recordNameWithoutDot = RECORD.name.replace(/\.$/, '');
@@ -62,5 +62,25 @@ describe('countLabels', () => {
 
   test('Wildcard should not count towards labels', () => {
     expect(countLabels(`*.${RECORD.name}`)).toEqual(2);
+  });
+});
+
+describe('isChildZone', () => {
+  test('Equal zones should return false', () => {
+    expect(isChildZone('com.', 'com.')).toBeFalse();
+  });
+
+  test('Subdomain off tree should return false', () => {
+    expect(isChildZone('example.com.', 'subdomain.example.org.')).toBeFalse();
+  });
+
+  test('Subdomain should return true', () => {
+    expect(isChildZone('example.com.', 'subdomain.example.com.')).toBeTrue();
+  });
+
+  test('Any zone should be regarded a child of the root', () => {
+    expect(isChildZone('.', '.')).toBeTrue();
+    expect(isChildZone('.', 'com.')).toBeTrue();
+    expect(isChildZone('.', 'example.com.')).toBeTrue();
   });
 });

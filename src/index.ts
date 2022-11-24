@@ -12,4 +12,5 @@ export { DatePeriod } from './lib/DatePeriod';
 export { Resolver } from './lib/Resolver';
 export { dnssecLookUp } from './lib/lookup';
 export { ChainVerificationResult, FailureResult, VerifiedRRSet } from './lib/results';
+export { SecurityStatus } from './lib/SecurityStatus';
 export { TrustAnchor } from './lib/TrustAnchor';
