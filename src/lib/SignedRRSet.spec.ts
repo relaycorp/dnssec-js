@@ -223,7 +223,7 @@ describe('SignedRRSet', () => {
       expect(signedRrset.verify([dnskey2], VALIDITY_PERIOD)).toBeFalse();
     });
 
-    test('Verification should fail if RRSig apexSigner does not match DNSKEY RR owner', async () => {
+    test('Verification should fail if RRSig signer does not match DNSKEY RR owner', async () => {
       const dnskey = apexSigner.generateDnskey();
       const rrsig = apexSigner.generateRrsig(RRSET, dnskey.data.calculateKeyTag(), RRSIG_OPTIONS);
       const signedRrset = SignedRRSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
@@ -235,7 +235,7 @@ describe('SignedRRSet', () => {
       expect(signedRrset.verify([invalidDnskey], VALIDITY_PERIOD)).toBeFalse();
     });
 
-    test('Verification should fail if RRSig apexSigner does not match explicit one', () => {
+    test('Verification should fail if RRSig signer does not match explicit one', () => {
       const dnskey = apexSigner.generateDnskey();
       const rrsig = apexSigner.generateRrsig(RRSET, dnskey.data.calculateKeyTag(), RRSIG_OPTIONS);
       const signedRrset = SignedRRSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
