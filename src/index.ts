@@ -1,3 +1,5 @@
+// eslint-disable import/no-unused-modules
+
 // DNS-related
 export { IanaRrTypeName, IanaRrTypeIdOrName } from './lib/dns/ianaRrTypes';
 export { DnsClass, DnsClassIdOrName } from './lib/dns/ianaClasses';

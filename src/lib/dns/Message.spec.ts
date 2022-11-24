@@ -107,7 +107,6 @@ describe('Message', () => {
       ): Uint8Array {
         const validSerialisation = encode({
           type: 'response',
-          // tslint:disable-next-line:readonly-array
           questions: questions as DPQuestion[],
         });
         const malformedSerialisation = Buffer.from(validSerialisation);
@@ -197,7 +196,6 @@ describe('Message', () => {
       function serialiseMessage(answers: readonly DPAnswer[], answerCount: number): Uint8Array {
         const validSerialisation = encode({
           type: 'response',
-          // tslint:disable-next-line:readonly-array
           answers: answers as DPAnswer[],
         });
         const malformedSerialisation = Buffer.from(validSerialisation);
