@@ -1,11 +1,12 @@
 import { addMinutes, setMilliseconds } from 'date-fns';
+import type { RRSigData } from '@leichtgewicht/dns-packet';
 
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
-import type { SignatureGenerationOptions } from '../../testUtils/dnssec/ZoneSigner';
 import { ZoneSigner } from '../../testUtils/dnssec/ZoneSigner';
 import { RrSet } from '../dns/RrSet';
 import { QUESTION, RECORD, RRSET } from '../../testUtils/dnsStubs';
 import { IANA_RR_TYPE_IDS } from '../dns/ianaRrTypes';
+import type { SignatureGenerationOptions } from '../../testUtils/dnssec/SignatureGenerationOptions';
 
 import { RrsigData } from './RrsigData';
 
@@ -47,81 +48,81 @@ describe('RrsigData', () => {
     test('Record type should be extracted', () => {
       const rrsig = signer.generateRrsig(RRSET, STUB_KEY_TAG, SIGNATURE_OPTIONS);
 
-      const rrsigData = RrsigData.initFromPacket(rrsig.record.dataFields);
+      const rrsigData = RrsigData.initFromPacket(rrsig.record.dataFields as RRSigData);
 
-      expect(rrsigData.type).toEqual(RECORD.typeId);
+      expect(rrsigData.type).toStrictEqual(RECORD.typeId);
     });
 
     test('Algorithm should be extracted', () => {
       const rrsig = signer.generateRrsig(RRSET, STUB_KEY_TAG, SIGNATURE_OPTIONS);
 
-      const rrsigData = RrsigData.initFromPacket(rrsig.record.dataFields);
+      const rrsigData = RrsigData.initFromPacket(rrsig.record.dataFields as RRSigData);
 
-      expect(rrsigData.algorithm).toEqual(signer.algorithm);
+      expect(rrsigData.algorithm).toStrictEqual(signer.algorithm);
     });
 
     test('Labels should be extracted', () => {
       const rrsig = signer.generateRrsig(RRSET, STUB_KEY_TAG, SIGNATURE_OPTIONS);
 
-      const rrsigData = RrsigData.initFromPacket(rrsig.record.dataFields);
+      const rrsigData = RrsigData.initFromPacket(rrsig.record.dataFields as RRSigData);
 
       const expectedLabelCount = RRSET.name.replace(/\.$/u, '').split('.').length;
-      expect(rrsigData.labels).toEqual(expectedLabelCount);
+      expect(rrsigData.labels).toStrictEqual(expectedLabelCount);
     });
 
     test('TTL should be extracted', () => {
       const rrsig = signer.generateRrsig(RRSET, STUB_KEY_TAG, SIGNATURE_OPTIONS);
 
-      const rrsigData = RrsigData.initFromPacket(rrsig.record.dataFields);
+      const rrsigData = RrsigData.initFromPacket(rrsig.record.dataFields as RRSigData);
 
-      expect(rrsigData.ttl).toEqual(RRSET.ttl);
+      expect(rrsigData.ttl).toStrictEqual(RRSET.ttl);
     });
 
     test('Signature expiry date should be extracted', () => {
       const rrsig = signer.generateRrsig(RRSET, STUB_KEY_TAG, SIGNATURE_OPTIONS);
 
-      const rrsigData = RrsigData.initFromPacket(rrsig.record.dataFields);
+      const rrsigData = RrsigData.initFromPacket(rrsig.record.dataFields as RRSigData);
 
-      expect(rrsigData.signatureExpiry).toEqual(SIGNATURE_OPTIONS.signatureExpiry);
+      expect(rrsigData.signatureExpiry).toStrictEqual(SIGNATURE_OPTIONS.signatureExpiry);
     });
 
     test('Signature inception date should be extracted', () => {
       const rrsig = signer.generateRrsig(RRSET, STUB_KEY_TAG, SIGNATURE_OPTIONS);
 
-      const rrsigData = RrsigData.initFromPacket(rrsig.record.dataFields);
+      const rrsigData = RrsigData.initFromPacket(rrsig.record.dataFields as RRSigData);
 
-      expect(rrsigData.signatureInception).toEqual(SIGNATURE_OPTIONS.signatureInception);
+      expect(rrsigData.signatureInception).toStrictEqual(SIGNATURE_OPTIONS.signatureInception);
     });
 
     test('Key tag should be extracted', () => {
       const rrsig = signer.generateRrsig(RRSET, STUB_KEY_TAG, SIGNATURE_OPTIONS);
 
-      const rrsigData = RrsigData.initFromPacket(rrsig.record.dataFields);
+      const rrsigData = RrsigData.initFromPacket(rrsig.record.dataFields as RRSigData);
 
-      expect(rrsigData.keyTag).toEqual(STUB_KEY_TAG);
+      expect(rrsigData.keyTag).toStrictEqual(STUB_KEY_TAG);
     });
 
     test('Signer name should be extracted', () => {
       const rrsig = signer.generateRrsig(RRSET, STUB_KEY_TAG, SIGNATURE_OPTIONS);
 
-      const rrsigData = RrsigData.initFromPacket(rrsig.record.dataFields);
+      const rrsigData = RrsigData.initFromPacket(rrsig.record.dataFields as RRSigData);
 
-      expect(rrsigData.signerName).toEqual(signer.zoneName);
+      expect(rrsigData.signerName).toStrictEqual(signer.zoneName);
     });
 
     test('Signature should be extracted', () => {
       const rrsig = signer.generateRrsig(RRSET, STUB_KEY_TAG, SIGNATURE_OPTIONS);
 
-      const rrsigData = RrsigData.initFromPacket(rrsig.record.dataFields);
+      const rrsigData = RrsigData.initFromPacket(rrsig.record.dataFields as RRSigData);
 
-      expect(rrsigData.signature).toEqual(rrsig.data.signature);
+      expect(rrsigData.signature).toStrictEqual(rrsig.data.signature);
     });
   });
 
   describe('verifyRrset', () => {
     test('Covered type should match RRset type', () => {
       const type = IANA_RR_TYPE_IDS.A;
-      expect(type).not.toEqual(RECORD.typeId);
+      expect(type).not.toStrictEqual(RECORD.typeId);
       const invalidRrset = RrSet.init(QUESTION.shallowCopy({ type }), [
         RECORD.shallowCopy({ type }),
       ]);
@@ -131,7 +132,7 @@ describe('RrsigData', () => {
     });
 
     describe('Label count', () => {
-      test('RRset owner labels greater than RRSig count should be SECURE', async () => {
+      test('RRset owner labels greater than RRSig count should be SECURE', () => {
         const name = `subdomain.${RECORD.name}`;
         const differentRrset = RrSet.init(QUESTION.shallowCopy({ name }), [
           RECORD.shallowCopy({ name }),
@@ -147,7 +148,7 @@ describe('RrsigData', () => {
         expect(data.verifyRrset(RRSET, signer.publicKey)).toBeTrue();
       });
 
-      test('RRset owner labels less than RRSig count should be BOGUS', async () => {
+      test('RRset owner labels less than RRSig count should be BOGUS', () => {
         const { data } = signer.generateRrsig(RRSET, STUB_KEY_TAG, SIGNATURE_OPTIONS);
         const mismatchingData = new RrsigData(
           data.type,

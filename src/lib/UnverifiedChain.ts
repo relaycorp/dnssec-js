@@ -177,10 +177,10 @@ function getZonesInChain(zoneName: string, includeRoot = true): readonly string[
 async function retrieveZoneMessages(
   zoneNames: readonly string[],
   recordType: DnssecRecordType,
-  class_: DnsClass,
+  classType: DnsClass,
   resolver: FinalResolver,
 ): Promise<MessageByKey> {
-  const question = new Question('.', recordType, class_);
+  const question = new Question('.', recordType, classType);
   return zoneNames.reduce(async (messages, zoneName) => {
     const message = await resolver(question.shallowCopy({ name: zoneName }));
     return { ...(await messages), [`${zoneName}/${recordType}`]: message };

@@ -12,19 +12,19 @@ describe('serialiseName', () => {
 
     const serialisation = serialiseName(name);
 
-    expect(NAME.decode(serialisation)).toEqual(recordNameWithoutDot);
+    expect(NAME.decode(serialisation)).toStrictEqual(recordNameWithoutDot);
   });
 
   test('Missing trailing dot in record name should be supported', () => {
     const serialisation = serialiseName(recordNameWithoutDot);
 
-    expect(NAME.decode(serialisation)).toEqual(recordNameWithoutDot);
+    expect(NAME.decode(serialisation)).toStrictEqual(recordNameWithoutDot);
   });
 
   test('Root name (dot) should be supported', () => {
     const serialisation = serialiseName('.');
 
-    expect(serialisation).toEqual(Buffer.from([0]));
+    expect(serialisation).toStrictEqual(Buffer.from([0]));
   });
 });
 
@@ -38,13 +38,13 @@ describe('normaliseName', () => {
   test('Present trailing dot should be left as is', () => {
     const name = 'example.com.';
 
-    expect(normaliseName(name)).toEqual(name);
+    expect(normaliseName(name)).toStrictEqual(name);
   });
 
   test('Root should be left as is', () => {
     const name = '.';
 
-    expect(normaliseName(name)).toEqual(name);
+    expect(normaliseName(name)).toStrictEqual(name);
   });
 });
 

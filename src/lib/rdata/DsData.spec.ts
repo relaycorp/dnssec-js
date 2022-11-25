@@ -1,3 +1,5 @@
+import type { DigestData } from '@leichtgewicht/dns-packet';
+
 import { ZoneSigner } from '../../testUtils/dnssec/ZoneSigner';
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { DigestType } from '../DigestType';
@@ -24,27 +26,27 @@ describe('DsData', () => {
 
   describe('initFromPacket', () => {
     test('Key tag should be extracted', () => {
-      const data = DsData.initFromPacket(ds.record.dataFields);
+      const data = DsData.initFromPacket(ds.record.dataFields as DigestData);
 
-      expect(data.keyTag).toEqual(ds.data.keyTag);
+      expect(data.keyTag).toStrictEqual(ds.data.keyTag);
     });
 
     test('Algorithm should be extracted', () => {
-      const data = DsData.initFromPacket(ds.record.dataFields);
+      const data = DsData.initFromPacket(ds.record.dataFields as DigestData);
 
-      expect(data.algorithm).toEqual(dnskey.data.algorithm);
+      expect(data.algorithm).toStrictEqual(dnskey.data.algorithm);
     });
 
     test('Digest type should be extracted', () => {
-      const data = DsData.initFromPacket(ds.record.dataFields);
+      const data = DsData.initFromPacket(ds.record.dataFields as DigestData);
 
-      expect(data.digestType).toEqual(ds.data.digestType);
+      expect(data.digestType).toStrictEqual(ds.data.digestType);
     });
 
     test('Digest should be extracted', () => {
-      const data = DsData.initFromPacket(ds.record.dataFields);
+      const data = DsData.initFromPacket(ds.record.dataFields as DigestData);
 
-      expect(data.digest).toEqual(ds.data.digest);
+      expect(data.digest).toStrictEqual(ds.data.digest);
     });
   });
 
@@ -58,7 +60,7 @@ describe('DsData', () => {
           Buffer.concat([serialiseName(dnskey.record.name), dnskey.record.dataSerialised]),
           digestType,
         );
-        expect(digest).toEqual(expectedDigest);
+        expect(digest).toStrictEqual(expectedDigest);
       },
     );
   });
@@ -76,7 +78,7 @@ describe('DsData', () => {
 
     test('Key should be refused if algorithm does not match', () => {
       const differentAlgorithm = DnssecAlgorithm.RSASHA1;
-      expect(differentAlgorithm).not.toEqual(dnskey.data.algorithm);
+      expect(differentAlgorithm).not.toStrictEqual(dnskey.data.algorithm);
       const invalidDnskeyData = new DnskeyData(
         dnskey.data.publicKey,
         differentAlgorithm,

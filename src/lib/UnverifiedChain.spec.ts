@@ -2,7 +2,6 @@ import { jest } from '@jest/globals';
 import { encode } from '@leichtgewicht/dns-packet';
 import { addSeconds, subSeconds } from 'date-fns';
 
-import type { SignatureGenerationOptions } from '../testUtils/dnssec/ZoneSigner';
 import { ZoneSigner } from '../testUtils/dnssec/ZoneSigner';
 import { QUESTION, RECORD, RECORD_TLD, RRSET } from '../testUtils/dnsStubs';
 import type { ZoneResponseSet } from '../testUtils/dnssec/responses';
@@ -19,6 +18,7 @@ import { DatePeriod } from './DatePeriod';
 import type { Resolver } from './Resolver';
 import { DnsClass } from './dns/ianaClasses';
 import { getRcodeId, RCODE_IDS } from './dns/ianaRcodes';
+import { SignatureGenerationOptions } from '../testUtils/dnssec/SignatureGenerationOptions';
 
 const NOW = new Date();
 const DATE_PERIOD = DatePeriod.init(NOW, addSeconds(NOW, 60));
@@ -151,7 +151,7 @@ describe('retrieve', () => {
   });
 
   test('Returned message should be deserialised if given as a Buffer', async () => {
-    const rcode = getRcodeId('YXRRSet');
+    const rcode = getRcodeId('YXRRSET');
     const messageSerialised = Buffer.from(
       encode({
         flags: rcode, // `rcode` field has no effect, so we have to pass it in the flags
@@ -174,14 +174,14 @@ describe('initFromMessages', () => {
   });
 
   test('Message without question should be ignored', () => {
-    const unquestionableMessage = new Message({ rcode: RCODE_IDS.NoError }, [], []);
+    const unquestionableMessage = new Message({ rcode: RCODE_IDS.NOERROR }, [], []);
 
     UnverifiedChain.initFromMessages(QUESTION, [unquestionableMessage, ...chainMessages]);
   });
 
   test('Irrelevant message should be filtered out', () => {
     const irrelevantQuestion = QUESTION.shallowCopy({ name: `not-${QUESTION.name}` });
-    const irrelevantMessage = new Message({ rcode: RCODE_IDS.NoError }, [irrelevantQuestion], []);
+    const irrelevantMessage = new Message({ rcode: RCODE_IDS.NOERROR }, [irrelevantQuestion], []);
 
     const chain = UnverifiedChain.initFromMessages(QUESTION, [irrelevantMessage, ...chainMessages]);
 
@@ -461,7 +461,7 @@ describe('verify', () => {
     });
 
     test('Missing RRSIG for query response should be refused', () => {
-      const response = new Message({ rcode: RCODE_IDS.NoError }, [QUESTION], [RECORD]);
+      const response = new Message({ rcode: RCODE_IDS.NOERROR }, [QUESTION], [RECORD]);
       const messages = replaceMessages(chainMessages, [response]);
       const chain = UnverifiedChain.initFromMessages(QUESTION, messages);
 

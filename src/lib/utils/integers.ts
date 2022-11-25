@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-magic-numbers */
+
 export function getIntegerByteLength(integer: bigint): number {
   if (integer < 0n) {
     throw new Error(`Only positive values are supported (got ${integer})`);

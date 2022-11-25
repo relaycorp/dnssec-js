@@ -1,7 +1,8 @@
+/* eslint-disable import/exports-last */
 /**
  * DNS CLASSes.
  *
- * @link https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml#dns-parameters-2
+ * See https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml#dns-parameters-2
  */
 
 import { DnsError } from './DnsError';

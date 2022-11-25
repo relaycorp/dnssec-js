@@ -1,6 +1,5 @@
 import { addSeconds, subSeconds } from 'date-fns';
 
-import type { SignatureGenerationOptions } from '../testUtils/dnssec/ZoneSigner';
 import { ZoneSigner } from '../testUtils/dnssec/ZoneSigner';
 import { QUESTION, RECORD, RECORD_TLD } from '../testUtils/dnsStubs';
 import type { DnskeyResponse, DsResponse } from '../testUtils/dnssec/responses';
@@ -21,6 +20,7 @@ import { SignedRrSet } from './SignedRrSet';
 import { DatePeriod } from './DatePeriod';
 import type { DnsRecord } from './dns/DnsRecord';
 import { RCODE_IDS } from './dns/ianaRcodes';
+import { SignatureGenerationOptions } from '../testUtils/dnssec/SignatureGenerationOptions';
 
 const NOW = new Date();
 const VALIDITY_PERIOD = DatePeriod.init(subSeconds(NOW, 1), addSeconds(NOW, 1));
@@ -108,7 +108,7 @@ describe('Zone', () => {
       });
       const result = Zone.init(
         RECORD_TLD,
-        new Message({ rcode: RCODE_IDS.NoError }, [], [tldDnskey.record, mismatchingDnskeyRrsig]),
+        new Message({ rcode: RCODE_IDS.NOERROR }, [], [tldDnskey.record, mismatchingDnskeyRrsig]),
         [tldDs.data],
         VALIDITY_PERIOD,
       );
@@ -136,7 +136,7 @@ describe('Zone', () => {
       });
       const result = Zone.init(
         RECORD_TLD,
-        new Message({ rcode: RCODE_IDS.NoError }, [], [tldDnskey.record, mismatchingDnskeyRrsig]),
+        new Message({ rcode: RCODE_IDS.NOERROR }, [], [tldDnskey.record, mismatchingDnskeyRrsig]),
         [tldDs.data],
         VALIDITY_PERIOD,
       );
@@ -199,7 +199,7 @@ describe('Zone', () => {
       const result = Zone.init(
         RECORD_TLD,
         new Message(
-          { rcode: RCODE_IDS.NoError },
+          { rcode: RCODE_IDS.NOERROR },
           [],
           [tldDnskey.record, nonZskDnskey.record, newRrsig.record],
         ),
@@ -303,7 +303,7 @@ describe('Zone', () => {
           SIGNATURE_OPTIONS,
         );
         const dsMessage = new Message(
-          { rcode: RCODE_IDS.NoError },
+          { rcode: RCODE_IDS.NOERROR },
           [],
           [apexDs.record, apexDsRrsig.record],
         );

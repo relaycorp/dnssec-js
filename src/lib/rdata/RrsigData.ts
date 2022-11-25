@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-magic-numbers */
+
 import type { KeyObject } from 'node:crypto';
 import { sign as cryptoSign, verify as cryptoVerify } from 'node:crypto';
 
@@ -7,7 +9,7 @@ import { fromUnixTime, getUnixTime } from 'date-fns';
 import type { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { countLabels, normaliseName, serialiseName } from '../dns/name';
 import type { RrSet } from '../dns/RrSet';
-import { getNodejsSignatureHashFromDnssecAlgo } from '../utils/crypto/hashing';
+import { getNodejsSignatureHashAlgo } from '../utils/crypto/hashing';
 import type { IanaRrTypeName } from '../dns/ianaRrTypes';
 import { getRrTypeId } from '../dns/ianaRrTypes';
 import {
@@ -17,8 +19,59 @@ import {
 
 import type { DnssecRecordData } from './DnssecRecordData';
 
+function serialiseRrset(rrset: RrSet, ttl: number): Buffer {
+  return Buffer.concat(rrset.records.map((record) => record.serialise(ttl)));
+}
+
+function computeSignedData(
+  signatureExpiry: Date,
+  signatureInception: Date,
+  signerKeyTag: number,
+  algorithm: DnssecAlgorithm,
+  rrset: RrSet,
+  signerName: string,
+  ttl: number,
+): Buffer {
+  const rrsetSerialised = serialiseRrset(rrset, ttl);
+  const signerNameSerialised = serialiseName(signerName);
+
+  const signedData = Buffer.allocUnsafe(
+    18 + signerNameSerialised.byteLength + rrsetSerialised.byteLength,
+  );
+
+  signedData.writeUInt16BE(rrset.type, 0);
+  signedData.writeUInt8(algorithm, 2);
+  signedData.writeUInt8(countLabels(rrset.name), 3);
+  signedData.writeUInt32BE(ttl, 4);
+  signedData.writeUInt32BE(getUnixTime(signatureExpiry), 8);
+  signedData.writeUInt32BE(getUnixTime(signatureInception), 12);
+  signedData.writeUInt16BE(signerKeyTag, 16);
+  signerNameSerialised.copy(signedData, 18);
+
+  rrsetSerialised.copy(signedData, 18 + signerNameSerialised.byteLength);
+
+  return signedData;
+}
+
+function sign(plaintext: Buffer, privateKey: KeyObject, dnssecAlgorithm: DnssecAlgorithm): Buffer {
+  const nodejsHashAlgorithm = getNodejsSignatureHashAlgo(dnssecAlgorithm);
+  const signature = cryptoSign(nodejsHashAlgorithm, plaintext, privateKey);
+  return convertSignatureToDnssec(signature, dnssecAlgorithm);
+}
+
+function verifySignature(
+  plaintext: Buffer,
+  dnssecSignature: Buffer,
+  publicKey: KeyObject,
+  dnssecAlgorithm: DnssecAlgorithm,
+): boolean {
+  const signature = convertSignatureFromDnssec(dnssecSignature, dnssecAlgorithm);
+  const nodejsHashAlgorithm = getNodejsSignatureHashAlgo(dnssecAlgorithm);
+  return cryptoVerify(nodejsHashAlgorithm, plaintext, publicKey, signature);
+}
+
 export class RrsigData implements DnssecRecordData {
-  static initFromPacket(packet: RRSigData): RrsigData {
+  public static initFromPacket(packet: RRSigData): RrsigData {
     return new RrsigData(
       getRrTypeId(packet.typeCovered as IanaRrTypeName),
       packet.algorithm,
@@ -66,7 +119,8 @@ export class RrsigData implements DnssecRecordData {
 
   public readonly signerName: string;
 
-  constructor(
+  // eslint-disable-next-line max-params
+  public constructor(
     public readonly type: number,
     public readonly algorithm: DnssecAlgorithm,
     public readonly labels: number,
@@ -121,55 +175,4 @@ export class RrsigData implements DnssecRecordData {
     );
     return verifySignature(plaintext, this.signature, dnskeyPublicKey, this.algorithm);
   }
-}
-
-function computeSignedData(
-  signatureExpiry: Date,
-  signatureInception: Date,
-  signerKeyTag: number,
-  algorithm: DnssecAlgorithm,
-  rrset: RrSet,
-  signerName: string,
-  ttl: number,
-): Buffer {
-  const rrsetSerialised = serialiseRrset(rrset, ttl);
-  const signerNameSerialised = serialiseName(signerName);
-
-  const signedData = Buffer.allocUnsafe(
-    18 + signerNameSerialised.byteLength + rrsetSerialised.byteLength,
-  );
-
-  signedData.writeUInt16BE(rrset.type, 0);
-  signedData.writeUInt8(algorithm, 2);
-  signedData.writeUInt8(countLabels(rrset.name), 3);
-  signedData.writeUInt32BE(ttl, 4);
-  signedData.writeUInt32BE(getUnixTime(signatureExpiry), 8);
-  signedData.writeUInt32BE(getUnixTime(signatureInception), 12);
-  signedData.writeUInt16BE(signerKeyTag, 16);
-  signerNameSerialised.copy(signedData, 18);
-
-  rrsetSerialised.copy(signedData, 18 + signerNameSerialised.byteLength);
-
-  return signedData;
-}
-
-function serialiseRrset(rrset: RrSet, ttl: number): Buffer {
-  return Buffer.concat(rrset.records.map((r) => r.serialise(ttl)));
-}
-
-function sign(plaintext: Buffer, privateKey: KeyObject, dnssecAlgorithm: DnssecAlgorithm): Buffer {
-  const nodejsHashAlgorithm = getNodejsSignatureHashFromDnssecAlgo(dnssecAlgorithm);
-  const signature = cryptoSign(nodejsHashAlgorithm, plaintext, privateKey);
-  return convertSignatureToDnssec(signature, dnssecAlgorithm);
-}
-
-function verifySignature(
-  plaintext: Buffer,
-  dnssecSignature: Buffer,
-  publicKey: KeyObject,
-  dnssecAlgorithm: DnssecAlgorithm,
-): boolean {
-  const signature = convertSignatureFromDnssec(dnssecSignature, dnssecAlgorithm);
-  const nodejsHashAlgorithm = getNodejsSignatureHashFromDnssecAlgo(dnssecAlgorithm);
-  return cryptoVerify(nodejsHashAlgorithm, plaintext, publicKey, signature);
 }

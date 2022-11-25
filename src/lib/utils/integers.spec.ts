@@ -20,6 +20,6 @@ describe('getIntegerBitLength', () => {
   ])('%s should have bit length %s', (integer, expectedBitLength) => {
     const bitLength = getIntegerByteLength(integer);
 
-    expect(bitLength).toEqual(expectedBitLength);
+    expect(bitLength).toStrictEqual(expectedBitLength);
   });
 });

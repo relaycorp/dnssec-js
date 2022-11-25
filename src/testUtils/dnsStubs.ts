@@ -1,3 +1,4 @@
+/* eslint-disable import/exports-last */
 import { DnsClass } from '../lib/dns/ianaClasses';
 import { DnsRecord } from '../lib/dns/DnsRecord';
 import { Question } from '../lib/dns/Question';
@@ -16,6 +17,7 @@ export const RECORD = new DnsRecord(
   `example.${RECORD_TLD}`,
   IANA_RR_TYPE_IDS.TXT,
   DnsClass.IN,
+  // eslint-disable-next-line @typescript-eslint/no-magic-numbers
   42,
   RECORD_DATA,
 );

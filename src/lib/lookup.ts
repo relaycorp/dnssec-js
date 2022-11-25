@@ -8,12 +8,14 @@ import { IANA_TRUST_ANCHORS } from './IANA_TRUST_ANCHORS';
 import type { TrustAnchor } from './TrustAnchor';
 import { DsData } from './rdata/DsData';
 
+function convertTrustAnchors(trustAnchors: readonly TrustAnchor[]): readonly DsData[] {
+  return trustAnchors.map(
+    (anchor) => new DsData(anchor.keyTag, anchor.algorithm, anchor.digestType, anchor.digest),
+  );
+}
+
 /**
  * Retrieve RRset for `question` and return it only if DNSSEC validation succeeds.
- *
- * @param question
- * @param resolver
- * @param options
  */
 export async function dnssecLookUp(
   question: Question,
@@ -29,8 +31,4 @@ export async function dnssecLookUp(
     ? convertTrustAnchors(options.trustAnchors)
     : IANA_TRUST_ANCHORS;
   return unverifiedChain.verify(datePeriod, dsData);
-}
-
-function convertTrustAnchors(trustAnchors: readonly TrustAnchor[]): readonly DsData[] {
-  return trustAnchors.map((a) => new DsData(a.keyTag, a.algorithm, a.digestType, a.digest));
 }

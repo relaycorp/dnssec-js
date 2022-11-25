@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-magic-numbers */
+
 import type { KeyObject } from 'node:crypto';
 
 import type { DNSKeyData } from '@leichtgewicht/dns-packet';
@@ -13,6 +15,23 @@ import type { RrsigData } from './RrsigData';
 const ZONE_KEY_MASK = 0b0000_0001_0000_0000;
 const SECURE_ENTRY_POINT_MASK = 0b0000_0000_0000_0001;
 
+/**
+ * Return key tag for DNSKEY.
+ *
+ * RFC 4034 (Appendix B) requires using one of two algorithms depending on the DNSSEC crypto
+ * algorithm used, but since one of them is for Algorithm 1 (RSA/MD5) -- which we won't
+ * support -- we're only supporting one key tag algorithm.
+ */
+function calculateKeyTag(rdata: Buffer) {
+  // Algorithm pretty much copy/pasted from https://www.rfc-editor.org/rfc/rfc4034#appendix-B
+  let accumulator = 0;
+  for (let index = 0; index < rdata.byteLength; ++index) {
+    accumulator += index & 1 ? rdata[index] : rdata[index] << 8;
+  }
+  accumulator += (accumulator >> 16) & 0xff_ff;
+  return accumulator & 0xff_ff;
+}
+
 export class DnskeyData implements DnssecRecordData {
   public static initFromPacket(packet: DNSKeyData, packetSerialised: Buffer): DnskeyData {
     const publicKey = deserialisePublicKey(packet.key as unknown as Buffer, packet.algorithm);
@@ -24,7 +43,7 @@ export class DnskeyData implements DnssecRecordData {
     return new DnskeyData(publicKey, packet.algorithm, flags, keyTag);
   }
 
-  constructor(
+  public constructor(
     public readonly publicKey: KeyObject,
     public readonly algorithm: DnssecAlgorithm,
     public readonly flags: DnskeyFlags,
@@ -72,21 +91,4 @@ export class DnskeyData implements DnssecRecordData {
 
     return datePeriod.overlaps(rrsigData.signatureInception, rrsigData.signatureExpiry);
   }
-}
-
-/**
- * Return key tag for DNSKEY.
- *
- * RFC 4034 (Appendix B) requires using one of two algorithms depending on the DNSSEC crypto
- * algorithm used, but since one of them is for Algorithm 1 (RSA/MD5) -- which we won't
- * support -- we're only supporting one key tag algorithm.
- */
-function calculateKeyTag(rdata: Buffer) {
-  // Algorithm pretty much copy/pasted from https://www.rfc-editor.org/rfc/rfc4034#appendix-B
-  let accumulator = 0;
-  for (let index = 0; index < rdata.byteLength; ++index) {
-    accumulator += index & 1 ? rdata[index] : rdata[index] << 8;
-  }
-  accumulator += (accumulator >> 16) & 0xff_ff;
-  return accumulator & 0xff_ff;
 }

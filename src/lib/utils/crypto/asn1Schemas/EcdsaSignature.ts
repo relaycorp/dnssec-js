@@ -6,9 +6,9 @@ import { AsnIntegerBigIntConverter, AsnProp, AsnPropTypes } from '@peculiar/asn1
 export class EcdsaSignature {
   // eslint-disable-next-line new-cap
   @AsnProp({ type: AsnPropTypes.Integer, converter: AsnIntegerBigIntConverter })
-  public r!: bigint;
+  public rParam!: bigint;
 
   // eslint-disable-next-line new-cap
   @AsnProp({ type: AsnPropTypes.Integer, converter: AsnIntegerBigIntConverter })
-  public s!: bigint;
+  public sParam!: bigint;
 }

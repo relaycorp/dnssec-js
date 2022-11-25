@@ -3,7 +3,7 @@
  *
  * Excluding special types, such as reserved ones, `*` and ranges.
  *
- * @link https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml#dns-parameters-4
+ * See https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml#dns-parameters-4
  */
 
 import { DnsError } from './DnsError';
@@ -32,7 +32,7 @@ export const IANA_RR_TYPE_IDS = {
   ISDN: 20,
   RT: 21,
   NSAP: 22,
-  'NSAP-PTR': 23,
+  NSAP_PTR: 23,
   SIG: 24,
   KEY: 25,
   PX: 26,
@@ -63,7 +63,7 @@ export const IANA_RR_TYPE_IDS = {
   NSEC3PARAM: 51,
   TLSA: 52,
   SMIMEA: 53,
-  Unassigned: 54,
+  UNASSIGNED: 54,
   HIP: 55,
   NINFO: 56,
   RKEY: 57,
@@ -113,12 +113,11 @@ export function getRrTypeId(typeName: IanaRrTypeIdOrName): number {
     return typeName;
   }
 
-  const typeId = IANA_RR_TYPE_IDS[typeName];
-  if (typeId === undefined) {
+  if (!(typeName in IANA_RR_TYPE_IDS)) {
     throw new DnsError(`RR type name "${typeName}" is not defined by IANA`);
   }
 
-  return typeId;
+  return IANA_RR_TYPE_IDS[typeName];
 }
 
 export function getRrTypeName(typeId: number | string): IanaRrTypeName {
@@ -126,10 +125,9 @@ export function getRrTypeName(typeId: number | string): IanaRrTypeName {
     return typeId as IanaRrTypeName;
   }
 
-  const typeName = IANA_RR_TYPE_NAMES[typeId];
-  if (typeName === undefined) {
+  if (!(typeId in IANA_RR_TYPE_NAMES)) {
     throw new DnsError(`RR type id "${typeId}" is not defined by IANA`);
   }
 
-  return typeName;
+  return IANA_RR_TYPE_NAMES[typeId];
 }

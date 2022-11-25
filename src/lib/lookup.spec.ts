@@ -25,6 +25,7 @@ afterEach(() => {
   MOCK_VERIFIER.mockReset();
 });
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 jest.spyOn(UnverifiedChain, 'retrieve').mockResolvedValue({ verify: MOCK_VERIFIER } as any);
 
 describe('dnssecLookUp', () => {
@@ -56,7 +57,7 @@ describe('dnssecLookUp', () => {
 
       expect(MOCK_VERIFIER).toHaveBeenCalledTimes(1);
       expect(MOCK_VERIFIER).toHaveBeenCalledWith(
-        expect.toSatisfy((p) => p.overlaps(date, date)),
+        expect.toSatisfy<DatePeriod>((period) => period.overlaps(date, date)),
         expect.anything(),
       );
     });
@@ -77,7 +78,9 @@ describe('dnssecLookUp', () => {
 
       const endDate = new Date();
       expect(MOCK_VERIFIER).toHaveBeenCalledWith(
-        expect.toSatisfy((p) => p.start === p.end && p.overlaps(startDate, endDate)),
+        expect.toSatisfy<DatePeriod>(
+          (period) => period.start === period.end && period.overlaps(startDate, endDate),
+        ),
         expect.anything(),
       );
     });
@@ -119,7 +122,7 @@ describe('dnssecLookUp', () => {
   test('Verification result should be output', async () => {
     const result = await dnssecLookUp(QUESTION, RESOLVER);
 
-    expect(result).toEqual<VerifiedRrSet>({
+    expect(result).toStrictEqual<VerifiedRrSet>({
       status: SecurityStatus.SECURE,
       result: RRSET,
     });

@@ -36,7 +36,7 @@ describe('Message', () => {
 
     describe('Header', () => {
       test('RCODE should be extracted', () => {
-        const rcodeId = getRcodeId('ServFail');
+        const rcodeId = getRcodeId('SERVFAIL');
         const messageSerialised = encode({
           type: 'response',
           flags: rcodeId, // `rcode` field has no effect, so we have to pass it in the flags
@@ -218,13 +218,13 @@ describe('Message', () => {
 
 describe('answersQuestion', () => {
   test('True should be returned if message contains question', () => {
-    const message = new Message({ rcode: RCODE_IDS.NoError }, [QUESTION], []);
+    const message = new Message({ rcode: RCODE_IDS.NOERROR }, [QUESTION], []);
 
     expect(message.answersQuestion(QUESTION)).toBeTrue();
   });
 
   test('False should be returned if message does not contain question', () => {
-    const message = new Message({ rcode: RCODE_IDS.NoError }, [QUESTION], []);
+    const message = new Message({ rcode: RCODE_IDS.NOERROR }, [QUESTION], []);
     const differentQuestion = QUESTION.shallowCopy({ type: QUESTION.typeId + 1 });
 
     expect(message.answersQuestion(differentQuestion)).toBeFalse();

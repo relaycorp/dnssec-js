@@ -36,8 +36,8 @@ describe('convertSignatureToDnssec', () => {
       const rSerialisation = ECDSA_SIGNATURES.p256.subarray(0, totalLength / 2);
       const sSerialisation = ECDSA_SIGNATURES.p256.subarray(totalLength / 2);
       const asn1Signature = new EcdsaSignature();
-      asn1Signature.r = toBigIntBE(rSerialisation);
-      asn1Signature.s = toBigIntBE(sSerialisation);
+      asn1Signature.rParam = toBigIntBE(rSerialisation);
+      asn1Signature.sParam = toBigIntBE(sSerialisation);
       const derSignature = Buffer.from(AsnSerializer.serialize(asn1Signature));
 
       const dnssecSerialisation = convertSignatureToDnssec(
@@ -45,8 +45,8 @@ describe('convertSignatureToDnssec', () => {
         DnssecAlgorithm.ECDSAP256SHA256,
       );
 
-      expect(dnssecSerialisation.byteLength).toEqual(totalLength);
-      expect(dnssecSerialisation).toEqual(Buffer.concat([rSerialisation, sSerialisation]));
+      expect(dnssecSerialisation.byteLength).toStrictEqual(totalLength);
+      expect(dnssecSerialisation).toStrictEqual(Buffer.concat([rSerialisation, sSerialisation]));
     });
 
     test('P-384 signature should be converted to 96-octet buffer', () => {
@@ -54,8 +54,8 @@ describe('convertSignatureToDnssec', () => {
       const rSerialisation = ECDSA_SIGNATURES.p384.subarray(0, totalLength / 2);
       const sSerialisation = ECDSA_SIGNATURES.p384.subarray(totalLength / 2);
       const asn1Signature = new EcdsaSignature();
-      asn1Signature.r = toBigIntBE(rSerialisation);
-      asn1Signature.s = toBigIntBE(sSerialisation);
+      asn1Signature.rParam = toBigIntBE(rSerialisation);
+      asn1Signature.sParam = toBigIntBE(sSerialisation);
       const derSignature = Buffer.from(AsnSerializer.serialize(asn1Signature));
 
       const dnssecSerialisation = convertSignatureToDnssec(
@@ -63,8 +63,8 @@ describe('convertSignatureToDnssec', () => {
         DnssecAlgorithm.ECDSAP384SHA384,
       );
 
-      expect(dnssecSerialisation.byteLength).toEqual(totalLength);
-      expect(dnssecSerialisation).toEqual(Buffer.concat([rSerialisation, sSerialisation]));
+      expect(dnssecSerialisation.byteLength).toStrictEqual(totalLength);
+      expect(dnssecSerialisation).toStrictEqual(Buffer.concat([rSerialisation, sSerialisation]));
     });
 
     test('Malformed DER values should be refused', () => {
@@ -116,7 +116,9 @@ describe('convertSignatureFromDnssec', () => {
 
       const derSignature = convertSignatureFromDnssec(ECDSA_SIGNATURES.p256, algorithm);
 
-      expect(convertSignatureToDnssec(derSignature, algorithm)).toEqual(ECDSA_SIGNATURES.p256);
+      expect(convertSignatureToDnssec(derSignature, algorithm)).toStrictEqual(
+        ECDSA_SIGNATURES.p256,
+      );
     });
 
     test('P-256 signature should be refused if it does not span 64 octets', () => {
@@ -134,7 +136,9 @@ describe('convertSignatureFromDnssec', () => {
 
       const derSignature = convertSignatureFromDnssec(ECDSA_SIGNATURES.p384, algorithm);
 
-      expect(convertSignatureToDnssec(derSignature, algorithm)).toEqual(ECDSA_SIGNATURES.p384);
+      expect(convertSignatureToDnssec(derSignature, algorithm)).toStrictEqual(
+        ECDSA_SIGNATURES.p384,
+      );
     });
 
     test('P-384 signature should be refused if it does not span 96 octets', () => {

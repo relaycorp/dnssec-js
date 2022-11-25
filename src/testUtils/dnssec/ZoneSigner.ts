@@ -1,6 +1,6 @@
 import type { KeyObject } from 'node:crypto';
 
-import { addSeconds, setMilliseconds } from 'date-fns';
+import { addSeconds, minutesToSeconds, setMilliseconds } from 'date-fns';
 
 import type { DnssecAlgorithm } from '../../lib/DnssecAlgorithm';
 import { DnsRecord } from '../../lib/dns/DnsRecord';
@@ -20,13 +20,10 @@ import { isChildZone } from '../../lib/dns/name';
 
 import type { DnskeyResponse, DsResponse, RrsigResponse, ZoneResponseSet } from './responses';
 import { generateKeyPair } from './keyGen';
+import type { SignatureGenerationOptions } from './SignatureGenerationOptions';
 
-const FIVE_MINUTES_IN_SECONDS = 5 * 60;
-
-export interface SignatureGenerationOptions {
-  readonly signatureInception: Date;
-  readonly signatureExpiry: Date;
-}
+// eslint-disable-next-line @typescript-eslint/no-magic-numbers
+const FIVE_MINUTES_IN_SECONDS = minutesToSeconds(5);
 
 interface RecordGenerationOptions extends SignatureGenerationOptions {
   readonly ttl: number;
@@ -47,7 +44,7 @@ export class ZoneSigner {
     return new ZoneSigner(keyPair.privateKey, keyPair.publicKey, zoneName, algorithm);
   }
 
-  constructor(
+  public constructor(
     public readonly privateKey: KeyObject,
     public readonly publicKey: KeyObject,
     public readonly zoneName: string,
@@ -130,7 +127,7 @@ export class ZoneSigner {
       data.serialise(),
     );
     const message = new Message(
-      { rcode: RCODE_IDS.NoError },
+      { rcode: RCODE_IDS.NOERROR },
       [new Question(rrset.name, rrset.type, rrset.classId)],
       [...rrset.records, record],
     );

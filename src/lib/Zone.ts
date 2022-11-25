@@ -32,7 +32,7 @@ export class Zone {
     dsData: readonly DsData[],
     datePeriod: DatePeriod,
   ): VerificationResult<Zone> {
-    if (dnskeyMessage.header.rcode !== RCODE_IDS.NoError) {
+    if (dnskeyMessage.header.rcode !== RCODE_IDS.NOERROR) {
       return {
         status: SecurityStatus.INSECURE,
         reasonChain: [`Expected DNSKEY rcode to be NOERROR (0; got ${dnskeyMessage.header.rcode})`],
@@ -87,7 +87,7 @@ export class Zone {
     dsMessage: Message,
     datePeriod: DatePeriod,
   ): VerificationResult<Zone> {
-    if (dsMessage.header.rcode !== RCODE_IDS.NoError) {
+    if (dsMessage.header.rcode !== RCODE_IDS.NOERROR) {
       return {
         status: SecurityStatus.INSECURE,
         reasonChain: [`Expected DS rcode to be NOERROR (0; got ${dsMessage.header.rcode})`],
