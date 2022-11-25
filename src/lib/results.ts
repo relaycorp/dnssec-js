@@ -1,13 +1,13 @@
 import type { SecurityStatus } from './SecurityStatus';
-import type { RRSet } from './dns/RRSet';
+import type { RrSet } from './dns/RrSet';
 
 interface BaseResult {
   readonly status: SecurityStatus;
 }
 
-export interface SuccessfulResult<R> extends BaseResult {
+export interface SuccessfulResult<Result> extends BaseResult {
   readonly status: SecurityStatus.SECURE;
-  readonly result: R;
+  readonly result: Result;
 }
 
 export interface FailureResult extends BaseResult {
@@ -15,10 +15,10 @@ export interface FailureResult extends BaseResult {
   readonly reasonChain: readonly string[];
 }
 
-export type VerificationResult<R = void> = FailureResult | SuccessfulResult<R>;
+export type VerificationResult<Result = void> = FailureResult | SuccessfulResult<Result>;
 
-export type VerifiedRRSet = SuccessfulResult<RRSet>;
-export type ChainVerificationResult = FailureResult | VerifiedRRSet;
+export type VerifiedRrSet = SuccessfulResult<RrSet>;
+export type ChainVerificationResult = FailureResult | VerifiedRrSet;
 
 export function augmentFailureResult(
   originalResult: FailureResult,

@@ -1,16 +1,16 @@
 import { QUESTION, RECORD, RRSET } from '../../testUtils/dnsStubs';
 
-import { RRSet } from './RRSet';
+import { RrSet } from './RrSet';
 import { DnsClass } from './ianaClasses';
 import { DnsError } from './DnsError';
 import { IANA_RR_TYPE_IDS } from './ianaRrTypes';
 
-describe('RRSet', () => {
+describe('RrSet', () => {
   describe('init', () => {
     test('RRset should be empty if there are no matching records', () => {
       const nonMatchingRecord = RECORD.shallowCopy({ name: `not-${RECORD.name}` });
 
-      expect(() => RRSet.init(QUESTION, [nonMatchingRecord])).toThrowWithMessage(
+      expect(() => RrSet.init(QUESTION, [nonMatchingRecord])).toThrowWithMessage(
         DnsError,
         `RRset for ${QUESTION.key} should have at least one matching record`,
       );
@@ -19,33 +19,33 @@ describe('RRSet', () => {
     test('Record names should match', () => {
       const record2 = RECORD.shallowCopy({ name: `not-${RECORD.name}` });
 
-      const rrset = RRSet.init(QUESTION, [RECORD, record2]);
+      const rrset = RrSet.init(QUESTION, [RECORD, record2]);
 
-      expect(rrset.records).toEqual([RECORD]);
+      expect(rrset.records).toStrictEqual([RECORD]);
     });
 
     test('Record classes should match', () => {
       const record2 = RECORD.shallowCopy({ class: DnsClass.IN + 1 });
 
-      const rrset = RRSet.init(QUESTION, [RECORD, record2]);
+      const rrset = RrSet.init(QUESTION, [RECORD, record2]);
 
-      expect(rrset.records).toEqual([RECORD]);
+      expect(rrset.records).toStrictEqual([RECORD]);
     });
 
     test('Record types should match', () => {
       const type = IANA_RR_TYPE_IDS.A;
-      expect(type).not.toEqual(RECORD.typeId);
+      expect(type).not.toStrictEqual(RECORD.typeId);
       const record2 = RECORD.shallowCopy({ type });
 
-      const rrset = RRSet.init(QUESTION, [RECORD, record2]);
+      const rrset = RrSet.init(QUESTION, [RECORD, record2]);
 
-      expect(rrset.records).toEqual([RECORD]);
+      expect(rrset.records).toStrictEqual([RECORD]);
     });
 
     test('Record TTLs should match', () => {
       const record2 = RECORD.shallowCopy({ ttl: RECORD.ttl + 1 });
 
-      expect(() => RRSet.init(QUESTION, [RECORD, record2])).toThrowWithMessage(
+      expect(() => RrSet.init(QUESTION, [RECORD, record2])).toThrowWithMessage(
         DnsError,
         `RRset for ${QUESTION.key} contains different TTLs ` +
           `(e.g., ${RECORD.ttl}, ${record2.ttl})`,
@@ -55,25 +55,25 @@ describe('RRSet', () => {
     test('Multiple records should be supported', () => {
       const record2 = RECORD.shallowCopy({ dataSerialised: Buffer.from([1, 2]) });
 
-      const rrset = RRSet.init(QUESTION, [RECORD, record2]);
+      const rrset = RrSet.init(QUESTION, [RECORD, record2]);
 
       expect(rrset.records).toContainAllValues([RECORD, record2]);
     });
 
     test('Name property should be set', () => {
-      expect(RRSET.name).toEqual(RECORD.name);
+      expect(RRSET.name).toStrictEqual(RECORD.name);
     });
 
     test('Class property should be set', () => {
-      expect(RRSET.classId).toEqual(RECORD.classId);
+      expect(RRSET.classId).toStrictEqual(RECORD.classId);
     });
 
     test('Type property should be set', () => {
-      expect(RRSET.type).toEqual(RECORD.typeId);
+      expect(RRSET.type).toStrictEqual(RECORD.typeId);
     });
 
     test('TTL property should be set', () => {
-      expect(RRSET.ttl).toEqual(RECORD.ttl);
+      expect(RRSET.ttl).toStrictEqual(RECORD.ttl);
     });
 
     describe('Ordering', () => {
@@ -81,32 +81,32 @@ describe('RRSet', () => {
         const longer = RECORD.shallowCopy({});
         const shorter = RECORD.shallowCopy({});
 
-        // @ts-expect-error
+        // @ts-expect-error We can't initialise a malformed record, so we have to mutate it
         longer.dataSerialised = Buffer.from([1, 0]);
 
-        // @ts-expect-error
+        // @ts-expect-error We can't initialise a malformed record, so we have to mutate it
         shorter.dataSerialised = Buffer.from([1]);
 
-        expect(RRSet.init(QUESTION, [longer, shorter]).records).toEqual([shorter, longer]);
-        expect(RRSet.init(QUESTION, [shorter, longer]).records).toEqual([shorter, longer]);
+        expect(RrSet.init(QUESTION, [longer, shorter]).records).toStrictEqual([shorter, longer]);
+        expect(RrSet.init(QUESTION, [shorter, longer]).records).toStrictEqual([shorter, longer]);
       });
 
       test('RDATA should be sorted from the left if they have same length', () => {
         const record1 = RECORD.shallowCopy({ dataSerialised: Buffer.from([1, 0]) });
         const record2 = RECORD.shallowCopy({ dataSerialised: Buffer.from([1, 1]) });
 
-        const rrset = RRSet.init(QUESTION, [record2, record1]);
+        const rrset = RrSet.init(QUESTION, [record2, record1]);
 
-        expect(rrset.records).toEqual([record1, record2]);
+        expect(rrset.records).toStrictEqual([record1, record2]);
       });
 
       test('Duplicated records should be deleted', () => {
         const record1 = RECORD.shallowCopy({});
         const record2 = RECORD.shallowCopy({});
 
-        const rrset = RRSet.init(QUESTION, [record1, record2]);
+        const rrset = RrSet.init(QUESTION, [record1, record2]);
 
-        expect(rrset.records).toEqual([record1]);
+        expect(rrset.records).toStrictEqual([record1]);
       });
     });
   });

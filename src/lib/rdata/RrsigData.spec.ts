@@ -3,7 +3,7 @@ import { addMinutes, setMilliseconds } from 'date-fns';
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import type { SignatureGenerationOptions } from '../../testUtils/dnssec/ZoneSigner';
 import { ZoneSigner } from '../../testUtils/dnssec/ZoneSigner';
-import { RRSet } from '../dns/RRSet';
+import { RrSet } from '../dns/RrSet';
 import { QUESTION, RECORD, RRSET } from '../../testUtils/dnsStubs';
 import { IANA_RR_TYPE_IDS } from '../dns/ianaRrTypes';
 
@@ -122,7 +122,7 @@ describe('RrsigData', () => {
     test('Covered type should match RRset type', () => {
       const type = IANA_RR_TYPE_IDS.A;
       expect(type).not.toEqual(RECORD.typeId);
-      const invalidRrset = RRSet.init(QUESTION.shallowCopy({ type }), [
+      const invalidRrset = RrSet.init(QUESTION.shallowCopy({ type }), [
         RECORD.shallowCopy({ type }),
       ]);
       const { data } = signer.generateRrsig(invalidRrset, STUB_KEY_TAG, SIGNATURE_OPTIONS);
@@ -133,7 +133,7 @@ describe('RrsigData', () => {
     describe('Label count', () => {
       test('RRset owner labels greater than RRSig count should be SECURE', async () => {
         const name = `subdomain.${RECORD.name}`;
-        const differentRrset = RRSet.init(QUESTION.shallowCopy({ name }), [
+        const differentRrset = RrSet.init(QUESTION.shallowCopy({ name }), [
           RECORD.shallowCopy({ name }),
         ]);
         const { data } = signer.generateRrsig(differentRrset, STUB_KEY_TAG, SIGNATURE_OPTIONS);

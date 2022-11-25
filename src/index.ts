@@ -8,12 +8,12 @@ export type { Header } from './lib/dns/Header';
 export { Message } from './lib/dns/Message';
 export { Question } from './lib/dns/Question';
 export { DnsRecord } from './lib/dns/DnsRecord';
-export { RRSet } from './lib/dns/RRSet';
+export { RrSet } from './lib/dns/RrSet';
 
 // DNSSEC-related
 export { DatePeriod } from './lib/DatePeriod';
 export type { Resolver } from './lib/Resolver';
 export { dnssecLookUp } from './lib/lookup';
-export type { ChainVerificationResult, FailureResult, VerifiedRRSet } from './lib/results';
+export type { ChainVerificationResult, FailureResult, VerifiedRrSet } from './lib/results';
 export { SecurityStatus } from './lib/SecurityStatus';
 export type { TrustAnchor } from './lib/TrustAnchor';

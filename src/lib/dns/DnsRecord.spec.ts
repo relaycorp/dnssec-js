@@ -13,7 +13,7 @@ import { getRrTypeName, IANA_RR_TYPE_IDS, IANA_RR_TYPE_NAMES } from './ianaRrTyp
 import { DnsError } from './DnsError';
 import { DnsClass } from './ianaClasses';
 
-describe('Record', () => {
+describe('DnsRecord', () => {
   describe('constructor', () => {
     describe('Name', () => {
       test('Missing trailing dot should be added', () => {

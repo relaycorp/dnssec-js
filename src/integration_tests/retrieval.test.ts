@@ -3,8 +3,8 @@ import { DNSoverHTTPS } from 'dohdec';
 import type { Resolver } from '../lib/Resolver';
 import { Question } from '../lib/dns/Question';
 import { SecurityStatus } from '../lib/SecurityStatus';
-import { RRSet } from '../lib/dns/RRSet';
-import type { FailureResult, VerifiedRRSet } from '../lib/results';
+import { RrSet } from '../lib/dns/RrSet';
+import type { FailureResult, VerifiedRrSet } from '../lib/results';
 import { dnssecLookUp } from '../lib/lookup';
 
 const DOH_CLIENT = new DNSoverHTTPS({ url: 'https://cloudflare-dns.com/dns-query' });
@@ -45,9 +45,9 @@ test('Positive response in valid DNSSEC zone should be SECURE', async () => {
 
   const result = await dnssecLookUp(question, RESOLVER);
 
-  expect(result).toStrictEqual<VerifiedRRSet>({
+  expect(result).toStrictEqual<VerifiedRrSet>({
     status: SecurityStatus.SECURE,
-    result: expect.any(RRSet),
+    result: expect.any(RrSet),
   });
 });
 

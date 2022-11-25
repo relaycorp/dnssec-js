@@ -1,7 +1,7 @@
 import { DnsClass } from '../lib/dns/ianaClasses';
 import { DnsRecord } from '../lib/dns/DnsRecord';
 import { Question } from '../lib/dns/Question';
-import { RRSet } from '../lib/dns/RRSet';
+import { RrSet } from '../lib/dns/RrSet';
 import { IANA_RR_TYPE_IDS, IANA_RR_TYPE_NAMES } from '../lib/dns/ianaRrTypes';
 
 export const RECORD_TLD = 'com.';
@@ -25,4 +25,4 @@ export const RECORD_CLASS_STR = 'IN';
 
 export const QUESTION = new Question(RECORD.name, RECORD.typeId, RECORD.classId);
 
-export const RRSET = RRSet.init(QUESTION, [RECORD]);
+export const RRSET = RrSet.init(QUESTION, [RECORD]);

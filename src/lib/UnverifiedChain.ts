@@ -6,11 +6,11 @@ import { augmentFailureResult } from './results';
 import { SecurityStatus } from './SecurityStatus';
 import { Zone } from './Zone';
 import type { DatePeriod } from './DatePeriod';
-import { SignedRRSet } from './SignedRRSet';
+import { SignedRrSet } from './SignedRrSet';
 import type { Resolver } from './Resolver';
 import type { DnsClass } from './dns/ianaClasses';
 import type { DsData } from './rdata/DsData';
-import type { RRSet } from './dns/RRSet';
+import type { RrSet } from './dns/RrSet';
 
 interface MessageByKey {
   readonly [key: string]: Message;
@@ -84,7 +84,7 @@ export class UnverifiedChain {
       return rootZoneResult;
     }
 
-    const answers = SignedRRSet.initFromRecords(this.query, this.response.answers);
+    const answers = SignedRrSet.initFromRecords(this.query, this.response.answers);
     const apexZoneName = answers.signerNames[0] ?? answers.rrset.name;
     const zonesResult = this.getZones(rootZoneResult.result, apexZoneName, datePeriod);
     if (zonesResult.status !== SecurityStatus.SECURE) {
@@ -146,10 +146,10 @@ export class UnverifiedChain {
   }
 
   protected verifyAnswers(
-    answers: SignedRRSet,
+    answers: SignedRrSet,
     zones: readonly Zone[],
     datePeriod: DatePeriod,
-  ): VerificationResult<RRSet> {
+  ): VerificationResult<RrSet> {
     const apexZone = zones[zones.length - 1];
     if (!apexZone.verifyRrset(answers, datePeriod)) {
       return {

@@ -1,4 +1,6 @@
-import { RRSet } from './dns/RRSet';
+import type { RRSigData } from '@leichtgewicht/dns-packet';
+
+import { RrSet } from './dns/RrSet';
 import type { DnsRecord } from './dns/DnsRecord';
 import type { DnskeyRecord, RrsigRecord } from './dnssecRecords';
 import { DnssecRecordType } from './DnssecRecordType';
@@ -9,25 +11,25 @@ import type { DnskeyData } from './rdata/DnskeyData';
 import { isChildZone } from './dns/name';
 
 /**
- * RRSet with one or more corresponding RRSigs.
+ * RRset with one or more corresponding RRSigs.
  */
-export class SignedRRSet {
-  static initFromRecords(question: Question, records: readonly DnsRecord[]): SignedRRSet {
-    const rrsetRecords = records.filter((r) => r.typeId !== DnssecRecordType.RRSIG);
-    const rrset = RRSet.init(question, rrsetRecords);
+export class SignedRrSet {
+  public static initFromRecords(question: Question, records: readonly DnsRecord[]): SignedRrSet {
+    const rrsetRecords = records.filter((record) => record.typeId !== DnssecRecordType.RRSIG);
+    const rrset = RrSet.init(question, rrsetRecords);
 
     const rrsigRecords = records
       .filter(
-        (r) =>
-          r.typeId === DnssecRecordType.RRSIG &&
-          r.name === rrset.name &&
-          r.classId === rrset.classId,
+        (record) =>
+          record.typeId === DnssecRecordType.RRSIG &&
+          record.name === rrset.name &&
+          record.classId === rrset.classId,
       )
       .reduce<readonly RrsigRecord[]>(function deserialise(
         accumulator,
         record,
       ): readonly RrsigRecord[] {
-        const data = RrsigData.initFromPacket(record.dataFields);
+        const data = RrsigData.initFromPacket(record.dataFields as RRSigData);
         if (data.signerName !== rrset.name && !isChildZone(data.signerName, rrset.name)) {
           // Signer is off tree
           return accumulator;
@@ -36,18 +38,18 @@ export class SignedRRSet {
       },
       []);
 
-    return new SignedRRSet(rrset, rrsigRecords);
+    return new SignedRrSet(rrset, rrsigRecords);
   }
 
   protected constructor(
-    public readonly rrset: RRSet,
+    public readonly rrset: RrSet,
     public readonly rrsigs: readonly RrsigRecord[],
   ) {}
 
-  get signerNames(): readonly string[] {
-    const names = this.rrsigs.map((s) => s.data.signerName);
+  public get signerNames(): readonly string[] {
+    const names = this.rrsigs.map((record) => record.data.signerName);
     const uniqueNames = new Set(names);
-    return Array.from(uniqueNames).sort((a, b) => b.length - a.length);
+    return Array.from(uniqueNames).sort((name1, name2) => name2.length - name1.length);
   }
 
   public verify(

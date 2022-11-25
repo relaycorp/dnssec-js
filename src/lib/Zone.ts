@@ -5,7 +5,7 @@ import { DnskeyData } from './rdata/DnskeyData';
 import { SecurityStatus } from './SecurityStatus';
 import { DnssecRecordType } from './DnssecRecordType';
 import type { DnskeyRecord } from './dnssecRecords';
-import { SignedRRSet } from './SignedRRSet';
+import { SignedRrSet } from './SignedRrSet';
 import { DnsClass } from './dns/ianaClasses';
 import type { DatePeriod } from './DatePeriod';
 import { Question } from './dns/Question';
@@ -39,7 +39,7 @@ export class Zone {
       };
     }
 
-    const dnskeySignedRrset = SignedRRSet.initFromRecords(
+    const dnskeySignedRrset = SignedRrSet.initFromRecords(
       new Question(zoneName, DnssecRecordType.DNSKEY, DnsClass.IN),
       dnskeyMessage.answers,
     );
@@ -77,7 +77,7 @@ export class Zone {
     public readonly dnskeys: readonly DnskeyRecord[],
   ) {}
 
-  public verifyRrset(rrset: SignedRRSet, datePeriod: DatePeriod): boolean {
+  public verifyRrset(rrset: SignedRrSet, datePeriod: DatePeriod): boolean {
     return rrset.verify(this.dnskeys, datePeriod);
   }
 
@@ -94,7 +94,7 @@ export class Zone {
       };
     }
 
-    const dsSignedRrset = SignedRRSet.initFromRecords(
+    const dsSignedRrset = SignedRrSet.initFromRecords(
       new Question(zoneName, DnssecRecordType.DS, DnsClass.IN),
       dsMessage.answers,
     );

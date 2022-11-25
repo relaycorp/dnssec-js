@@ -11,13 +11,13 @@ import { Message } from './dns/Message';
 import { SecurityStatus } from './SecurityStatus';
 import type { DsRecord } from './dnssecRecords';
 import { DsData } from './rdata/DsData';
-import { RRSet } from './dns/RRSet';
+import { RrSet } from './dns/RrSet';
 import { RrsigData } from './rdata/RrsigData';
 import type { FailureResult, SuccessfulResult } from './results';
 import { Question } from './dns/Question';
 import { DnsClass } from './dns/ianaClasses';
 import { DnssecRecordType } from './DnssecRecordType';
-import { SignedRRSet } from './SignedRRSet';
+import { SignedRrSet } from './SignedRrSet';
 import { DatePeriod } from './DatePeriod';
 import type { DnsRecord } from './dns/DnsRecord';
 import { RCODE_IDS } from './dns/ianaRcodes';
@@ -191,7 +191,7 @@ describe('Zone', () => {
       const newApexSigner = await ZoneSigner.generate(DnssecAlgorithm.RSASHA1, tldSigner.zoneName);
       const nonZskDnskey = newApexSigner.generateDnskey({ flags: { zoneKey: false } });
       const newRrsig = tldSigner.generateRrsig(
-        RRSet.init(TLD_DNSKEY_QUESTION, [tldDnskey.record, nonZskDnskey.record]),
+        RrSet.init(TLD_DNSKEY_QUESTION, [tldDnskey.record, nonZskDnskey.record]),
         tldDnskey.data.calculateKeyTag(),
         SIGNATURE_OPTIONS,
       );
@@ -298,7 +298,7 @@ describe('Zone', () => {
           SIGNATURE_OPTIONS,
         );
         const apexDsRrsig = rootSigner.generateRrsig(
-          RRSet.init(QUESTION.shallowCopy({ type: DnssecRecordType.DS }), [apexDs.record]),
+          RrSet.init(QUESTION.shallowCopy({ type: DnssecRecordType.DS }), [apexDs.record]),
           rootDnskey.data.calculateKeyTag(),
           SIGNATURE_OPTIONS,
         );
@@ -385,7 +385,7 @@ describe('Zone', () => {
 
       test('DS not signed by parent zone should be BOGUS', async () => {
         const invalidDsRrsig = rootSigner.generateRrsig(
-          RRSet.init(TLD_DNSKEY_QUESTION.shallowCopy({ type: DnssecRecordType.DS }), [
+          RrSet.init(TLD_DNSKEY_QUESTION.shallowCopy({ type: DnssecRecordType.DS }), [
             tldDs.record,
           ]),
           tldDnskey.data.calculateKeyTag() + 1, // This is what makes it invalid
@@ -414,7 +414,7 @@ describe('Zone', () => {
 
   describe('verifyRrset', () => {
     const STUB_QUESTION = QUESTION.shallowCopy({ name: '.' });
-    const STUB_RRSET = RRSet.init(STUB_QUESTION, [RECORD.shallowCopy({ name: '.' })]);
+    const STUB_RRSET = RrSet.init(STUB_QUESTION, [RECORD.shallowCopy({ name: '.' })]);
 
     test('Invalid SignedRRset should be refused', () => {
       const zone = generateRootZone();
@@ -423,7 +423,7 @@ describe('Zone', () => {
         zone.dnskeys[0].data.calculateKeyTag(),
         SIGNATURE_OPTIONS,
       );
-      const signedRrset = SignedRRSet.initFromRecords(STUB_QUESTION, [
+      const signedRrset = SignedRrSet.initFromRecords(STUB_QUESTION, [
         ...STUB_RRSET.records,
         rrsig.record,
       ]);
@@ -444,7 +444,7 @@ describe('Zone', () => {
         zskData.calculateKeyTag(),
         SIGNATURE_OPTIONS,
       );
-      const signedRrset = SignedRRSet.initFromRecords(STUB_QUESTION, [
+      const signedRrset = SignedRrSet.initFromRecords(STUB_QUESTION, [
         ...STUB_RRSET.records,
         rrsig.record,
       ]);
@@ -460,7 +460,7 @@ describe('Zone', () => {
         nonZsk.data.calculateKeyTag(),
         SIGNATURE_OPTIONS,
       );
-      const signedRrset = SignedRRSet.initFromRecords(STUB_QUESTION, [
+      const signedRrset = SignedRrSet.initFromRecords(STUB_QUESTION, [
         ...STUB_RRSET.records,
         rrsig.record,
       ]);

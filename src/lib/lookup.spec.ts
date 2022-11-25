@@ -6,7 +6,7 @@ import { QUESTION, RRSET } from '../testUtils/dnsStubs';
 import { dnssecLookUp } from './lookup';
 import type { Resolver } from './Resolver';
 import { UnverifiedChain } from './UnverifiedChain';
-import type { VerifiedRRSet } from './results';
+import type { VerifiedRrSet } from './results';
 import { SecurityStatus } from './SecurityStatus';
 import { DatePeriod } from './DatePeriod';
 import { IANA_TRUST_ANCHORS } from './IANA_TRUST_ANCHORS';
@@ -119,7 +119,7 @@ describe('dnssecLookUp', () => {
   test('Verification result should be output', async () => {
     const result = await dnssecLookUp(QUESTION, RESOLVER);
 
-    expect(result).toEqual<VerifiedRRSet>({
+    expect(result).toEqual<VerifiedRrSet>({
       status: SecurityStatus.SECURE,
       result: RRSET,
     });

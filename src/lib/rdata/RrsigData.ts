@@ -6,7 +6,7 @@ import { fromUnixTime, getUnixTime } from 'date-fns';
 
 import type { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { countLabels, normaliseName, serialiseName } from '../dns/name';
-import type { RRSet } from '../dns/RRSet';
+import type { RrSet } from '../dns/RrSet';
 import { getNodejsSignatureHashFromDnssecAlgo } from '../utils/crypto/hashing';
 import type { IanaRrTypeName } from '../dns/ianaRrTypes';
 import { getRrTypeId } from '../dns/ianaRrTypes';
@@ -33,7 +33,7 @@ export class RrsigData implements DnssecRecordData {
   }
 
   public static generate(
-    rrset: RRSet,
+    rrset: RrSet,
     signatureExpiry: Date,
     signatureInception: Date,
     signerPrivateKey: KeyObject,
@@ -100,7 +100,7 @@ export class RrsigData implements DnssecRecordData {
     return serialisation;
   }
 
-  public verifyRrset(rrset: RRSet, dnskeyPublicKey: KeyObject): boolean {
+  public verifyRrset(rrset: RrSet, dnskeyPublicKey: KeyObject): boolean {
     if (rrset.type !== this.type) {
       return false;
     }
@@ -128,7 +128,7 @@ function computeSignedData(
   signatureInception: Date,
   signerKeyTag: number,
   algorithm: DnssecAlgorithm,
-  rrset: RRSet,
+  rrset: RrSet,
   signerName: string,
   ttl: number,
 ): Buffer {
@@ -153,7 +153,7 @@ function computeSignedData(
   return signedData;
 }
 
-function serialiseRrset(rrset: RRSet, ttl: number): Buffer {
+function serialiseRrset(rrset: RrSet, ttl: number): Buffer {
   return Buffer.concat(rrset.records.map((r) => r.serialise(ttl)));
 }
 

@@ -12,7 +12,7 @@ import { Message } from './dns/Message';
 import { UnverifiedChain } from './UnverifiedChain';
 import { DnssecRecordType } from './DnssecRecordType';
 import { Question } from './dns/Question';
-import type { ChainVerificationResult, FailureResult, VerifiedRRSet } from './results';
+import type { ChainVerificationResult, FailureResult, VerifiedRrSet } from './results';
 import { SecurityStatus } from './SecurityStatus';
 import type { DsData } from './rdata/DsData';
 import { DatePeriod } from './DatePeriod';
@@ -454,7 +454,7 @@ describe('verify', () => {
 
       const result = chain.verify(DATE_PERIOD, trustAnchors);
 
-      expect(result).toEqual<VerifiedRRSet>({
+      expect(result).toEqual<VerifiedRrSet>({
         status: SecurityStatus.SECURE,
         result: RRSET,
       });
@@ -494,7 +494,7 @@ describe('verify', () => {
 
       const result = chain.verify(DATE_PERIOD, trustAnchors);
 
-      expect(result).toEqual<VerifiedRRSet>({
+      expect(result).toEqual<VerifiedRrSet>({
         status: SecurityStatus.SECURE,
         result: RRSET,
       });

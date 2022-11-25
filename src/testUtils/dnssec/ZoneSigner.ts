@@ -7,7 +7,7 @@ import { DnsRecord } from '../../lib/dns/DnsRecord';
 import { DnsClass } from '../../lib/dns/ianaClasses';
 import { DigestType } from '../../lib/DigestType';
 import { DnssecRecordType } from '../../lib/DnssecRecordType';
-import { RRSet } from '../../lib/dns/RRSet';
+import { RrSet } from '../../lib/dns/RrSet';
 import type { DnskeyFlags } from '../../lib/DnskeyFlags';
 import { DnskeyData } from '../../lib/rdata/DnskeyData';
 import { DsData } from '../../lib/rdata/DsData';
@@ -69,7 +69,7 @@ export class ZoneSigner {
       ttl,
       data.serialise(),
     );
-    const rrset = RRSet.init(record.makeQuestion(), [record, ...(options.additionalDnskeys ?? [])]);
+    const rrset = RrSet.init(record.makeQuestion(), [record, ...(options.additionalDnskeys ?? [])]);
     const rrsig = this.generateRrsig(rrset, data.calculateKeyTag(), options);
     return { data, message: rrsig.message, record, rrsig };
   }
@@ -99,7 +99,7 @@ export class ZoneSigner {
       data.serialise(),
     );
     const rrsig = this.generateRrsig(
-      RRSet.init(record.makeQuestion(), [record]),
+      RrSet.init(record.makeQuestion(), [record]),
       dnskeyTag,
       options,
     );
@@ -107,7 +107,7 @@ export class ZoneSigner {
   }
 
   public generateRrsig(
-    rrset: RRSet,
+    rrset: RrSet,
     keyTag: number,
     options: Partial<SignatureGenerationOptions> = {},
   ): RrsigResponse {

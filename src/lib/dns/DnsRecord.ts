@@ -33,12 +33,9 @@ export class DnsRecord {
 
   public readonly dataSerialised: Buffer;
 
-  /**
-   * @internal
-   */
   public readonly dataFields: any;
 
-  constructor(
+  public constructor(
     name: string,
     typeIdOrName: IanaRrTypeIdOrName,
     classIdOrName: DnsClassIdOrName,
