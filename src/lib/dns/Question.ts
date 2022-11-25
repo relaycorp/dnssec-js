@@ -33,11 +33,10 @@ export class Question {
   }
 
   public getTypeName(): IanaRrTypeName {
-    const name = IANA_RR_TYPE_NAMES[this.typeId];
-    if (!name) {
+    if (!(this.typeId in IANA_RR_TYPE_NAMES)) {
       throw new DnsError(`RR type id ${this.typeId} is not defined by IANA`);
     }
-    return name;
+    return IANA_RR_TYPE_NAMES[this.typeId];
   }
 
   public equals(differentQuestion: Question) {

@@ -18,7 +18,7 @@ describe('constructor', () => {
       const name = 'example.com.';
       const question = new Question(name, QUESTION.typeId, QUESTION.classId);
 
-      expect(question.name).toEqual(name);
+      expect(question.name).toStrictEqual(name);
     });
   });
 
@@ -26,7 +26,7 @@ describe('constructor', () => {
     test('Id should be stored as is', () => {
       const question = new Question(QUESTION.name, IANA_RR_TYPE_IDS.A, DnsClass.IN);
 
-      expect(question.typeId).toEqual(IANA_RR_TYPE_IDS.A);
+      expect(question.typeId).toStrictEqual(IANA_RR_TYPE_IDS.A);
     });
 
     test('Name should be converted to id', () => {
@@ -35,7 +35,7 @@ describe('constructor', () => {
 
       const question = new Question(QUESTION.name, name, DnsClass.IN);
 
-      expect(question.typeId).toEqual(id);
+      expect(question.typeId).toStrictEqual(id);
     });
   });
 
@@ -43,19 +43,19 @@ describe('constructor', () => {
     test('IN class should be used by default', () => {
       const question = new Question(QUESTION.name, IANA_RR_TYPE_IDS.A);
 
-      expect(question.classId).toEqual(DnsClass.IN);
+      expect(question.classId).toStrictEqual(DnsClass.IN);
     });
 
     test('Id should be stored as is', () => {
       const question = new Question(QUESTION.name, IANA_RR_TYPE_IDS.A, DnsClass.IN);
 
-      expect(question.classId).toEqual(DnsClass.IN);
+      expect(question.classId).toStrictEqual(DnsClass.IN);
     });
 
     test('Name should be converted to id', () => {
       const question = new Question(QUESTION.name, QUESTION.typeId, 'CH');
 
-      expect(question.classId).toEqual(DnsClass.CH);
+      expect(question.classId).toStrictEqual(DnsClass.CH);
     });
   });
 });
@@ -72,7 +72,7 @@ describe('key', () => {
 
 describe('getTypeName', () => {
   test('Name should be returned if defined by IANA', () => {
-    expect(QUESTION.getTypeName()).toEqual(RECORD_TYPE_STR);
+    expect(QUESTION.getTypeName()).toStrictEqual(RECORD_TYPE_STR);
   });
 
   test('Error should be thrown if not defined by IANA', () => {
@@ -116,9 +116,9 @@ describe('shallowCopy', () => {
   test('Nothing should be changed if nothing is overridden', () => {
     const copy = QUESTION.shallowCopy({});
 
-    expect(copy.name).toEqual(QUESTION.name);
-    expect(copy.typeId).toEqual(QUESTION.typeId);
-    expect(copy.classId).toEqual(QUESTION.classId);
+    expect(copy.name).toStrictEqual(QUESTION.name);
+    expect(copy.typeId).toStrictEqual(QUESTION.typeId);
+    expect(copy.classId).toStrictEqual(QUESTION.classId);
   });
 
   test('New name should be used if set', () => {
@@ -126,9 +126,9 @@ describe('shallowCopy', () => {
 
     const copy = QUESTION.shallowCopy({ name: newName });
 
-    expect(copy.name).toEqual(newName);
-    expect(copy.typeId).toEqual(QUESTION.typeId);
-    expect(copy.classId).toEqual(QUESTION.classId);
+    expect(copy.name).toStrictEqual(newName);
+    expect(copy.typeId).toStrictEqual(QUESTION.typeId);
+    expect(copy.classId).toStrictEqual(QUESTION.classId);
   });
 
   test('New type should be used if set', () => {
@@ -136,9 +136,9 @@ describe('shallowCopy', () => {
 
     const copy = QUESTION.shallowCopy({ type: newType });
 
-    expect(copy.name).toEqual(QUESTION.name);
-    expect(copy.typeId).toEqual(newType);
-    expect(copy.classId).toEqual(QUESTION.classId);
+    expect(copy.name).toStrictEqual(QUESTION.name);
+    expect(copy.typeId).toStrictEqual(newType);
+    expect(copy.classId).toStrictEqual(QUESTION.classId);
   });
 
   test('New class should be used if set', () => {
@@ -146,8 +146,8 @@ describe('shallowCopy', () => {
 
     const copy = QUESTION.shallowCopy({ class: newClass });
 
-    expect(copy.name).toEqual(QUESTION.name);
-    expect(copy.typeId).toEqual(QUESTION.typeId);
-    expect(copy.classId).toEqual(newClass);
+    expect(copy.name).toStrictEqual(QUESTION.name);
+    expect(copy.typeId).toStrictEqual(QUESTION.typeId);
+    expect(copy.classId).toStrictEqual(newClass);
   });
 });

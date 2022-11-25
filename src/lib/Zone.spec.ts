@@ -62,6 +62,23 @@ describe('Zone', () => {
     tldDs = tldResponses.ds;
   });
 
+  function generateRootZone(additionalDnskeys: readonly DnsRecord[] = []): Zone {
+    const { dnskey, ds } = rootSigner.generateZoneResponses(rootSigner, rootDs.data.keyTag, {
+      dnskey: {
+        additionalDnskeys,
+        flags: { zoneKey: true },
+        ...SIGNATURE_OPTIONS,
+      },
+
+      ds: SIGNATURE_OPTIONS,
+    });
+    const zoneResult = Zone.init(rootSigner.zoneName, dnskey.message, [ds.data], VALIDITY_PERIOD);
+    if (zoneResult.status !== SecurityStatus.SECURE) {
+      throw new Error(`Failed to generate zone: ${zoneResult.reasonChain.join(', ')}`);
+    }
+    return zoneResult.result;
+  }
+
   describe('init', () => {
     test('DNSKEY message with rcode other than NOERROR should be INSECURE', () => {
       const rcode = 1;
@@ -69,7 +86,7 @@ describe('Zone', () => {
 
       const result = Zone.init(RECORD_TLD, dnskeyMessage, [tldDs.data], VALIDITY_PERIOD);
 
-      expect(result).toEqual<FailureResult>({
+      expect(result).toStrictEqual<FailureResult>({
         status: SecurityStatus.INSECURE,
         reasonChain: [`Expected DNSKEY rcode to be NOERROR (0; got ${rcode})`],
       });
@@ -85,7 +102,7 @@ describe('Zone', () => {
 
       const result = Zone.init(RECORD_TLD, tldDnskey.message, [mismatchingDsData], VALIDITY_PERIOD);
 
-      expect(result).toEqual<FailureResult>({
+      expect(result).toStrictEqual<FailureResult>({
         status: SecurityStatus.BOGUS,
         reasonChain: ['No DNSKEY matched specified DS(s)'],
       });
@@ -113,7 +130,7 @@ describe('Zone', () => {
         VALIDITY_PERIOD,
       );
 
-      expect(result).toEqual<FailureResult>({
+      expect(result).toStrictEqual<FailureResult>({
         status: SecurityStatus.BOGUS,
         reasonChain: ['No valid DNSKEY RRSig was found'],
       });
@@ -141,7 +158,7 @@ describe('Zone', () => {
         VALIDITY_PERIOD,
       );
 
-      expect(result).toEqual<FailureResult>({
+      expect(result).toStrictEqual<FailureResult>({
         status: SecurityStatus.BOGUS,
         reasonChain: ['No valid DNSKEY RRSig was found'],
       });
@@ -155,7 +172,7 @@ describe('Zone', () => {
 
       const result = Zone.init(RECORD_TLD, tldDnskey.message, [tldDs.data], invalidPeriod);
 
-      expect(result).toEqual<FailureResult>({
+      expect(result).toStrictEqual<FailureResult>({
         status: SecurityStatus.BOGUS,
         reasonChain: ['No valid DNSKEY RRSig was found'],
       });
@@ -171,7 +188,7 @@ describe('Zone', () => {
       });
       const result = Zone.init(RECORD_TLD, nonZskDnskey.message, [nonZskDs.data], VALIDITY_PERIOD);
 
-      expect(result).toEqual<FailureResult>({
+      expect(result).toStrictEqual<FailureResult>({
         status: SecurityStatus.BOGUS,
         reasonChain: ['No DNSKEY matched specified DS(s)'],
       });
@@ -180,11 +197,11 @@ describe('Zone', () => {
     test('Zone should be initialised if ZSK is found', () => {
       const result = Zone.init(RECORD_TLD, tldDnskey.message, [tldDs.data], VALIDITY_PERIOD);
 
-      expect(result.status).toEqual(SecurityStatus.SECURE);
+      expect(result.status).toStrictEqual(SecurityStatus.SECURE);
       const zone = (result as SuccessfulResult<Zone>).result;
-      expect(zone.name).toEqual(RECORD_TLD);
+      expect(zone.name).toStrictEqual(RECORD_TLD);
       expect(zone.dnskeys).toHaveLength(1);
-      expect(zone.dnskeys[0].record).toEqual(tldDnskey.record);
+      expect(zone.dnskeys[0].record).toStrictEqual(tldDnskey.record);
     });
 
     test('Additional DNSKEYs should also be stored if a valid ZSK is found', async () => {
@@ -207,9 +224,9 @@ describe('Zone', () => {
         VALIDITY_PERIOD,
       );
 
-      expect(result.status).toEqual(SecurityStatus.SECURE);
+      expect(result.status).toStrictEqual(SecurityStatus.SECURE);
       const zone = (result as SuccessfulResult<Zone>).result;
-      const dnskeyTags = zone.dnskeys.map((k) => k.data.calculateKeyTag());
+      const dnskeyTags = zone.dnskeys.map((dnskey) => dnskey.data.calculateKeyTag());
       expect(dnskeyTags).toContainAllValues([
         tldDnskey.data.calculateKeyTag(),
         nonZskDnskey.data.calculateKeyTag(),
@@ -230,10 +247,10 @@ describe('Zone', () => {
     test('DNSKEY response message should be used', () => {
       const result = Zone.initRoot(rootDnskey.message, [rootDs.data], VALIDITY_PERIOD);
 
-      expect(result.status).toEqual(SecurityStatus.SECURE);
+      expect(result.status).toStrictEqual(SecurityStatus.SECURE);
       const zone = (result as SuccessfulResult<Zone>).result;
-      const dnskeyTags = zone.dnskeys.map((k) => k.data.calculateKeyTag());
-      expect(dnskeyTags).toEqual([rootDnskey.data.calculateKeyTag()]);
+      const dnskeyTags = zone.dnskeys.map((dnskey) => dnskey.data.calculateKeyTag());
+      expect(dnskeyTags).toStrictEqual([rootDnskey.data.calculateKeyTag()]);
     });
 
     test('Trust anchors should be used as DS set', () => {
@@ -245,7 +262,7 @@ describe('Zone', () => {
         VALIDITY_PERIOD,
       );
 
-      expect(result).toEqual<FailureResult>({
+      expect(result).toStrictEqual<FailureResult>({
         status: SecurityStatus.BOGUS,
         reasonChain: ['No DNSKEY matched specified DS(s)'],
       });
@@ -259,7 +276,7 @@ describe('Zone', () => {
 
       const result = Zone.initRoot(rootDnskey.message, [rootDs.data], invalidPeriod);
 
-      expect(result).toEqual<FailureResult>({
+      expect(result).toStrictEqual<FailureResult>({
         status: SecurityStatus.BOGUS,
         reasonChain: ['No valid DNSKEY RRSig was found'],
       });
@@ -330,9 +347,9 @@ describe('Zone', () => {
         VALIDITY_PERIOD,
       );
 
-      expect(result.status).toEqual(SecurityStatus.SECURE);
+      expect(result.status).toStrictEqual(SecurityStatus.SECURE);
       const zone = (result as SuccessfulResult<Zone>).result;
-      expect(zone.dnskeys.map((k) => k.data.calculateKeyTag())).toEqual([
+      expect(zone.dnskeys.map((dnskey) => dnskey.data.calculateKeyTag())).toStrictEqual([
         tldDnskey.data.calculateKeyTag(),
       ]);
     });
@@ -355,7 +372,7 @@ describe('Zone', () => {
           VALIDITY_PERIOD,
         );
 
-        expect(result).toEqual<FailureResult>({
+        expect(result).toStrictEqual<FailureResult>({
           status: SecurityStatus.INSECURE,
 
           reasonChain: [
@@ -377,13 +394,13 @@ describe('Zone', () => {
           invalidPeriod,
         );
 
-        expect(result).toEqual<FailureResult>({
+        expect(result).toStrictEqual<FailureResult>({
           status: SecurityStatus.BOGUS,
           reasonChain: ['Could not find at least one valid DS record'],
         });
       });
 
-      test('DS not signed by parent zone should be BOGUS', async () => {
+      test('DS not signed by parent zone should be BOGUS', () => {
         const invalidDsRrsig = rootSigner.generateRrsig(
           RrSet.init(TLD_DNSKEY_QUESTION.shallowCopy({ type: DnssecRecordType.DS }), [
             tldDs.record,
@@ -404,7 +421,7 @@ describe('Zone', () => {
           VALIDITY_PERIOD,
         );
 
-        expect(result).toEqual<FailureResult>({
+        expect(result).toStrictEqual<FailureResult>({
           status: SecurityStatus.BOGUS,
           reasonChain: ['Could not find at least one valid DS record'],
         });
@@ -468,21 +485,4 @@ describe('Zone', () => {
       expect(zone.verifyRrset(signedRrset, VALIDITY_PERIOD)).toBeTrue();
     });
   });
-
-  function generateRootZone(additionalDnskeys: readonly DnsRecord[] = []): Zone {
-    const { dnskey, ds } = rootSigner.generateZoneResponses(rootSigner, rootDs.data.keyTag, {
-      dnskey: {
-        additionalDnskeys,
-        flags: { zoneKey: true },
-        ...SIGNATURE_OPTIONS,
-      },
-
-      ds: SIGNATURE_OPTIONS,
-    });
-    const zoneResult = Zone.init(rootSigner.zoneName, dnskey.message, [ds.data], VALIDITY_PERIOD);
-    if (zoneResult.status !== SecurityStatus.SECURE) {
-      throw new Error(`Failed to generate zone: ${zoneResult.reasonChain.join(', ')}`);
-    }
-    return zoneResult.result;
-  }
 });

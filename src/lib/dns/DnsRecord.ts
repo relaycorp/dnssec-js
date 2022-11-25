@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-magic-numbers */
+
 import type { Codec } from '@leichtgewicht/dns-packet';
 import { enc } from '@leichtgewicht/dns-packet';
 
@@ -17,6 +19,25 @@ interface RecordFields {
   readonly class: DnsClass;
   readonly ttl: number;
   readonly dataSerialised: Buffer;
+}
+
+function deserialiseRdata(serialisation: Buffer, typeName: string, codec: Codec<any>): any {
+  const lengthPrefixedData = lengthPrefixRdata(serialisation);
+  try {
+    return codec.decode(lengthPrefixedData);
+  } catch {
+    throw new DnsError(`Data for record type ${typeName} is malformed`);
+  }
+}
+
+function serialiseRdata(data: any, typeName: string, codec: Codec<any>): Buffer {
+  let lengthPrefixedData: Uint8Array;
+  try {
+    lengthPrefixedData = codec.encode(data);
+  } catch {
+    throw new DnsError(`Data for record type ${typeName} is invalid`);
+  }
+  return Buffer.from(lengthPrefixedData.subarray(2));
 }
 
 /**
@@ -85,10 +106,10 @@ export class DnsRecord {
   public shallowCopy(partialRecord: Partial<RecordFields>): DnsRecord {
     const name = partialRecord.name ?? this.name;
     const type = partialRecord.type ?? this.typeId;
-    const class_ = partialRecord.class ?? this.classId;
+    const classId = partialRecord.class ?? this.classId;
     const ttl = partialRecord.ttl ?? this.ttl;
     const dataSerialised = partialRecord.dataSerialised ?? this.dataSerialised;
-    return new DnsRecord(name, type, class_, ttl, dataSerialised);
+    return new DnsRecord(name, type, classId, ttl, dataSerialised);
   }
 
   /**
@@ -99,23 +120,4 @@ export class DnsRecord {
   public makeQuestion(): Question {
     return new Question(this.name, this.typeId, this.classId);
   }
-}
-
-function deserialiseRdata(serialisation: Buffer, typeName: string, codec: Codec<any>): any {
-  const lengthPrefixedData = lengthPrefixRdata(serialisation);
-  try {
-    return codec.decode(lengthPrefixedData);
-  } catch {
-    throw new DnsError(`Data for record type ${typeName} is malformed`);
-  }
-}
-
-function serialiseRdata(data: any, typeName: string, codec: Codec<any>): Buffer {
-  let lengthPrefixedData: Uint8Array;
-  try {
-    lengthPrefixedData = codec.encode(data);
-  } catch {
-    throw new DnsError(`Data for record type ${typeName} is invalid`);
-  }
-  return Buffer.from(lengthPrefixedData.subarray(2));
 }

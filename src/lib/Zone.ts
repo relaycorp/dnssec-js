@@ -1,3 +1,5 @@
+import type { DigestData, DNSKeyData } from '@leichtgewicht/dns-packet';
+
 import { DsData } from './rdata/DsData';
 import type { VerificationResult } from './results';
 import type { Message } from './dns/Message';
@@ -20,11 +22,6 @@ export class Zone {
    *
    * This is an internal utility that would normally be `protected`/`private` but we're making
    * `public` so that it can be unit-tested directly.
-   *
-   * @param zoneName
-   * @param dnskeyMessage
-   * @param dsData
-   * @param datePeriod
    */
   public static init(
     zoneName: string,
@@ -45,10 +42,10 @@ export class Zone {
     );
 
     const dnskeys = dnskeySignedRrset.rrset.records.map((record) => ({
-      data: DnskeyData.initFromPacket(record.dataFields, record.dataSerialised),
+      data: DnskeyData.initFromPacket(record.dataFields as DNSKeyData, record.dataSerialised),
       record,
     }));
-    const zskDnskeys = dnskeys.filter((k) => dsData.some((ds) => ds.verifyDnskey(k)));
+    const zskDnskeys = dnskeys.filter((dnskey) => dsData.some((ds) => ds.verifyDnskey(dnskey)));
 
     if (zskDnskeys.length === 0) {
       return { status: SecurityStatus.BOGUS, reasonChain: ['No DNSKEY matched specified DS(s)'] };
@@ -107,11 +104,11 @@ export class Zone {
     }
 
     const dsRecords = dsSignedRrset.rrset.records.map((record) => ({
-      data: DsData.initFromPacket(record.dataFields),
+      data: DsData.initFromPacket(record.dataFields as DigestData),
       record,
     }));
 
-    const dsData = dsRecords.map((r) => r.data);
+    const dsData = dsRecords.map((ds) => ds.data);
     return Zone.init(zoneName, dnskeyMessage, dsData, datePeriod);
   }
 }

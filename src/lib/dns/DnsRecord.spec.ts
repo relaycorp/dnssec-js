@@ -9,6 +9,7 @@ import {
 } from '../../testUtils/dnsStubs';
 
 import { DnsRecord } from './DnsRecord';
+import type { IanaRrTypeName } from './ianaRrTypes';
 import { getRrTypeName, IANA_RR_TYPE_IDS, IANA_RR_TYPE_NAMES } from './ianaRrTypes';
 import { DnsError } from './DnsError';
 import { DnsClass } from './ianaClasses';
@@ -71,7 +72,7 @@ describe('DnsRecord', () => {
       });
 
       test('Name not defined by IANA should cause an error', () => {
-        const invalidName = 'BAZINGA' as any;
+        const invalidName = 'BAZINGA' as IanaRrTypeName;
 
         expect(
           () =>
@@ -236,7 +237,7 @@ describe('DnsRecord', () => {
 
       const record = ANSWER.decode(serialisation) as TxtAnswer;
       expect(record.data).toHaveLength(1);
-      expect(RECORD_DATA_TXT_DATA.equals((record as any).data[0])).toBeTrue();
+      expect(RECORD_DATA_TXT_DATA.equals(record.data[0] as Uint8Array)).toBeTrue();
     });
   });
 

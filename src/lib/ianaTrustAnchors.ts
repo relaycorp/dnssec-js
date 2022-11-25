@@ -7,7 +7,7 @@ import { DigestType } from './DigestType';
  *
  * See https://www.iana.org/dnssec/files
  */
-export const IanaTrustAnchors: readonly DsData[] = [
+export const IANA_TRUST_ANCHORS: readonly DsData[] = [
   new DsData(
     // eslint-disable-next-line @typescript-eslint/no-magic-numbers
     20_326,

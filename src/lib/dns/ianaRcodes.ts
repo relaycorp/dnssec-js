@@ -29,7 +29,7 @@ export const RCODE_IDS = {
   BADCOOKIE: 23,
 };
 
-type RcodeName = keyof typeof RCODE_IDS;
+export type RcodeName = keyof typeof RCODE_IDS;
 export type RcodeIdOrName = RcodeName | number;
 
 const RCODE_IDS_NORMALISED: { readonly [name: string]: number } = Object.entries(RCODE_IDS).reduce(
