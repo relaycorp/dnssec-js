@@ -20,12 +20,12 @@ import { isChildZone } from '../../lib/dns/name.js';
 
 import type { DnskeyResponse, DsResponse, RrsigResponse, ZoneResponseSet } from './responses.js';
 import { generateKeyPair } from './keyGen.js';
-import type { SignatureOptions } from './SignatureOptions';
+import type { SignatureGenerationOptions } from './SignatureGenerationOptions.js';
 
 // eslint-disable-next-line @typescript-eslint/no-magic-numbers
 const FIVE_MINUTES_IN_SECONDS = minutesToSeconds(5);
 
-interface RecordGenerationOptions extends SignatureOptions {
+interface RecordGenerationOptions extends SignatureGenerationOptions {
   readonly ttl: number;
 }
 
@@ -106,7 +106,7 @@ export class ZoneSigner {
   public generateRrsig(
     rrset: RrSet,
     keyTag: number,
-    options: Partial<SignatureOptions> = {},
+    options: Partial<SignatureGenerationOptions> = {},
   ): RrsigResponse {
     const signatureInception = options.signatureInception ?? new Date();
     const signatureExpiry = options.signatureExpiry ?? addSeconds(signatureInception, rrset.ttl);

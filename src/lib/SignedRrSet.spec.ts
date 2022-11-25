@@ -6,7 +6,7 @@ import { addSeconds, setMilliseconds, subSeconds } from 'date-fns';
 
 import { QUESTION, RECORD, RECORD_TLD, RRSET } from '../testUtils/dnsStubs.js';
 import { ZoneSigner } from '../testUtils/dnssec/ZoneSigner.js';
-import type { SignatureOptions } from '../testUtils/dnssec/SignatureOptions';
+import type { SignatureGenerationOptions } from '../testUtils/dnssec/SignatureGenerationOptions.js';
 
 import { SignedRrSet } from './SignedRrSet.js';
 import { DnssecAlgorithm } from './DnssecAlgorithm.js';
@@ -21,7 +21,7 @@ import { IANA_RR_TYPE_IDS } from './dns/ianaRrTypes.js';
 
 describe('SignedRrSet', () => {
   const NOW = setMilliseconds(new Date(), 0);
-  const RRSIG_OPTIONS: SignatureOptions = {
+  const RRSIG_OPTIONS: SignatureGenerationOptions = {
     signatureInception: NOW,
     signatureExpiry: addSeconds(NOW, 60),
   };

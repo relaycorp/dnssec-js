@@ -6,7 +6,7 @@ import { ZoneSigner } from '../../testUtils/dnssec/ZoneSigner.js';
 import { RrSet } from '../dns/RrSet.js';
 import { QUESTION, RECORD, RRSET } from '../../testUtils/dnsStubs.js';
 import { IANA_RR_TYPE_IDS } from '../dns/ianaRrTypes.js';
-import type { SignatureOptions } from '../../testUtils/dnssec/SignatureOptions';
+import type { SignatureGenerationOptions } from '../../testUtils/dnssec/SignatureGenerationOptions.js';
 
 import { RrsigData } from './RrsigData.js';
 
@@ -14,7 +14,7 @@ describe('RrsigData', () => {
   const STUB_KEY_TAG = 12_345;
 
   const NOW = setMilliseconds(new Date(), 0);
-  const SIGNATURE_OPTIONS: SignatureOptions = {
+  const SIGNATURE_OPTIONS: SignatureGenerationOptions = {
     signatureExpiry: addMinutes(NOW, 10),
     signatureInception: NOW,
   };

@@ -6,7 +6,7 @@ import { addSeconds, subSeconds } from 'date-fns';
 import { ZoneSigner } from '../testUtils/dnssec/ZoneSigner.js';
 import { QUESTION, RECORD, RECORD_TLD, RRSET } from '../testUtils/dnsStubs.js';
 import type { ZoneResponseSet } from '../testUtils/dnssec/responses.js';
-import type { SignatureOptions } from '../testUtils/dnssec/SignatureOptions';
+import type { SignatureGenerationOptions } from '../testUtils/dnssec/SignatureGenerationOptions.js';
 
 import { DnssecAlgorithm } from './DnssecAlgorithm.js';
 import { Message } from './dns/Message.js';
@@ -24,7 +24,7 @@ import type { DnskeyRecord } from './dnssecRecords.js';
 
 const NOW = new Date();
 const DATE_PERIOD = DatePeriod.init(NOW, addSeconds(NOW, 60));
-const SIGNATURE_OPTIONS: SignatureOptions = {
+const SIGNATURE_OPTIONS: SignatureGenerationOptions = {
   signatureExpiry: DATE_PERIOD.end,
   signatureInception: DATE_PERIOD.start,
 };

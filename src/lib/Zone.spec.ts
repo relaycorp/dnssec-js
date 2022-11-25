@@ -3,7 +3,7 @@ import { addSeconds, subSeconds } from 'date-fns';
 import { ZoneSigner } from '../testUtils/dnssec/ZoneSigner.js';
 import { QUESTION, RECORD, RECORD_TLD } from '../testUtils/dnsStubs.js';
 import type { DnskeyResponse, DsResponse } from '../testUtils/dnssec/responses.js';
-import type { SignatureOptions } from '../testUtils/dnssec/SignatureOptions';
+import type { SignatureGenerationOptions } from '../testUtils/dnssec/SignatureGenerationOptions.js';
 
 import { DnssecAlgorithm } from './DnssecAlgorithm.js';
 import { Zone } from './Zone.js';
@@ -24,7 +24,7 @@ import { RCODE_IDS } from './dns/ianaRcodes.js';
 
 const NOW = new Date();
 const VALIDITY_PERIOD = DatePeriod.init(subSeconds(NOW, 1), addSeconds(NOW, 1));
-const SIGNATURE_OPTIONS: SignatureOptions = {
+const SIGNATURE_OPTIONS: SignatureGenerationOptions = {
   signatureExpiry: VALIDITY_PERIOD.end,
   signatureInception: VALIDITY_PERIOD.start,
 };
