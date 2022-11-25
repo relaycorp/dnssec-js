@@ -1,23 +1,25 @@
-import { KeyObject } from 'node:crypto';
+import type { KeyObject } from 'node:crypto';
+
 import { addSeconds, setMilliseconds } from 'date-fns';
 
-import { DnssecAlgorithm } from '../../lib/DnssecAlgorithm';
+import type { DnssecAlgorithm } from '../../lib/DnssecAlgorithm';
 import { Record } from '../../lib/dns/Record';
 import { DnsClass } from '../../lib/dns/ianaClasses';
-import { generateKeyPair } from './keyGen';
 import { DigestType } from '../../lib/DigestType';
 import { DnssecRecordType } from '../../lib/DnssecRecordType';
 import { RRSet } from '../../lib/dns/RRSet';
-import { DnskeyFlags } from '../../lib/DnskeyFlags';
+import type { DnskeyFlags } from '../../lib/DnskeyFlags';
 import { DnskeyData } from '../../lib/rdata/DnskeyData';
 import { DsData } from '../../lib/rdata/DsData';
 import { RrsigData } from '../../lib/rdata/RrsigData';
-import { DnskeyRecord } from '../../lib/dnssecRecords';
+import type { DnskeyRecord } from '../../lib/dnssecRecords';
 import { Message } from '../../lib/dns/Message';
 import { Question } from '../../lib/dns/Question';
-import { DnskeyResponse, DsResponse, RrsigResponse, ZoneResponseSet } from './responses';
 import { RCODE_IDS } from '../../lib/dns/ianaRcodes';
 import { isChildZone } from '../../lib/dns/name';
+
+import type { DnskeyResponse, DsResponse, RrsigResponse, ZoneResponseSet } from './responses';
+import { generateKeyPair } from './keyGen';
 
 const FIVE_MINUTES_IN_SECONDS = 5 * 60;
 

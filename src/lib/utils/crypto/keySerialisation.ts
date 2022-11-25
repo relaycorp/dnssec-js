@@ -1,10 +1,13 @@
-import { createPublicKey, KeyObject } from 'node:crypto';
+import type { KeyObject } from 'node:crypto';
+import { createPublicKey } from 'node:crypto';
+
 import { toBufferBE } from 'bigint-buffer';
 
 import { getIntegerByteLength } from '../integers';
 import { DnssecAlgorithm } from '../../DnssecAlgorithm';
-import { ECDSA_CURVE_LENGTH } from './curves';
 import { DnssecError } from '../../DnssecError';
+
+import { ECDSA_CURVE_LENGTH } from './curves';
 
 export function serialisePublicKey(publicKey: KeyObject, dnssecAlgorithm: DnssecAlgorithm): Buffer {
   switch (dnssecAlgorithm) {
@@ -38,7 +41,7 @@ function serialiseRsaPublicKey(publicKey: KeyObject): Buffer {
   const exponentLengthPrefix = serialiseRsaExponentPrefix(exponentBuffer);
 
   const keyJwt = publicKey.export({ format: 'jwk' });
-  const modulusBuffer = Buffer.from(keyJwt.n as string, 'base64');
+  const modulusBuffer = Buffer.from(keyJwt.n!, 'base64');
 
   return Buffer.concat([exponentLengthPrefix, exponentBuffer, modulusBuffer]);
 }
@@ -65,8 +68,8 @@ function serialiseEcDsaPublicKey(publicKey: KeyObject): Buffer {
   }
 
   const keyJwt = publicKey.export({ format: 'jwk' });
-  const xBuffer = Buffer.from(keyJwt.x as string, 'base64url');
-  const yBuffer = Buffer.from(keyJwt.y as string, 'base64url');
+  const xBuffer = Buffer.from(keyJwt.x!, 'base64url');
+  const yBuffer = Buffer.from(keyJwt.y!, 'base64url');
   return Buffer.concat([xBuffer, yBuffer]);
 }
 
@@ -76,7 +79,7 @@ function serialiseEdDsaPublicKey(publicKey: KeyObject): Buffer {
     throw new Error(`Requested serialisation of EdDSA key but got ${algorithm} key`);
   }
   const keyJwt = publicKey.export({ format: 'jwk' });
-  return Buffer.from(keyJwt.x as string, 'base64url');
+  return Buffer.from(keyJwt.x!, 'base64url');
 }
 
 export function deserialisePublicKey(
@@ -122,6 +125,7 @@ function deserialiseRsaPublicKey(serialisation: Buffer): KeyObject {
       e: exponentBuffer.toString('base64url'),
       kty: 'RSA',
     },
+
     format: 'jwk',
   });
 }
@@ -148,7 +152,7 @@ function deserialiseEcDsaPublicKey(
 
 function deserialiseEdDsaPublicKey(
   serialisation: Buffer,
-  algorithm: DnssecAlgorithm.ED25519 | DnssecAlgorithm.ED448,
+  algorithm: DnssecAlgorithm.ED448 | DnssecAlgorithm.ED25519,
 ): KeyObject {
   const serialisationLength = serialisation.byteLength;
   if (algorithm === DnssecAlgorithm.ED25519 && serialisationLength !== 32) {

@@ -1,5 +1,5 @@
-import { DigestType } from './DigestType';
-import { DnssecAlgorithm } from './DnssecAlgorithm';
+import type { DigestType } from './DigestType';
+import type { DnssecAlgorithm } from './DnssecAlgorithm';
 
 export interface TrustAnchor {
   readonly keyTag: number;

@@ -1,13 +1,13 @@
 import { DsData } from './rdata/DsData';
-import { VerificationResult } from './results';
-import { Message } from './dns/Message';
+import type { VerificationResult } from './results';
+import type { Message } from './dns/Message';
 import { DnskeyData } from './rdata/DnskeyData';
 import { SecurityStatus } from './SecurityStatus';
 import { DnssecRecordType } from './DnssecRecordType';
-import { DnskeyRecord } from './dnssecRecords';
+import type { DnskeyRecord } from './dnssecRecords';
 import { SignedRRSet } from './SignedRRSet';
 import { DnsClass } from './dns/ianaClasses';
-import { DatePeriod } from './DatePeriod';
+import type { DatePeriod } from './DatePeriod';
 import { Question } from './dns/Question';
 import { RCODE_IDS } from './dns/ianaRcodes';
 

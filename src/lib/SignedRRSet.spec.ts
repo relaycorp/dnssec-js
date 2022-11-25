@@ -1,12 +1,14 @@
 import { jest } from '@jest/globals';
 import { addSeconds, setMilliseconds, subSeconds } from 'date-fns';
 
-import { SignedRRSet } from './SignedRRSet';
 import { QUESTION, RECORD, RECORD_TLD, RRSET } from '../testUtils/dnsStubs';
-import { SignatureGenerationOptions, ZoneSigner } from '../testUtils/dnssec/ZoneSigner';
+import type { SignatureGenerationOptions } from '../testUtils/dnssec/ZoneSigner';
+import { ZoneSigner } from '../testUtils/dnssec/ZoneSigner';
+
+import { SignedRRSet } from './SignedRRSet';
 import { DnssecAlgorithm } from './DnssecAlgorithm';
 import { RRSet } from './dns/RRSet';
-import { DnskeyRecord } from './dnssecRecords';
+import type { DnskeyRecord } from './dnssecRecords';
 import { DatePeriod } from './DatePeriod';
 import { serialisePublicKey } from './utils/crypto/keySerialisation';
 import { DnskeyData } from './rdata/DnskeyData';
@@ -21,6 +23,7 @@ describe('SignedRRSet', () => {
 
   let tldSigner: ZoneSigner;
   let apexSigner: ZoneSigner;
+
   beforeAll(async () => {
     tldSigner = await ZoneSigner.generate(DnssecAlgorithm.RSASHA256, RECORD_TLD);
     apexSigner = await ZoneSigner.generate(DnssecAlgorithm.RSASHA256, RECORD.name);

@@ -1,11 +1,12 @@
-import { decode, Packet } from '@leichtgewicht/dns-packet';
+import type { Packet } from '@leichtgewicht/dns-packet';
+import { decode } from '@leichtgewicht/dns-packet';
 
 import { Record } from './Record';
-import { Header } from './Header';
+import type { Header } from './Header';
 import { Question } from './Question';
 import { DnsError } from './DnsError';
-import { IanaRrTypeName } from './ianaRrTypes';
-import { DnsClassName } from './ianaClasses';
+import type { IanaRrTypeName } from './ianaRrTypes';
+import type { DnsClassName } from './ianaClasses';
 import { getRcodeId } from './ianaRcodes';
 
 /**
@@ -27,7 +28,7 @@ export class Message {
 
     const rcode = getRcodeId(messageParts.rcode as any);
     const questions = messageParts.questions!.map(
-      (q) => new Question(q.name, q.type as IanaRrTypeName, q.class!),
+      (q) => new Question(q.name, q.type as IanaRrTypeName, q.class),
     );
     const answers = messageParts.answers!.map(
       (a) => new Record(a.name, a.type, a.class as DnsClassName, a.ttl!, a.data as any),

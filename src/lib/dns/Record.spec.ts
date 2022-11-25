@@ -1,4 +1,5 @@
-import { answer as ANSWER, mx, MxData, TxtAnswer } from '@leichtgewicht/dns-packet';
+import type { MxData, TxtAnswer } from '@leichtgewicht/dns-packet';
+import { answer as ANSWER, mx } from '@leichtgewicht/dns-packet';
 
 import {
   RECORD,
@@ -6,6 +7,7 @@ import {
   RECORD_DATA_TXT_DATA,
   RECORD_TYPE_STR,
 } from '../../testUtils/dnsStubs';
+
 import { Record } from './Record';
 import { getRrTypeName, IANA_RR_TYPE_IDS, IANA_RR_TYPE_NAMES } from './ianaRrTypes';
 import { DnsError } from './DnsError';
@@ -24,7 +26,7 @@ describe('Record', () => {
           RECORD.dataSerialised,
         );
 
-        expect(record.name).toEqual(`${name}.`);
+        expect(record.name).toBe(`${name}.`);
       });
 
       test('Present trailing dot should be left as is', () => {
@@ -189,7 +191,7 @@ describe('Record', () => {
   });
 
   describe('serialise', () => {
-    const recordNameWithoutDot = RECORD.name.replace(/\.$/, '');
+    const recordNameWithoutDot = RECORD.name.replace(/\.$/u, '');
 
     test('Record name should be serialised', () => {
       const serialisation = RECORD.serialise();

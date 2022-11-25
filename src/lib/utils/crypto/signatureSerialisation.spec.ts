@@ -1,10 +1,11 @@
 import { AsnProp, AsnPropTypes, AsnSerializer } from '@peculiar/asn1-schema';
+import { toBigIntBE } from 'bigint-buffer';
+
+import { DnssecAlgorithm } from '../../DnssecAlgorithm';
+import { DnssecError } from '../../DnssecError';
 
 import { convertSignatureFromDnssec, convertSignatureToDnssec } from './signatureSerialisation';
-import { DnssecAlgorithm } from '../../DnssecAlgorithm';
 import { EcdsaSignature } from './asn1Schemas/EcdsaSignature';
-import { DnssecError } from '../../DnssecError';
-import { toBigIntBE } from 'bigint-buffer';
 
 // Parameters taken from https://www.rfc-editor.org/rfc/rfc6605.html#section-6
 const ECDSA_SIGNATURES = {
@@ -12,6 +13,7 @@ const ECDSA_SIGNATURES = {
     'qx6wLYqmh-l9oCKTN6qIc-bw6ya-KJ8oMz0YP107epXAyGmt-3SNruPFKG7tZoLBLlUzGGus7ZwmwWep666VCw',
     'base64url',
   ),
+
   p384: Buffer.from(
     '_L5hDKIvGDyI1fcARX3z65qrmPsVz73QD1Mr5CEqOiLP95hxQouuroGCeZOvzFaxsT8Glr74hbavRKayJNuydCuzWTSS' +
       'Pdz7wnqXL5bdcJzusdnI0RSMROxxwGipWcJm',

@@ -1,11 +1,13 @@
 import { addMinutes, setMilliseconds } from 'date-fns';
 
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
-import { SignatureGenerationOptions, ZoneSigner } from '../../testUtils/dnssec/ZoneSigner';
-import { RrsigData } from './RrsigData';
+import type { SignatureGenerationOptions } from '../../testUtils/dnssec/ZoneSigner';
+import { ZoneSigner } from '../../testUtils/dnssec/ZoneSigner';
 import { RRSet } from '../dns/RRSet';
 import { QUESTION, RECORD, RRSET } from '../../testUtils/dnsStubs';
 import { IANA_RR_TYPE_IDS } from '../dns/ianaRrTypes';
+
+import { RrsigData } from './RrsigData';
 
 describe('RrsigData', () => {
   const STUB_KEY_TAG = 12_345;
@@ -17,6 +19,7 @@ describe('RrsigData', () => {
   };
 
   let signer: ZoneSigner;
+
   beforeAll(async () => {
     signer = await ZoneSigner.generate(DnssecAlgorithm.RSASHA256, RECORD.name);
   });
@@ -36,7 +39,7 @@ describe('RrsigData', () => {
         Buffer.from([]),
       );
 
-      expect(data.signerName).toEqual(`${signerName}.`);
+      expect(data.signerName).toBe(`${signerName}.`);
     });
   });
 
@@ -62,7 +65,7 @@ describe('RrsigData', () => {
 
       const rrsigData = RrsigData.initFromPacket(rrsig.record.dataFields);
 
-      const expectedLabelCount = RRSET.name.replace(/\.$/, '').split('.').length;
+      const expectedLabelCount = RRSET.name.replace(/\.$/u, '').split('.').length;
       expect(rrsigData.labels).toEqual(expectedLabelCount);
     });
 

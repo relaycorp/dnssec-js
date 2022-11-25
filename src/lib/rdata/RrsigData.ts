@@ -1,17 +1,21 @@
-import { KeyObject, sign as cryptoSign, verify as cryptoVerify } from 'node:crypto';
-import { RRSigData } from '@leichtgewicht/dns-packet';
+import type { KeyObject } from 'node:crypto';
+import { sign as cryptoSign, verify as cryptoVerify } from 'node:crypto';
+
+import type { RRSigData } from '@leichtgewicht/dns-packet';
 import { fromUnixTime, getUnixTime } from 'date-fns';
 
-import { DnssecAlgorithm } from '../DnssecAlgorithm';
+import type { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { countLabels, normaliseName, serialiseName } from '../dns/name';
-import { DnssecRecordData } from './DnssecRecordData';
-import { RRSet } from '../dns/RRSet';
+import type { RRSet } from '../dns/RRSet';
 import { getNodejsSignatureHashFromDnssecAlgo } from '../utils/crypto/hashing';
-import { getRrTypeId, IanaRrTypeName } from '../dns/ianaRrTypes';
+import type { IanaRrTypeName } from '../dns/ianaRrTypes';
+import { getRrTypeId } from '../dns/ianaRrTypes';
 import {
   convertSignatureFromDnssec,
   convertSignatureToDnssec,
 } from '../utils/crypto/signatureSerialisation';
+
+import type { DnssecRecordData } from './DnssecRecordData';
 
 export class RrsigData implements DnssecRecordData {
   static initFromPacket(packet: RRSigData): RrsigData {

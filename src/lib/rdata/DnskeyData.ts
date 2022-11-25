@@ -1,12 +1,14 @@
-import { DNSKeyData } from '@leichtgewicht/dns-packet';
-import { KeyObject } from 'node:crypto';
+import type { KeyObject } from 'node:crypto';
 
-import { DnssecAlgorithm } from '../DnssecAlgorithm';
-import { DnskeyFlags } from '../DnskeyFlags';
-import { DnssecRecordData } from './DnssecRecordData';
-import { RrsigData } from './RrsigData';
+import type { DNSKeyData } from '@leichtgewicht/dns-packet';
+
+import type { DnssecAlgorithm } from '../DnssecAlgorithm';
+import type { DnskeyFlags } from '../DnskeyFlags';
 import { deserialisePublicKey, serialisePublicKey } from '../utils/crypto/keySerialisation';
-import { DatePeriod } from '../DatePeriod';
+import type { DatePeriod } from '../DatePeriod';
+
+import type { DnssecRecordData } from './DnssecRecordData';
+import type { RrsigData } from './RrsigData';
 
 const ZONE_KEY_MASK = 0b0000_0001_0000_0000;
 const SECURE_ENTRY_POINT_MASK = 0b0000_0000_0000_0001;
@@ -15,8 +17,8 @@ export class DnskeyData implements DnssecRecordData {
   public static initFromPacket(packet: DNSKeyData, packetSerialised: Buffer): DnskeyData {
     const publicKey = deserialisePublicKey(packet.key as unknown as Buffer, packet.algorithm);
     const flags: DnskeyFlags = {
-      zoneKey: !!(packet.flags & ZONE_KEY_MASK),
-      secureEntryPoint: !!(packet.flags & SECURE_ENTRY_POINT_MASK),
+      zoneKey: Boolean(packet.flags & ZONE_KEY_MASK),
+      secureEntryPoint: Boolean(packet.flags & SECURE_ENTRY_POINT_MASK),
     };
     const keyTag = calculateKeyTag(packetSerialised);
     return new DnskeyData(publicKey, packet.algorithm, flags, keyTag);
@@ -52,6 +54,7 @@ export class DnskeyData implements DnssecRecordData {
     if (this.keyTag !== null) {
       return this.keyTag;
     }
+
     // We should probably cache the calculation, but that'd only help in situations where we're
     // *generating* DNSKEYs (e.g., in test suites).
     const rdata = this.serialise();
@@ -84,6 +87,6 @@ function calculateKeyTag(rdata: Buffer) {
   for (let index = 0; index < rdata.byteLength; ++index) {
     accumulator += index & 1 ? rdata[index] : rdata[index] << 8;
   }
-  accumulator += (accumulator >> 16) & 0xFF_FF;
-  return accumulator & 0xFF_FF;
+  accumulator += (accumulator >> 16) & 0xff_ff;
+  return accumulator & 0xff_ff;
 }

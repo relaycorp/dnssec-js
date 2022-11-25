@@ -1,23 +1,25 @@
 import { addSeconds, subSeconds } from 'date-fns';
 
-import { SignatureGenerationOptions, ZoneSigner } from '../testUtils/dnssec/ZoneSigner';
-import { DnssecAlgorithm } from './DnssecAlgorithm';
+import type { SignatureGenerationOptions } from '../testUtils/dnssec/ZoneSigner';
+import { ZoneSigner } from '../testUtils/dnssec/ZoneSigner';
 import { QUESTION, RECORD, RECORD_TLD } from '../testUtils/dnsStubs';
+import type { DnskeyResponse, DsResponse } from '../testUtils/dnssec/responses';
+
+import { DnssecAlgorithm } from './DnssecAlgorithm';
 import { Zone } from './Zone';
 import { Message } from './dns/Message';
 import { SecurityStatus } from './SecurityStatus';
-import { DsRecord } from './dnssecRecords';
+import type { DsRecord } from './dnssecRecords';
 import { DsData } from './rdata/DsData';
 import { RRSet } from './dns/RRSet';
 import { RrsigData } from './rdata/RrsigData';
-import { FailureResult, SuccessfulResult } from './results';
+import type { FailureResult, SuccessfulResult } from './results';
 import { Question } from './dns/Question';
 import { DnsClass } from './dns/ianaClasses';
 import { DnssecRecordType } from './DnssecRecordType';
 import { SignedRRSet } from './SignedRRSet';
 import { DatePeriod } from './DatePeriod';
-import { Record } from './dns/Record';
-import { DnskeyResponse, DsResponse } from '../testUtils/dnssec/responses';
+import type { Record } from './dns/Record';
 import { RCODE_IDS } from './dns/ianaRcodes';
 
 const NOW = new Date();
@@ -33,6 +35,7 @@ describe('Zone', () => {
   let rootSigner: ZoneSigner;
   let rootDnskey: DnskeyResponse;
   let rootDs: DsRecord;
+
   beforeAll(async () => {
     rootSigner = await ZoneSigner.generate(DnssecAlgorithm.RSASHA256, '.');
 
@@ -47,6 +50,7 @@ describe('Zone', () => {
   let tldSigner: ZoneSigner;
   let tldDnskey: DnskeyResponse;
   let tldDs: DsResponse;
+
   beforeAll(async () => {
     tldSigner = await ZoneSigner.generate(DnssecAlgorithm.RSASHA256, RECORD_TLD);
 
@@ -264,6 +268,7 @@ describe('Zone', () => {
 
   describe('initChild', () => {
     let rootZone: Zone;
+
     beforeAll(() => {
       rootZone = generateRootZone();
     });
@@ -352,6 +357,7 @@ describe('Zone', () => {
 
         expect(result).toEqual<FailureResult>({
           status: SecurityStatus.INSECURE,
+
           reasonChain: [
             `Expected DS rcode to be NOERROR (0; got ${invalidDsMessage.header.rcode})`,
           ],
@@ -466,10 +472,11 @@ describe('Zone', () => {
   function generateRootZone(additionalDnskeys: readonly Record[] = []): Zone {
     const { dnskey, ds } = rootSigner.generateZoneResponses(rootSigner, rootDs.data.keyTag, {
       dnskey: {
-        additionalDnskeys: additionalDnskeys,
+        additionalDnskeys,
         flags: { zoneKey: true },
         ...SIGNATURE_OPTIONS,
       },
+
       ds: SIGNATURE_OPTIONS,
     });
     const zoneResult = Zone.init(rootSigner.zoneName, dnskey.message, [ds.data], VALIDITY_PERIOD);

@@ -1,4 +1,5 @@
-import { generateKeyPair as cryptoGenerateKeyPair, KeyObject } from 'node:crypto';
+import type { KeyObject } from 'node:crypto';
+import { generateKeyPair as cryptoGenerateKeyPair } from 'node:crypto';
 import { promisify } from 'node:util';
 
 import { DnssecAlgorithm } from '../../lib/DnssecAlgorithm';
@@ -35,5 +36,5 @@ export async function generateKeyPair(algorithm: DnssecAlgorithm): Promise<KeyPa
   if (!options) {
     throw new Error(`Unsupported algorithm (${algorithm})`);
   }
-  return generateKeyPairAsync(options.type as any, options.options);
+  return await generateKeyPairAsync(options.type as any, options.options);
 }

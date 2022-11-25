@@ -1,13 +1,14 @@
 import { name as NAME } from '@leichtgewicht/dns-packet';
 
 import { RECORD, RECORD_TLD } from '../../testUtils/dnsStubs';
+
 import { countLabels, isChildZone, normaliseName, serialiseName } from './name';
 
 describe('serialiseName', () => {
-  const recordNameWithoutDot = RECORD.name.replace(/\.$/, '');
+  const recordNameWithoutDot = RECORD.name.replace(/\.$/u, '');
 
   test('Trailing dot in record name should be ignored', () => {
-    const name = recordNameWithoutDot + '.';
+    const name = `${recordNameWithoutDot}.`;
 
     const serialisation = serialiseName(name);
 
@@ -31,7 +32,7 @@ describe('normaliseName', () => {
   test('Missing trailing dot should be added', () => {
     const name = 'example.com';
 
-    expect(normaliseName(name)).toEqual(`${name}.`);
+    expect(normaliseName(name)).toBe(`${name}.`);
   });
 
   test('Present trailing dot should be left as is', () => {
@@ -49,19 +50,19 @@ describe('normaliseName', () => {
 
 describe('countLabels', () => {
   test('Root name should have zero labels', () => {
-    expect(countLabels('.')).toEqual(0);
+    expect(countLabels('.')).toBe(0);
   });
 
   test('TLD should have one label', () => {
-    expect(countLabels(RECORD_TLD)).toEqual(1);
+    expect(countLabels(RECORD_TLD)).toBe(1);
   });
 
   test('Apex domain should have two labels', () => {
-    expect(countLabels(RECORD.name)).toEqual(2);
+    expect(countLabels(RECORD.name)).toBe(2);
   });
 
   test('Wildcard should not count towards labels', () => {
-    expect(countLabels(`*.${RECORD.name}`)).toEqual(2);
+    expect(countLabels(`*.${RECORD.name}`)).toBe(2);
   });
 });
 

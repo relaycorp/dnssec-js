@@ -1,15 +1,16 @@
 import { Question } from './dns/Question';
 import { Message } from './dns/Message';
 import { DnssecRecordType } from './DnssecRecordType';
-import { augmentFailureResult, ChainVerificationResult, VerificationResult } from './results';
+import type { ChainVerificationResult, VerificationResult } from './results';
+import { augmentFailureResult } from './results';
 import { SecurityStatus } from './SecurityStatus';
 import { Zone } from './Zone';
-import { DatePeriod } from './DatePeriod';
+import type { DatePeriod } from './DatePeriod';
 import { SignedRRSet } from './SignedRRSet';
-import { Resolver } from './Resolver';
-import { DnsClass } from './dns/ianaClasses';
-import { DsData } from './rdata/DsData';
-import { RRSet } from './dns/RRSet';
+import type { Resolver } from './Resolver';
+import type { DnsClass } from './dns/ianaClasses';
+import type { DsData } from './rdata/DsData';
+import type { RRSet } from './dns/RRSet';
 
 interface MessageByKey {
   readonly [key: string]: Message;
@@ -18,6 +19,36 @@ interface MessageByKey {
 type FinalResolver = (question: Question) => Promise<Message>;
 
 export class UnverifiedChain {
+  public static initFromMessages(query: Question, messages: readonly Message[]): UnverifiedChain {
+    const allMessages = messages.reduce<MessageByKey>((accumulator, m) => {
+      const question = m.questions[0];
+      if (!question) {
+        return accumulator;
+      }
+      const { key } = question;
+      return { ...accumulator, [key]: m };
+    }, {});
+    const zoneNames = getZonesInChain(query.name);
+    const messageByKey = zoneNames.reduce<MessageByKey>((accumulator, zoneName) => {
+      const dsKey = `${zoneName}/${DnssecRecordType.DS}`;
+      const dsMessage = zoneName === '.' ? null : allMessages[dsKey];
+      const dnskeyKey = `${zoneName}/${DnssecRecordType.DNSKEY}`;
+      const dnskeyMessage = allMessages[dnskeyKey];
+      return {
+        ...accumulator,
+        ...(dsMessage ? { [dsKey]: dsMessage } : {}),
+        ...(dnskeyMessage ? { [dnskeyKey]: dnskeyMessage } : {}),
+      };
+    }, {});
+
+    const queryResponse = allMessages[query.key];
+    if (!queryResponse) {
+      throw new Error(`At least one message must answer ${query.key}`);
+    }
+
+    return new UnverifiedChain(query, queryResponse, messageByKey);
+  }
+
   public static async retrieve(question: Question, resolver: Resolver): Promise<UnverifiedChain> {
     const finalResolver: FinalResolver = async (q) => {
       const message = await resolver(q);
@@ -39,36 +70,6 @@ export class UnverifiedChain {
     const zoneMessageByKey: MessageByKey = { ...dnskeyMessages, ...dsMessages };
     const response = await finalResolver(question);
     return new UnverifiedChain(question, response, zoneMessageByKey);
-  }
-
-  public static initFromMessages(query: Question, messages: readonly Message[]): UnverifiedChain {
-    const allMessages = messages.reduce((accumulator, m) => {
-      const question = m.questions[0];
-      if (!question) {
-        return accumulator;
-      }
-      const key = question.key;
-      return { ...accumulator, [key]: m };
-    }, {} as MessageByKey);
-    const zoneNames = getZonesInChain(query.name);
-    const messageByKey = zoneNames.reduce((accumulator, zoneName) => {
-      const dsKey = `${zoneName}/${DnssecRecordType.DS}`;
-      const dsMessage = zoneName === '.' ? null : allMessages[dsKey];
-      const dnskeyKey = `${zoneName}/${DnssecRecordType.DNSKEY}`;
-      const dnskeyMessage = allMessages[dnskeyKey];
-      return {
-        ...accumulator,
-        ...(dsMessage ? { [dsKey]: dsMessage } : {}),
-        ...(dnskeyMessage ? { [dnskeyKey]: dnskeyMessage } : {}),
-      };
-    }, {} as MessageByKey);
-
-    const queryResponse = allMessages[query.key];
-    if (!queryResponse) {
-      throw new Error(`At least one message must answer ${query.key}`);
-    }
-
-    return new UnverifiedChain(query, queryResponse, messageByKey);
   }
 
   protected constructor(
@@ -168,7 +169,7 @@ function getZonesInChain(zoneName: string, includeRoot = true): readonly string[
   if (zoneName === '') {
     return includeRoot ? ['.'] : [];
   }
-  const parentZoneName = zoneName.replace(/^[^.]+\./, '');
+  const parentZoneName = zoneName.replace(/^[^.]+\./u, '');
   const parentZones = getZonesInChain(parentZoneName, includeRoot);
   return [...parentZones, zoneName];
 }
@@ -180,7 +181,7 @@ async function retrieveZoneMessages(
   resolver: FinalResolver,
 ): Promise<MessageByKey> {
   const question = new Question('.', recordType, class_);
-  return zoneNames.reduce(async (messages, zoneName) => {
+  return await zoneNames.reduce(async (messages, zoneName) => {
     const message = await resolver(question.shallowCopy({ name: zoneName }));
     return { ...(await messages), [`${zoneName}/${recordType}`]: message };
   }, Promise.resolve({} as MessageByKey));

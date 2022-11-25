@@ -1,11 +1,13 @@
 import { addMinutes, addSeconds, setMilliseconds, subSeconds } from 'date-fns';
 
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
-import { SignatureGenerationOptions, ZoneSigner } from '../../testUtils/dnssec/ZoneSigner';
-import { DnskeyData } from './DnskeyData';
+import type { SignatureGenerationOptions } from '../../testUtils/dnssec/ZoneSigner';
+import { ZoneSigner } from '../../testUtils/dnssec/ZoneSigner';
 import { RECORD_TLD, RRSET } from '../../testUtils/dnsStubs';
 import { DatePeriod } from '../DatePeriod';
 import { DNSSEC_ROOT_DNSKEY_DATA, DNSSEC_ROOT_DNSKEY_KEY_TAG } from '../../testUtils/dnssec/iana';
+
+import { DnskeyData } from './DnskeyData';
 
 describe('DnskeyData', () => {
   const NOW = setMilliseconds(new Date(), 0);
@@ -13,13 +15,14 @@ describe('DnskeyData', () => {
   const SIGNATURE_EXPIRY = addMinutes(SIGNATURE_INCEPTION, 10);
 
   let tldSigner: ZoneSigner;
+
   beforeAll(async () => {
     tldSigner = await ZoneSigner.generate(DnssecAlgorithm.RSASHA256, RECORD_TLD);
   });
 
   describe('initFromPacket', () => {
     test('Public key should be extracted', () => {
-      const record = tldSigner.generateDnskey().record;
+      const { record } = tldSigner.generateDnskey();
 
       const data = DnskeyData.initFromPacket(record.dataFields, record.dataSerialised);
 
@@ -29,7 +32,7 @@ describe('DnskeyData', () => {
     });
 
     test('Algorithm should be extracted', () => {
-      const record = tldSigner.generateDnskey().record;
+      const { record } = tldSigner.generateDnskey();
 
       const data = DnskeyData.initFromPacket(record.dataFields, record.dataSerialised);
 
@@ -38,7 +41,7 @@ describe('DnskeyData', () => {
 
     describe('Flags', () => {
       test('Zone Key should be on if set', () => {
-        const record = tldSigner.generateDnskey({ flags: { zoneKey: true } }).record;
+        const { record } = tldSigner.generateDnskey({ flags: { zoneKey: true } });
 
         const data = DnskeyData.initFromPacket(record.dataFields, record.dataSerialised);
 
@@ -46,7 +49,7 @@ describe('DnskeyData', () => {
       });
 
       test('Zone Key should off if unset', () => {
-        const record = tldSigner.generateDnskey({ flags: { zoneKey: false } }).record;
+        const { record } = tldSigner.generateDnskey({ flags: { zoneKey: false } });
 
         const data = DnskeyData.initFromPacket(record.dataFields, record.dataSerialised);
 
@@ -54,7 +57,7 @@ describe('DnskeyData', () => {
       });
 
       test('Secure Entrypoint should be on if set', () => {
-        const record = tldSigner.generateDnskey({ flags: { secureEntryPoint: true } }).record;
+        const { record } = tldSigner.generateDnskey({ flags: { secureEntryPoint: true } });
 
         const data = DnskeyData.initFromPacket(record.dataFields, record.dataSerialised);
 
@@ -62,7 +65,7 @@ describe('DnskeyData', () => {
       });
 
       test('Secure Entrypoint should be off if unset', () => {
-        const record = tldSigner.generateDnskey({ flags: { secureEntryPoint: false } }).record;
+        const { record } = tldSigner.generateDnskey({ flags: { secureEntryPoint: false } });
 
         const data = DnskeyData.initFromPacket(record.dataFields, record.dataSerialised);
 
@@ -71,7 +74,7 @@ describe('DnskeyData', () => {
     });
 
     test('Key tag should be cached', () => {
-      const record = tldSigner.generateDnskey({ flags: { secureEntryPoint: false } }).record;
+      const { record } = tldSigner.generateDnskey({ flags: { secureEntryPoint: false } });
 
       const data = DnskeyData.initFromPacket(record.dataFields, record.dataSerialised);
 
@@ -108,6 +111,7 @@ describe('DnskeyData', () => {
     };
 
     let dnskeyData: DnskeyData;
+
     beforeAll(() => {
       dnskeyData = tldSigner.generateDnskey().data;
     });

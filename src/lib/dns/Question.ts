@@ -1,6 +1,8 @@
-import { getRrTypeId, IANA_RR_TYPE_NAMES, IanaRrTypeIdOrName, IanaRrTypeName } from './ianaRrTypes';
+import type { IanaRrTypeIdOrName, IanaRrTypeName } from './ianaRrTypes';
+import { getRrTypeId, IANA_RR_TYPE_NAMES } from './ianaRrTypes';
 import { DnsError } from './DnsError';
-import { DnsClass, DnsClassIdOrName, getDnsClassId } from './ianaClasses';
+import type { DnsClassIdOrName } from './ianaClasses';
+import { DnsClass, getDnsClassId } from './ianaClasses';
 import { normaliseName } from './name';
 
 interface QuestionFields {
@@ -11,7 +13,9 @@ interface QuestionFields {
 
 export class Question {
   public readonly name: string;
+
   public readonly typeId: number;
+
   public readonly class_: DnsClass;
 
   constructor(name: string, type: IanaRrTypeIdOrName, class_: DnsClassIdOrName = DnsClass.IN) {

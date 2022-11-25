@@ -1,4 +1,5 @@
-import { augmentFailureResult, FailureResult } from './results';
+import type { FailureResult } from './results';
+import { augmentFailureResult } from './results';
 import { SecurityStatus } from './SecurityStatus';
 
 describe('augmentFailureResult', () => {

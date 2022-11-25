@@ -1,5 +1,6 @@
-import { RRSet } from './RRSet';
 import { QUESTION, RECORD, RRSET } from '../../testUtils/dnsStubs';
+
+import { RRSet } from './RRSet';
 import { DnsClass } from './ianaClasses';
 import { DnsError } from './DnsError';
 import { IANA_RR_TYPE_IDS } from './ianaRrTypes';
@@ -79,9 +80,11 @@ describe('RRSet', () => {
       test('Absence of an octet should sort before a zero octet', () => {
         const longer = RECORD.shallowCopy({});
         const shorter = RECORD.shallowCopy({});
-        // @ts-ignore
+
+        // @ts-expect-error
         longer.dataSerialised = Buffer.from([1, 0]);
-        // @ts-ignore
+
+        // @ts-expect-error
         shorter.dataSerialised = Buffer.from([1]);
 
         expect(RRSet.init(QUESTION, [longer, shorter]).records).toEqual([shorter, longer]);

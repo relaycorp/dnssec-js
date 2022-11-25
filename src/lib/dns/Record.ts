@@ -1,10 +1,14 @@
-import { Codec, enc } from '@leichtgewicht/dns-packet';
+import type { Codec } from '@leichtgewicht/dns-packet';
+import { enc } from '@leichtgewicht/dns-packet';
 
-import { DnsClass, DnsClassIdOrName, getDnsClassId } from './ianaClasses';
+import { lengthPrefixRdata } from '../utils/dns';
+
+import type { DnsClass, DnsClassIdOrName } from './ianaClasses';
+import { getDnsClassId } from './ianaClasses';
 import { normaliseName, serialiseName } from './name';
 import { Question } from './Question';
-import { getRrTypeId, getRrTypeName, IanaRrTypeIdOrName } from './ianaRrTypes';
-import { lengthPrefixRdata } from '../utils/dns';
+import type { IanaRrTypeIdOrName } from './ianaRrTypes';
+import { getRrTypeId, getRrTypeName } from './ianaRrTypes';
 import { DnsError } from './DnsError';
 
 interface RecordFields {
@@ -20,12 +24,15 @@ interface RecordFields {
  */
 export class Record {
   public readonly name: string;
+
   public readonly typeId: number;
+
   public readonly class_: DnsClass;
+
   public readonly dataSerialised: Buffer;
 
   /**
-   * @internal Avoid exposing dns-packet types
+   * @internal
    */
   public readonly dataFields: any;
 

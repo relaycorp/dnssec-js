@@ -1,4 +1,5 @@
 import { QUESTION, RECORD_TYPE_STR } from '../../testUtils/dnsStubs';
+
 import { Question } from './Question';
 import { IANA_RR_TYPE_IDS, IANA_RR_TYPE_NAMES } from './ianaRrTypes';
 import { DnsError } from './DnsError';
@@ -10,7 +11,7 @@ describe('constructor', () => {
       const name = 'example.com';
       const question = new Question(name, QUESTION.typeId, QUESTION.class_);
 
-      expect(question.name).toEqual(`${name}.`);
+      expect(question.name).toBe(`${name}.`);
     });
 
     test('Present trailing dot should be left as is', () => {

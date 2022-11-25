@@ -29,12 +29,10 @@ export const RCODE_IDS = {
 };
 
 export type RcodeName = keyof typeof RCODE_IDS;
-export type RcodeIdOrName = number | RcodeName;
+export type RcodeIdOrName = RcodeName | number;
 
 const RCODE_IDS_NORMALISED: { readonly [name: string]: number } = Object.entries(RCODE_IDS).reduce(
-  (accumulator, [name, id]) => {
-    return { ...accumulator, [name.toUpperCase()]: id };
-  },
+  (accumulator, [name, id]) => ({ ...accumulator, [name.toUpperCase()]: id }),
   {},
 );
 

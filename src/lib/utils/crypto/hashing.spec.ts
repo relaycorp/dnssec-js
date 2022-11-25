@@ -1,8 +1,9 @@
 import { createHash } from 'node:crypto';
 
 import { DigestType } from '../../DigestType';
-import { generateDigest, getNodejsHashAlgo, getNodejsSignatureHashFromDnssecAlgo } from './hashing';
 import { DnssecAlgorithm } from '../../DnssecAlgorithm';
+
+import { generateDigest, getNodejsHashAlgo, getNodejsSignatureHashFromDnssecAlgo } from './hashing';
 
 describe('getNodejsHashAlgorithmFromDnssecAlgo', () => {
   test.each([

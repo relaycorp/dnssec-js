@@ -102,7 +102,7 @@ export const IANA_RR_TYPE_IDS = {
 };
 
 export type IanaRrTypeName = keyof typeof IANA_RR_TYPE_IDS;
-export type IanaRrTypeIdOrName = number | IanaRrTypeName;
+export type IanaRrTypeIdOrName = IanaRrTypeName | number;
 
 export const IANA_RR_TYPE_NAMES: { [key: number]: IanaRrTypeName } = Object.entries(
   IANA_RR_TYPE_IDS,

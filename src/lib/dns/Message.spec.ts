@@ -1,13 +1,10 @@
-import {
+import type {
   Answer as DPAnswer,
-  encode,
   Question as DPQuestion,
   TxtAnswer,
 } from '@leichtgewicht/dns-packet';
+import { encode } from '@leichtgewicht/dns-packet';
 
-import { Message } from './Message';
-import { Record } from './Record';
-import { DnsClass } from './ianaClasses';
 import {
   QUESTION,
   RECORD,
@@ -15,6 +12,9 @@ import {
   RECORD_DATA_TXT_DATA,
   RECORD_TYPE_STR,
 } from '../../testUtils/dnsStubs';
+import { Message } from './Message';
+import type { Record } from './Record';
+import { DnsClass } from './ianaClasses';
 import { DnsError } from './DnsError';
 import { getRcodeId, RCODE_IDS } from './ianaRcodes';
 

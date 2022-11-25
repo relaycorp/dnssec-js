@@ -1,8 +1,10 @@
-import { createPublicKey, KeyObject } from 'node:crypto';
+import type { KeyObject } from 'node:crypto';
+import { createPublicKey } from 'node:crypto';
 
-import { deserialisePublicKey, serialisePublicKey } from './keySerialisation';
 import { DnssecAlgorithm } from '../../DnssecAlgorithm';
 import { DnssecError } from '../../DnssecError';
+
+import { deserialisePublicKey, serialisePublicKey } from './keySerialisation';
 
 // Parameters taken from https://www.rfc-editor.org/rfc/rfc5702.html#section-6.1
 const RSA_PUB_KEY = {
@@ -13,6 +15,7 @@ const RSA_PUB_KEY = {
 // Parameters taken from https://www.rfc-editor.org/rfc/rfc6605.html#section-6
 const ECDSA_PUB_KEYS = {
   p256: 'GojIhhXUN_u4v54ZQqGSnyhWJwaubCvTmeexv7bR6edbkrSqQpF64cYbcB7wNcP-e-MAnLr-Wi9xMWyQLc8NAA',
+
   p384:
     'xKYaNhWdGOfJ-nPrL8_arkwf2EY3MDJ-SErKivBVSum1w_egsXvSADtNJhyem5RCOpgQ6K8X1DRSEkrbYQ-OB-v8' +
     '_uX45NBwY8rp65F6Glur8I_mlVNgF6W_qTI37m40',
@@ -43,7 +46,7 @@ describe('serialisePublicKey', () => {
 
       const serialisation = serialisePublicKey(publicKey, DnssecAlgorithm.RSASHA256);
 
-      expect(serialisation[0]).toEqual(0);
+      expect(serialisation[0]).toBe(0);
       expect(serialisation.readUint16BE(1)).toEqual(exponentLength);
     });
 

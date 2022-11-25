@@ -2,8 +2,9 @@ import { AsnParser, AsnSerializer } from '@peculiar/asn1-schema';
 import { toBigIntBE, toBufferBE } from 'bigint-buffer';
 
 import { DnssecAlgorithm } from '../../DnssecAlgorithm';
-import { EcdsaSignature } from './asn1Schemas/EcdsaSignature';
 import { DnssecError } from '../../DnssecError';
+
+import { EcdsaSignature } from './asn1Schemas/EcdsaSignature';
 import { ECDSA_CURVE_LENGTH } from './curves';
 
 /**

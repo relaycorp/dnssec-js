@@ -39,7 +39,7 @@ describe('getRrTypeName', () => {
   });
 
   test('Id should be converted to name', () => {
-    expect(getRrTypeName(IANA_RR_TYPE_IDS.TXT)).toEqual('TXT');
+    expect(getRrTypeName(IANA_RR_TYPE_IDS.TXT)).toBe('TXT');
   });
 
   test('Id not defined by IANA should cause an error', () => {

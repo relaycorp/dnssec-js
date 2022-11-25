@@ -2,19 +2,21 @@ import { jest } from '@jest/globals';
 import { encode } from '@leichtgewicht/dns-packet';
 import { addSeconds, subSeconds } from 'date-fns';
 
-import { SignatureGenerationOptions, ZoneSigner } from '../testUtils/dnssec/ZoneSigner';
+import type { SignatureGenerationOptions } from '../testUtils/dnssec/ZoneSigner';
+import { ZoneSigner } from '../testUtils/dnssec/ZoneSigner';
+import { QUESTION, RECORD, RECORD_TLD, RRSET } from '../testUtils/dnsStubs';
+import type { ZoneResponseSet } from '../testUtils/dnssec/responses';
+
 import { DnssecAlgorithm } from './DnssecAlgorithm';
 import { Message } from './dns/Message';
-import { QUESTION, RECORD, RECORD_TLD, RRSET } from '../testUtils/dnsStubs';
 import { UnverifiedChain } from './UnverifiedChain';
-import { ZoneResponseSet } from '../testUtils/dnssec/responses';
 import { DnssecRecordType } from './DnssecRecordType';
 import { Question } from './dns/Question';
-import { ChainVerificationResult, FailureResult, VerifiedRRSet } from './results';
+import type { ChainVerificationResult, FailureResult, VerifiedRRSet } from './results';
 import { SecurityStatus } from './SecurityStatus';
-import { DsData } from './rdata/DsData';
+import type { DsData } from './rdata/DsData';
 import { DatePeriod } from './DatePeriod';
-import { Resolver } from './Resolver';
+import type { Resolver } from './Resolver';
 import { DnsClass } from './dns/ianaClasses';
 import { getRcodeId, RCODE_IDS } from './dns/ianaRcodes';
 
@@ -37,6 +39,7 @@ let tldResponses: ZoneResponseSet;
 let apexResponses: ZoneResponseSet;
 let queryResponse: Message;
 let chainMessages: readonly Message[];
+
 beforeAll(async () => {
   rootSigner = await ZoneSigner.generate(DnssecAlgorithm.RSASHA256, '.');
   rootResponses = rootSigner.generateZoneResponses(rootSigner, null, RESPONSE_GENERATION_OPTIONS);
@@ -73,6 +76,7 @@ beforeAll(async () => {
 
 describe('retrieve', () => {
   const RESOLVER = jest.fn<Resolver>();
+
   beforeEach(() => {
     RESOLVER.mockImplementation(async (question: Question) => {
       const message = chainMessages.find((m) => m.answersQuestion(question));
@@ -82,6 +86,7 @@ describe('retrieve', () => {
       return message;
     });
   });
+
   afterEach(() => {
     RESOLVER.mockReset();
   });
@@ -98,7 +103,7 @@ describe('retrieve', () => {
     const chain = await UnverifiedChain.retrieve(QUESTION, RESOLVER);
 
     expect(chain.zoneMessageByKey).not.toHaveProperty([`./${DnssecRecordType.DS}`]);
-    expect(RESOLVER).not.toBeCalledWith(rootResponses.ds.record.makeQuestion);
+    expect(RESOLVER).not.toHaveBeenCalledWith(rootResponses.ds.record.makeQuestion);
   });
 
   test('Intermediate zone DNSKEYs should be retrieved', async () => {
@@ -268,6 +273,7 @@ describe('initFromMessages', () => {
 
 describe('verify', () => {
   let trustAnchors: readonly DsData[];
+
   beforeAll(() => {
     trustAnchors = [rootResponses.ds.data];
   });
@@ -283,7 +289,7 @@ describe('verify', () => {
 
       expect(result).toEqual<ChainVerificationResult>({
         status: SecurityStatus.INDETERMINATE,
-        reasonChain: [`Cannot initialise root zone without a DNSKEY response`],
+        reasonChain: ['Cannot initialise root zone without a DNSKEY response'],
       });
     });
 
@@ -305,7 +311,7 @@ describe('verify', () => {
 
       expect(result).toEqual<ChainVerificationResult>({
         status: SecurityStatus.BOGUS,
-        reasonChain: [`Got invalid DNSKEY for root zone`, expect.anything()],
+        reasonChain: ['Got invalid DNSKEY for root zone', expect.anything()],
       });
     });
 
@@ -382,10 +388,12 @@ describe('verify', () => {
 
   describe('Trust anchors', () => {
     let dsDataSpy: jest.SpyInstance;
+
     beforeEach(() => {
       dsDataSpy = jest.spyOn(rootResponses.ds.data, 'verifyDnskey') as any;
       dsDataSpy.mockReset();
     });
+
     afterAll(() => {
       dsDataSpy.mockRestore();
     });
@@ -395,8 +403,8 @@ describe('verify', () => {
 
       chain.verify(DATE_PERIOD, trustAnchors);
 
-      expect(dsDataSpy).toBeCalledTimes(1);
-      expect(dsDataSpy).toBeCalledWith(
+      expect(dsDataSpy).toHaveBeenCalledTimes(1);
+      expect(dsDataSpy).toHaveBeenCalledWith(
         expect.toSatisfy((k) => k.data.keyTag === rootResponses.dnskey.data.calculateKeyTag()),
       );
     });

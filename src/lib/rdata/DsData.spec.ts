@@ -1,18 +1,20 @@
-import { DsData } from './DsData';
 import { ZoneSigner } from '../../testUtils/dnssec/ZoneSigner';
 import { DnssecAlgorithm } from '../DnssecAlgorithm';
 import { DigestType } from '../DigestType';
-import { DnskeyData } from './DnskeyData';
-import { DnskeyRecord, DsRecord } from '../dnssecRecords';
+import type { DnskeyRecord, DsRecord } from '../dnssecRecords';
 import { serialiseName } from '../dns/name';
 import { generateDigest } from '../utils/crypto/hashing';
 import { copyDnssecRecordData } from '../../testUtils/dnssec/records';
 import { RECORD_TLD } from '../../testUtils/dnsStubs';
 
+import { DnskeyData } from './DnskeyData';
+import { DsData } from './DsData';
+
 describe('DsData', () => {
   let signer: ZoneSigner;
   let dnskey: DnskeyRecord;
   let ds: DsRecord;
+
   beforeAll(async () => {
     signer = await ZoneSigner.generate(DnssecAlgorithm.RSASHA256, '.');
 

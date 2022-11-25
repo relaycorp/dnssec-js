@@ -1,16 +1,31 @@
 import { DNSoverHTTPS } from 'dohdec';
 
-import { Resolver } from '../lib/Resolver';
+import type { Resolver } from '../lib/Resolver';
 import { Question } from '../lib/dns/Question';
 import { SecurityStatus } from '../lib/SecurityStatus';
 import { RRSet } from '../lib/dns/RRSet';
-import { FailureResult, VerifiedRRSet } from '../lib/results';
+import type { FailureResult, VerifiedRRSet } from '../lib/results';
 import { dnssecLookUp } from '../lib/lookup';
 
 const DOH_CLIENT = new DNSoverHTTPS({ url: 'https://cloudflare-dns.com/dns-query' });
+
 afterAll(() => {
   DOH_CLIENT.close();
 });
+
+async function retryUponFailure<Type>(
+  wrappedFunction: () => Promise<Type>,
+  attempts: number,
+): Promise<Type> {
+  try {
+    return await wrappedFunction();
+  } catch (error) {
+    if (attempts <= 1) {
+      throw error as Error;
+    }
+    return await retryUponFailure(wrappedFunction, attempts - 1);
+  }
+}
 
 const RESOLVER: Resolver = async (question) =>
   (await retryUponFailure(
@@ -30,7 +45,7 @@ test('Positive response in valid DNSSEC zone should be SECURE', async () => {
 
   const result = await dnssecLookUp(question, RESOLVER);
 
-  expect(result).toEqual<VerifiedRRSet>({
+  expect(result).toStrictEqual<VerifiedRRSet>({
     status: SecurityStatus.SECURE,
     result: expect.any(RRSet),
   });
@@ -41,19 +56,8 @@ test('Response from bogus secure zone should be BOGUS', async () => {
 
   const result = await dnssecLookUp(question, RESOLVER);
 
-  expect(result).toEqual<FailureResult>({
+  expect(result).toStrictEqual<FailureResult>({
     status: SecurityStatus.BOGUS,
     reasonChain: expect.arrayContaining([`Failed to verify zone ${question.name}`]),
   });
 });
-
-async function retryUponFailure<T>(function_: () => Promise<T>, attempts: number): Promise<T> {
-  try {
-    return function_();
-  } catch (error) {
-    if (attempts <= 1) {
-      throw error;
-    }
-    return retryUponFailure(function_, attempts - 1);
-  }
-}

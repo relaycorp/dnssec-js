@@ -1,11 +1,12 @@
-import { DigestData } from '@leichtgewicht/dns-packet';
+import type { DigestData } from '@leichtgewicht/dns-packet';
 
-import { DnssecAlgorithm } from '../DnssecAlgorithm';
-import { DigestType } from '../DigestType';
+import type { DnssecAlgorithm } from '../DnssecAlgorithm';
+import type { DigestType } from '../DigestType';
 import { generateDigest } from '../utils/crypto/hashing';
-import { DnssecRecordData } from './DnssecRecordData';
-import { DnskeyRecord } from '../dnssecRecords';
+import type { DnskeyRecord } from '../dnssecRecords';
 import { serialiseName } from '../dns/name';
+
+import type { DnssecRecordData } from './DnssecRecordData';
 
 export class DsData implements DnssecRecordData {
   static initFromPacket(packet: DigestData): DsData {

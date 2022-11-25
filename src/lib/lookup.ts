@@ -1,11 +1,11 @@
-import { Question } from './dns/Question';
-import { Resolver } from './Resolver';
-import { VerificationOptions } from './VerificationOptions';
-import { ChainVerificationResult } from './results';
+import type { Question } from './dns/Question';
+import type { Resolver } from './Resolver';
+import type { VerificationOptions } from './VerificationOptions';
+import type { ChainVerificationResult } from './results';
 import { UnverifiedChain } from './UnverifiedChain';
 import { DatePeriod } from './DatePeriod';
 import { IANA_TRUST_ANCHORS } from './IANA_TRUST_ANCHORS';
-import { TrustAnchor } from './TrustAnchor';
+import type { TrustAnchor } from './TrustAnchor';
 import { DsData } from './rdata/DsData';
 
 /**
