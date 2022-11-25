@@ -1,5 +1,6 @@
 import type { KeyObject } from 'node:crypto';
 
+// eslint-disable-next-line @typescript-eslint/no-shadow
 import { jest } from '@jest/globals';
 import { addSeconds, setMilliseconds, subSeconds } from 'date-fns';
 

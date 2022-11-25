@@ -3,5 +3,5 @@ module.exports = {
   root: true,
   rules: {
     "no-bitwise": "off",
-  }
+  },
 };

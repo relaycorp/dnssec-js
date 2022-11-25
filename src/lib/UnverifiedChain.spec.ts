@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-shadow
 import { jest } from '@jest/globals';
 import { encode } from '@leichtgewicht/dns-packet';
 import { addSeconds, subSeconds } from 'date-fns';
