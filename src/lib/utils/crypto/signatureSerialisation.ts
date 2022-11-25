@@ -1,11 +1,11 @@
 import { AsnParser, AsnSerializer } from '@peculiar/asn1-schema';
 import { toBigIntBE, toBufferBE } from 'bigint-buffer';
 
-import { DnssecAlgorithm } from '../../DnssecAlgorithm';
-import { DnssecError } from '../../DnssecError';
+import { DnssecAlgorithm } from '../../DnssecAlgorithm.js';
+import { DnssecError } from '../../DnssecError.js';
 
-import { EcdsaSignature } from './asn1Schemas/EcdsaSignature';
-import { ECDSA_CURVE_LENGTH } from './curves';
+import { EcdsaSignature } from './asn1Schemas/EcdsaSignature.js';
+import { ECDSA_CURVE_LENGTH } from './curves.js';
 
 function convertEcdsaSignatureToDnssec(
   originalSignature: Buffer,

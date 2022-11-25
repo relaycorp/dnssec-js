@@ -1,7 +1,7 @@
-import type { DnsRecord } from './DnsRecord';
-import type { DnsClass } from './ianaClasses';
-import type { Question } from './Question';
-import { DnsError } from './DnsError';
+import type { DnsRecord } from './DnsRecord.js';
+import type { DnsClass } from './ianaClasses.js';
+import type { Question } from './Question.js';
+import { DnsError } from './DnsError.js';
 
 /**
  * Sort records per RFC 4034 (Section 6.3).

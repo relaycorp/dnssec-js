@@ -1,14 +1,17 @@
 import type { DNSKeyData } from '@leichtgewicht/dns-packet';
 import { addMinutes, addSeconds, setMilliseconds, subSeconds } from 'date-fns';
 
-import { DnssecAlgorithm } from '../DnssecAlgorithm';
-import { ZoneSigner } from '../../testUtils/dnssec/ZoneSigner';
-import { RECORD_TLD, RRSET } from '../../testUtils/dnsStubs';
-import { DatePeriod } from '../DatePeriod';
-import { DNSSEC_ROOT_DNSKEY_DATA, DNSSEC_ROOT_DNSKEY_KEY_TAG } from '../../testUtils/dnssec/iana';
-import type { SignatureGenerationOptions } from '../../testUtils/dnssec/SignatureGenerationOptions';
+import { DnssecAlgorithm } from '../DnssecAlgorithm.js';
+import { ZoneSigner } from '../../testUtils/dnssec/ZoneSigner.js';
+import { RECORD_TLD, RRSET } from '../../testUtils/dnsStubs.js';
+import { DatePeriod } from '../DatePeriod.js';
+import {
+  DNSSEC_ROOT_DNSKEY_DATA,
+  DNSSEC_ROOT_DNSKEY_KEY_TAG,
+} from '../../testUtils/dnssec/iana.js';
+import type { SignatureGenerationOptions } from '../../testUtils/dnssec/SignatureGenerationOptions.js';
 
-import { DnskeyData } from './DnskeyData';
+import { DnskeyData } from './DnskeyData.js';
 
 describe('DnskeyData', () => {
   const NOW = setMilliseconds(new Date(), 0);

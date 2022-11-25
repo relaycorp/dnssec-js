@@ -11,13 +11,13 @@ import {
   RECORD_CLASS_STR,
   RECORD_DATA_TXT_DATA,
   RECORD_TYPE_STR,
-} from '../../testUtils/dnsStubs';
+} from '../../testUtils/dnsStubs.js';
 
-import { Message } from './Message';
-import type { DnsRecord } from './DnsRecord';
-import { DnsClass } from './ianaClasses';
-import { DnsError } from './DnsError';
-import { getRcodeId, RCODE_IDS } from './ianaRcodes';
+import { Message } from './Message.js';
+import type { DnsRecord } from './DnsRecord.js';
+import { DnsClass } from './ianaClasses.js';
+import { DnsError } from './DnsError.js';
+import { getRcodeId, RCODE_IDS } from './ianaRcodes.js';
 
 describe('Message', () => {
   describe('deserialise', () => {

@@ -1,12 +1,12 @@
-import type { Question } from './dns/Question';
-import type { Resolver } from './Resolver';
-import type { VerificationOptions } from './VerificationOptions';
-import type { ChainVerificationResult } from './results';
-import { UnverifiedChain } from './UnverifiedChain';
-import { DatePeriod } from './DatePeriod';
-import { IANA_TRUST_ANCHORS } from './ianaTrustAnchors';
-import type { TrustAnchor } from './TrustAnchor';
-import { DsData } from './rdata/DsData';
+import type { Question } from './dns/Question.js';
+import type { Resolver } from './Resolver.js';
+import type { VerificationOptions } from './VerificationOptions.js';
+import type { ChainVerificationResult } from './results.js';
+import { UnverifiedChain } from './UnverifiedChain.js';
+import { DatePeriod } from './DatePeriod.js';
+import { IANA_TRUST_ANCHORS } from './ianaTrustAnchors.js';
+import type { TrustAnchor } from './TrustAnchor.js';
+import { DsData } from './rdata/DsData.js';
 
 function convertTrustAnchors(trustAnchors: readonly TrustAnchor[]): readonly DsData[] {
   return trustAnchors.map(

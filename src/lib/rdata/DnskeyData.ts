@@ -4,13 +4,13 @@ import type { KeyObject } from 'node:crypto';
 
 import type { DNSKeyData } from '@leichtgewicht/dns-packet';
 
-import type { DnssecAlgorithm } from '../DnssecAlgorithm';
-import type { DnskeyFlags } from '../DnskeyFlags';
-import { deserialisePublicKey, serialisePublicKey } from '../utils/crypto/keySerialisation';
-import type { DatePeriod } from '../DatePeriod';
+import type { DnssecAlgorithm } from '../DnssecAlgorithm.js';
+import type { DnskeyFlags } from '../DnskeyFlags.js';
+import { deserialisePublicKey, serialisePublicKey } from '../utils/crypto/keySerialisation.js';
+import type { DatePeriod } from '../DatePeriod.js';
 
-import type { DnssecRecordData } from './DnssecRecordData';
-import type { RrsigData } from './RrsigData';
+import type { DnssecRecordData } from './DnssecRecordData.js';
+import type { RrsigData } from './RrsigData.js';
 
 const ZONE_KEY_MASK = 0b0000_0001_0000_0000;
 const SECURE_ENTRY_POINT_MASK = 0b0000_0000_0000_0001;

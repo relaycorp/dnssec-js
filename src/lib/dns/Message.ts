@@ -1,14 +1,14 @@
 import type { Packet } from '@leichtgewicht/dns-packet';
 import { decode } from '@leichtgewicht/dns-packet';
 
-import { DnsRecord } from './DnsRecord';
-import type { Header } from './Header';
-import { Question } from './Question';
-import { DnsError } from './DnsError';
-import type { IanaRrTypeName } from './ianaRrTypes';
-import type { DnsClassName } from './ianaClasses';
-import type { RcodeName } from './ianaRcodes';
-import { getRcodeId } from './ianaRcodes';
+import { DnsRecord } from './DnsRecord.js';
+import type { Header } from './Header.js';
+import { Question } from './Question.js';
+import { DnsError } from './DnsError.js';
+import type { IanaRrTypeName } from './ianaRrTypes.js';
+import type { DnsClassName } from './ianaClasses.js';
+import type { RcodeName } from './ianaRcodes.js';
+import { getRcodeId } from './ianaRcodes.js';
 
 /**
  * Partial representation of DNS messages (the generalisation for "queries" and "answers").

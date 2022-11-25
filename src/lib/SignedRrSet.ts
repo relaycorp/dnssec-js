@@ -1,14 +1,14 @@
 import type { RRSigData } from '@leichtgewicht/dns-packet';
 
-import { RrSet } from './dns/RrSet';
-import type { DnsRecord } from './dns/DnsRecord';
-import type { DnskeyRecord, RrsigRecord } from './dnssecRecords';
-import { DnssecRecordType } from './DnssecRecordType';
-import { RrsigData } from './rdata/RrsigData';
-import type { Question } from './dns/Question';
-import type { DatePeriod } from './DatePeriod';
-import type { DnskeyData } from './rdata/DnskeyData';
-import { isChildZone } from './dns/name';
+import { RrSet } from './dns/RrSet.js';
+import type { DnsRecord } from './dns/DnsRecord.js';
+import type { DnskeyRecord, RrsigRecord } from './dnssecRecords.js';
+import { DnssecRecordType } from './DnssecRecordType.js';
+import { RrsigData } from './rdata/RrsigData.js';
+import type { Question } from './dns/Question.js';
+import type { DatePeriod } from './DatePeriod.js';
+import type { DnskeyData } from './rdata/DnskeyData.js';
+import { isChildZone } from './dns/name.js';
 
 /**
  * RRset with one or more corresponding RRSigs.

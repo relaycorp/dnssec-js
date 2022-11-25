@@ -8,7 +8,7 @@ import type {
 import { generateKeyPair as cryptoGenerateKeyPair } from 'node:crypto';
 import { promisify } from 'node:util';
 
-import { DnssecAlgorithm } from '../../lib/DnssecAlgorithm';
+import { DnssecAlgorithm } from '../../lib/DnssecAlgorithm.js';
 
 const generateKeyPairAsync = promisify(cryptoGenerateKeyPair);
 

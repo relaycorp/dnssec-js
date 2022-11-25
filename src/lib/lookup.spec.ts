@@ -2,19 +2,19 @@
 import { jest } from '@jest/globals';
 import { subSeconds } from 'date-fns';
 
-import { QUESTION, RRSET } from '../testUtils/dnsStubs';
+import { QUESTION, RRSET } from '../testUtils/dnsStubs.js';
 
-import { dnssecLookUp } from './lookup';
-import type { Resolver } from './Resolver';
-import { UnverifiedChain } from './UnverifiedChain';
-import type { VerifiedRrSet } from './results';
-import { SecurityStatus } from './SecurityStatus';
-import { DatePeriod } from './DatePeriod';
-import { IANA_TRUST_ANCHORS } from './ianaTrustAnchors';
-import type { TrustAnchor } from './TrustAnchor';
-import type { DsData } from './rdata/DsData';
-import { DnssecAlgorithm } from './DnssecAlgorithm';
-import { DigestType } from './DigestType';
+import { dnssecLookUp } from './lookup.js';
+import type { Resolver } from './Resolver.js';
+import { UnverifiedChain } from './UnverifiedChain.js';
+import type { VerifiedRrSet } from './results.js';
+import { SecurityStatus } from './SecurityStatus.js';
+import { DatePeriod } from './DatePeriod.js';
+import { IANA_TRUST_ANCHORS } from './ianaTrustAnchors.js';
+import type { TrustAnchor } from './TrustAnchor.js';
+import type { DsData } from './rdata/DsData.js';
+import { DnssecAlgorithm } from './DnssecAlgorithm.js';
+import { DigestType } from './DigestType.js';
 
 const MOCK_VERIFIER = jest.fn();
 

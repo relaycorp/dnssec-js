@@ -4,20 +4,20 @@ import type { KeyObject } from 'node:crypto';
 import { jest } from '@jest/globals';
 import { addSeconds, setMilliseconds, subSeconds } from 'date-fns';
 
-import { QUESTION, RECORD, RECORD_TLD, RRSET } from '../testUtils/dnsStubs';
-import { ZoneSigner } from '../testUtils/dnssec/ZoneSigner';
-import type { SignatureGenerationOptions } from '../testUtils/dnssec/SignatureGenerationOptions';
+import { QUESTION, RECORD, RECORD_TLD, RRSET } from '../testUtils/dnsStubs.js';
+import { ZoneSigner } from '../testUtils/dnssec/ZoneSigner.js';
+import type { SignatureGenerationOptions } from '../testUtils/dnssec/SignatureGenerationOptions.js';
 
-import { SignedRrSet } from './SignedRrSet';
-import { DnssecAlgorithm } from './DnssecAlgorithm';
-import { RrSet } from './dns/RrSet';
-import type { DnskeyRecord } from './dnssecRecords';
-import { DatePeriod } from './DatePeriod';
-import { serialisePublicKey } from './utils/crypto/keySerialisation';
-import { DnskeyData } from './rdata/DnskeyData';
-import { RrsigData } from './rdata/RrsigData';
-import { DnsClass } from './dns/ianaClasses';
-import { IANA_RR_TYPE_IDS } from './dns/ianaRrTypes';
+import { SignedRrSet } from './SignedRrSet.js';
+import { DnssecAlgorithm } from './DnssecAlgorithm.js';
+import { RrSet } from './dns/RrSet.js';
+import type { DnskeyRecord } from './dnssecRecords.js';
+import { DatePeriod } from './DatePeriod.js';
+import { serialisePublicKey } from './utils/crypto/keySerialisation.js';
+import { DnskeyData } from './rdata/DnskeyData.js';
+import { RrsigData } from './rdata/RrsigData.js';
+import { DnsClass } from './dns/ianaClasses.js';
+import { IANA_RR_TYPE_IDS } from './dns/ianaRrTypes.js';
 
 describe('SignedRrSet', () => {
   const NOW = setMilliseconds(new Date(), 0);

@@ -1,4 +1,4 @@
-import { getIntegerByteLength } from './integers';
+import { getIntegerByteLength } from './integers.js';
 
 describe('getIntegerBitLength', () => {
   test('Negative values should be unsupported', () => {

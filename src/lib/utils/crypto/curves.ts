@@ -1,4 +1,4 @@
-import { DnssecAlgorithm } from '../../DnssecAlgorithm';
+import { DnssecAlgorithm } from '../../DnssecAlgorithm.js';
 
 export const ECDSA_CURVE_LENGTH = {
   [DnssecAlgorithm.ECDSAP256SHA256]: 64,

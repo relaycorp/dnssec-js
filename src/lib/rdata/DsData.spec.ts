@@ -1,16 +1,16 @@
 import type { DigestData } from '@leichtgewicht/dns-packet';
 
-import { ZoneSigner } from '../../testUtils/dnssec/ZoneSigner';
-import { DnssecAlgorithm } from '../DnssecAlgorithm';
-import { DigestType } from '../DigestType';
-import type { DnskeyRecord, DsRecord } from '../dnssecRecords';
-import { serialiseName } from '../dns/name';
-import { generateDigest } from '../utils/crypto/hashing';
-import { copyDnssecRecordData } from '../../testUtils/dnssec/records';
-import { RECORD_TLD } from '../../testUtils/dnsStubs';
+import { ZoneSigner } from '../../testUtils/dnssec/ZoneSigner.js';
+import { DnssecAlgorithm } from '../DnssecAlgorithm.js';
+import { DigestType } from '../DigestType.js';
+import type { DnskeyRecord, DsRecord } from '../dnssecRecords.js';
+import { serialiseName } from '../dns/name.js';
+import { generateDigest } from '../utils/crypto/hashing.js';
+import { copyDnssecRecordData } from '../../testUtils/dnssec/records.js';
+import { RECORD_TLD } from '../../testUtils/dnsStubs.js';
 
-import { DnskeyData } from './DnskeyData';
-import { DsData } from './DsData';
+import { DnskeyData } from './DnskeyData.js';
+import { DsData } from './DsData.js';
 
 describe('DsData', () => {
   let signer: ZoneSigner;

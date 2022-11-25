@@ -1,6 +1,6 @@
-import type { RcodeIdOrName } from './ianaRcodes';
-import { getRcodeId, RCODE_IDS } from './ianaRcodes';
-import { DnsError } from './DnsError';
+import type { RcodeIdOrName } from './ianaRcodes.js';
+import { getRcodeId, RCODE_IDS } from './ianaRcodes.js';
+import { DnsError } from './DnsError.js';
 
 describe('getRcodeId', () => {
   test('Input should be returned if it already is a number', () => {

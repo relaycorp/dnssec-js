@@ -3,15 +3,15 @@
 import type { Codec } from '@leichtgewicht/dns-packet';
 import { enc } from '@leichtgewicht/dns-packet';
 
-import { lengthPrefixRdata } from '../utils/dns';
+import { lengthPrefixRdata } from '../utils/dns.js';
 
-import type { DnsClass, DnsClassIdOrName } from './ianaClasses';
-import { getDnsClassId } from './ianaClasses';
-import { normaliseName, serialiseName } from './name';
-import { Question } from './Question';
-import type { IanaRrTypeIdOrName } from './ianaRrTypes';
-import { getRrTypeId, getRrTypeName } from './ianaRrTypes';
-import { DnsError } from './DnsError';
+import type { DnsClass, DnsClassIdOrName } from './ianaClasses.js';
+import { getDnsClassId } from './ianaClasses.js';
+import { normaliseName, serialiseName } from './name.js';
+import { Question } from './Question.js';
+import type { IanaRrTypeIdOrName } from './ianaRrTypes.js';
+import { getRrTypeId, getRrTypeName } from './ianaRrTypes.js';
+import { DnsError } from './DnsError.js';
 
 interface RecordFields {
   readonly name: string;

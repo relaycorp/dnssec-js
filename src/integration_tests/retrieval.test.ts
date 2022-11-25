@@ -1,11 +1,11 @@
 import { DNSoverHTTPS } from 'dohdec';
 
-import type { Resolver } from '../lib/Resolver';
-import { Question } from '../lib/dns/Question';
-import { SecurityStatus } from '../lib/SecurityStatus';
-import { RrSet } from '../lib/dns/RrSet';
-import type { FailureResult, VerifiedRrSet } from '../lib/results';
-import { dnssecLookUp } from '../lib/lookup';
+import type { Resolver } from '../lib/Resolver.js';
+import { Question } from '../lib/dns/Question.js';
+import { SecurityStatus } from '../lib/SecurityStatus.js';
+import { RrSet } from '../lib/dns/RrSet.js';
+import type { FailureResult, VerifiedRrSet } from '../lib/results.js';
+import { dnssecLookUp } from '../lib/lookup.js';
 
 const DOH_CLIENT = new DNSoverHTTPS({ url: 'https://cloudflare-dns.com/dns-query' });
 

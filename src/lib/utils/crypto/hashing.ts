@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 
-import { DigestType } from '../../DigestType';
-import { DnssecAlgorithm } from '../../DnssecAlgorithm';
+import { DigestType } from '../../DigestType.js';
+import { DnssecAlgorithm } from '../../DnssecAlgorithm.js';
 
 const HASH_BY_DNSSEC_ALGO: { readonly [algo in DnssecAlgorithm]: string | null } = {
   [DnssecAlgorithm.RSASHA1]: 'sha1',
