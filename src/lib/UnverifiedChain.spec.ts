@@ -5,6 +5,7 @@ import { addSeconds, subSeconds } from 'date-fns';
 import { ZoneSigner } from '../testUtils/dnssec/ZoneSigner';
 import { QUESTION, RECORD, RECORD_TLD, RRSET } from '../testUtils/dnsStubs';
 import type { ZoneResponseSet } from '../testUtils/dnssec/responses';
+import type { SignatureGenerationOptions } from '../testUtils/dnssec/SignatureGenerationOptions';
 
 import { DnssecAlgorithm } from './DnssecAlgorithm';
 import { Message } from './dns/Message';
@@ -18,7 +19,6 @@ import { DatePeriod } from './DatePeriod';
 import type { Resolver } from './Resolver';
 import { DnsClass } from './dns/ianaClasses';
 import { getRcodeId, RCODE_IDS } from './dns/ianaRcodes';
-import { SignatureGenerationOptions } from '../testUtils/dnssec/SignatureGenerationOptions';
 
 const NOW = new Date();
 const DATE_PERIOD = DatePeriod.init(NOW, addSeconds(NOW, 60));

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/prefer-literal-enum-member */
+
 import { IANA_RR_TYPE_IDS } from './dns/ianaRrTypes';
 
 export enum DnssecRecordType {

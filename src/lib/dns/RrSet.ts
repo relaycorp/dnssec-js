@@ -9,7 +9,6 @@ import { DnsError } from './DnsError';
  * See https://www.rfc-editor.org/rfc/rfc4034#section-6.3
  */
 function canonicallySortRecords(originalRecords: readonly DnsRecord[]): readonly DnsRecord[] {
-  // eslint-disable-next-line max-statements
   const recordSorted = Array.from(originalRecords).sort((recordA, recordB) => {
     const maxLength = Math.max(
       recordA.dataSerialised.byteLength,

@@ -5,6 +5,7 @@ import { addSeconds, setMilliseconds, subSeconds } from 'date-fns';
 
 import { QUESTION, RECORD, RECORD_TLD, RRSET } from '../testUtils/dnsStubs';
 import { ZoneSigner } from '../testUtils/dnssec/ZoneSigner';
+import type { SignatureGenerationOptions } from '../testUtils/dnssec/SignatureGenerationOptions';
 
 import { SignedRrSet } from './SignedRrSet';
 import { DnssecAlgorithm } from './DnssecAlgorithm';
@@ -16,7 +17,6 @@ import { DnskeyData } from './rdata/DnskeyData';
 import { RrsigData } from './rdata/RrsigData';
 import { DnsClass } from './dns/ianaClasses';
 import { IANA_RR_TYPE_IDS } from './dns/ianaRrTypes';
-import { SignatureGenerationOptions } from '../testUtils/dnssec/SignatureGenerationOptions';
 
 describe('SignedRrSet', () => {
   const NOW = setMilliseconds(new Date(), 0);

@@ -9,7 +9,7 @@ import { UnverifiedChain } from './UnverifiedChain';
 import type { VerifiedRrSet } from './results';
 import { SecurityStatus } from './SecurityStatus';
 import { DatePeriod } from './DatePeriod';
-import { IANA_TRUST_ANCHORS } from './IANA_TRUST_ANCHORS';
+import { IanaTrustAnchors } from './ianaTrustAnchors';
 import type { TrustAnchor } from './TrustAnchor';
 import type { DsData } from './rdata/DsData';
 import { DnssecAlgorithm } from './DnssecAlgorithm';
@@ -91,7 +91,7 @@ describe('dnssecLookUp', () => {
       await dnssecLookUp(QUESTION, RESOLVER);
 
       expect(MOCK_VERIFIER).toHaveBeenCalledTimes(1);
-      expect(MOCK_VERIFIER).toHaveBeenCalledWith(expect.anything(), IANA_TRUST_ANCHORS);
+      expect(MOCK_VERIFIER).toHaveBeenCalledWith(expect.anything(), IanaTrustAnchors);
     });
 
     test('Custom trust anchors should be used if set', async () => {

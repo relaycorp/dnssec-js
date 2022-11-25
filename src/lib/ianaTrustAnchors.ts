@@ -5,10 +5,11 @@ import { DigestType } from './DigestType';
 /**
  * Set of root Key-Signing Keys (KSKs) as published by IANA.
  *
- * @link https://www.iana.org/dnssec/files
+ * See https://www.iana.org/dnssec/files
  */
-export const IANA_TRUST_ANCHORS: readonly DsData[] = [
+export const IanaTrustAnchors: readonly DsData[] = [
   new DsData(
+    // eslint-disable-next-line @typescript-eslint/no-magic-numbers
     20_326,
     DnssecAlgorithm.RSASHA256,
     DigestType.SHA256,

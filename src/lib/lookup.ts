@@ -4,7 +4,7 @@ import type { VerificationOptions } from './VerificationOptions';
 import type { ChainVerificationResult } from './results';
 import { UnverifiedChain } from './UnverifiedChain';
 import { DatePeriod } from './DatePeriod';
-import { IANA_TRUST_ANCHORS } from './IANA_TRUST_ANCHORS';
+import { IanaTrustAnchors } from './ianaTrustAnchors';
 import type { TrustAnchor } from './TrustAnchor';
 import { DsData } from './rdata/DsData';
 
@@ -29,6 +29,6 @@ export async function dnssecLookUp(
     dateOrPeriod instanceof DatePeriod ? dateOrPeriod : DatePeriod.init(dateOrPeriod, dateOrPeriod);
   const dsData = options.trustAnchors
     ? convertTrustAnchors(options.trustAnchors)
-    : IANA_TRUST_ANCHORS;
+    : IanaTrustAnchors;
   return unverifiedChain.verify(datePeriod, dsData);
 }
