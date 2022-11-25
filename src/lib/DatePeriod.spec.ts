@@ -9,8 +9,8 @@ describe('init', () => {
 
     const period = DatePeriod.init(start, end);
 
-    expect(period.start).toEqual(start);
-    expect(period.end).toEqual(end);
+    expect(period.start).toStrictEqual(start);
+    expect(period.end).toStrictEqual(end);
   });
 
   test('Start date equal to end date should be accepted', () => {
@@ -18,8 +18,8 @@ describe('init', () => {
 
     const period = DatePeriod.init(date, date);
 
-    expect(period.start).toEqual(date);
-    expect(period.end).toEqual(date);
+    expect(period.start).toStrictEqual(date);
+    expect(period.end).toStrictEqual(date);
   });
 
   test('Start date after end date should be refused', () => {
@@ -28,7 +28,7 @@ describe('init', () => {
 
     expect(() => DatePeriod.init(start, end)).toThrowWithMessage(
       Error,
-      `End date should not be before start date (${start} <= ${end})`,
+      `End date should not be before start date (${start.toISOString()} <= ${end.toISOString()})`,
     );
   });
 });

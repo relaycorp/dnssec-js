@@ -28,10 +28,9 @@ export function getDnsClassId(className: DnsClassIdOrName): DnsClass {
     return className;
   }
 
-  const classId = DNS_CLASS_IDS[className];
-  if (classId === undefined) {
+  if (!(className in DNS_CLASS_IDS)) {
     throw new DnsError(`DNS class "${className}" is not defined by IANA`);
   }
 
-  return classId;
+  return DNS_CLASS_IDS[className];
 }
