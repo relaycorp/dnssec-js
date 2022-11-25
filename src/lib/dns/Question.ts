@@ -3,7 +3,7 @@ import { DnsError } from './DnsError';
 import { DnsClass, DnsClassIdOrName, getDnsClassId } from './ianaClasses';
 import { normaliseName } from './name';
 
-export interface QuestionFields {
+interface QuestionFields {
   readonly name: string;
   readonly type: number;
   readonly class: DnsClass;
