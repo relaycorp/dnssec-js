@@ -1,6 +1,6 @@
-import type { DnsClassName } from './ianaClasses';
-import { DnsClass, getDnsClassId } from './ianaClasses';
-import { DnsError } from './DnsError';
+import type { DnsClassName } from './ianaClasses.js';
+import { DnsClass, getDnsClassId } from './ianaClasses.js';
+import { DnsError } from './DnsError.js';
 
 describe('getDnsClassId', () => {
   test('Input should be returned if it already is a number', () => {

@@ -1,6 +1,6 @@
-import type { FailureResult } from './results';
-import { augmentFailureResult } from './results';
-import { SecurityStatus } from './SecurityStatus';
+import type { FailureResult } from './results.js';
+import { augmentFailureResult } from './results.js';
+import { SecurityStatus } from './SecurityStatus.js';
 
 describe('augmentFailureResult', () => {
   const ORIGINAL_RESULT: FailureResult = {

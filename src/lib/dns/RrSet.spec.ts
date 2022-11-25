@@ -1,9 +1,9 @@
-import { QUESTION, RECORD, RRSET } from '../../testUtils/dnsStubs';
+import { QUESTION, RECORD, RRSET } from '../../testUtils/dnsStubs.js';
 
-import { RrSet } from './RrSet';
-import { DnsClass } from './ianaClasses';
-import { DnsError } from './DnsError';
-import { IANA_RR_TYPE_IDS } from './ianaRrTypes';
+import { RrSet } from './RrSet.js';
+import { DnsClass } from './ianaClasses.js';
+import { DnsError } from './DnsError.js';
+import { IANA_RR_TYPE_IDS } from './ianaRrTypes.js';
 
 describe('RrSet', () => {
   describe('init', () => {

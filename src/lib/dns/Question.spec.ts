@@ -1,9 +1,9 @@
-import { QUESTION, RECORD_TYPE_STR } from '../../testUtils/dnsStubs';
+import { QUESTION, RECORD_TYPE_STR } from '../../testUtils/dnsStubs.js';
 
-import { Question } from './Question';
-import { IANA_RR_TYPE_IDS, IANA_RR_TYPE_NAMES } from './ianaRrTypes';
-import { DnsError } from './DnsError';
-import { DnsClass } from './ianaClasses';
+import { Question } from './Question.js';
+import { IANA_RR_TYPE_IDS, IANA_RR_TYPE_NAMES } from './ianaRrTypes.js';
+import { DnsError } from './DnsError.js';
+import { DnsClass } from './ianaClasses.js';
 
 describe('constructor', () => {
   describe('Name', () => {

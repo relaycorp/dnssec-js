@@ -1,8 +1,8 @@
 import { name as NAME } from '@leichtgewicht/dns-packet';
 
-import { RECORD, RECORD_TLD } from '../../testUtils/dnsStubs';
+import { RECORD, RECORD_TLD } from '../../testUtils/dnsStubs.js';
 
-import { countLabels, isChildZone, normaliseName, serialiseName } from './name';
+import { countLabels, isChildZone, normaliseName, serialiseName } from './name.js';
 
 describe('serialiseName', () => {
   const recordNameWithoutDot = RECORD.name.replace(/\.$/u, '');

@@ -1,10 +1,10 @@
 import type { KeyObject } from 'node:crypto';
 import { createPublicKey } from 'node:crypto';
 
-import { DnssecAlgorithm } from '../../DnssecAlgorithm';
-import { DnssecError } from '../../DnssecError';
+import { DnssecAlgorithm } from '../../DnssecAlgorithm.js';
+import { DnssecError } from '../../DnssecError.js';
 
-import { deserialisePublicKey, serialisePublicKey } from './keySerialisation';
+import { deserialisePublicKey, serialisePublicKey } from './keySerialisation.js';
 
 // Parameters taken from https://www.rfc-editor.org/rfc/rfc5702.html#section-6.1
 const RSA_PUB_KEY = {

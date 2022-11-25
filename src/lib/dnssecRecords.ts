@@ -1,8 +1,8 @@
-import type { DnssecRecordData } from './rdata/DnssecRecordData';
-import type { DnsRecord } from './dns/DnsRecord';
-import type { DnskeyData } from './rdata/DnskeyData';
-import type { DsData } from './rdata/DsData';
-import type { RrsigData } from './rdata/RrsigData';
+import type { DnssecRecordData } from './rdata/DnssecRecordData.js';
+import type { DnsRecord } from './dns/DnsRecord.js';
+import type { DnskeyData } from './rdata/DnskeyData.js';
+import type { DsData } from './rdata/DsData.js';
+import type { RrsigData } from './rdata/RrsigData.js';
 
 export interface DnssecRecord<Data extends DnssecRecordData> {
   readonly record: DnsRecord;

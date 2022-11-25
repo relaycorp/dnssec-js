@@ -1,16 +1,16 @@
-import { Question } from './dns/Question';
-import { Message } from './dns/Message';
-import { DnssecRecordType } from './DnssecRecordType';
-import type { ChainVerificationResult, VerificationResult } from './results';
-import { augmentFailureResult } from './results';
-import { SecurityStatus } from './SecurityStatus';
-import { Zone } from './Zone';
-import type { DatePeriod } from './DatePeriod';
-import { SignedRrSet } from './SignedRrSet';
-import type { Resolver } from './Resolver';
-import type { DnsClass } from './dns/ianaClasses';
-import type { DsData } from './rdata/DsData';
-import type { RrSet } from './dns/RrSet';
+import { Question } from './dns/Question.js';
+import { Message } from './dns/Message.js';
+import { DnssecRecordType } from './DnssecRecordType.js';
+import type { ChainVerificationResult, VerificationResult } from './results.js';
+import { augmentFailureResult } from './results.js';
+import { SecurityStatus } from './SecurityStatus.js';
+import { Zone } from './Zone.js';
+import type { DatePeriod } from './DatePeriod.js';
+import { SignedRrSet } from './SignedRrSet.js';
+import type { Resolver } from './Resolver.js';
+import type { DnsClass } from './dns/ianaClasses.js';
+import type { DsData } from './rdata/DsData.js';
+import type { RrSet } from './dns/RrSet.js';
 
 interface MessageByKey {
   readonly [key: string]: Message;

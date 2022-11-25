@@ -9,7 +9,7 @@
   "description": "Resolver-agnostic DNSSEC library",
   "type": "module",
   "typings": "build/lib/index.d.ts",
-  "module": "build/lib/index.js",
+  "main": "build/lib/index.js",
   "repository": "https://github.com/relaycorp/dnssec-js",
   "homepage": "https://docs.relaycorp.tech/dnssec-js/",
   "license": "MIT",
@@ -38,7 +38,7 @@
   },
   "devDependencies": {
     "@jest/globals": "^28.1.3",
-    "@relaycorp/eslint-config": "^1.1.18",
+    "@relaycorp/eslint-config": "^1.1.19",
     "@relaycorp/shared-config": "^1.9.2",
     "@types/jest": "^27.5.0",
     "@typescript-eslint/parser": "^5.44.0",

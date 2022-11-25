@@ -2,30 +2,30 @@ import type { KeyObject } from 'node:crypto';
 
 import { addSeconds, minutesToSeconds, setMilliseconds } from 'date-fns';
 
-import type { DnssecAlgorithm } from '../../lib/DnssecAlgorithm';
-import { DnsRecord } from '../../lib/dns/DnsRecord';
-import { DnsClass } from '../../lib/dns/ianaClasses';
-import { DigestType } from '../../lib/DigestType';
-import { DnssecRecordType } from '../../lib/DnssecRecordType';
-import { RrSet } from '../../lib/dns/RrSet';
-import type { DnskeyFlags } from '../../lib/DnskeyFlags';
-import { DnskeyData } from '../../lib/rdata/DnskeyData';
-import { DsData } from '../../lib/rdata/DsData';
-import { RrsigData } from '../../lib/rdata/RrsigData';
-import type { DnskeyRecord } from '../../lib/dnssecRecords';
-import { Message } from '../../lib/dns/Message';
-import { Question } from '../../lib/dns/Question';
-import { RCODE_IDS } from '../../lib/dns/ianaRcodes';
-import { isChildZone } from '../../lib/dns/name';
+import type { DnssecAlgorithm } from '../../lib/DnssecAlgorithm.js';
+import { DnsRecord } from '../../lib/dns/DnsRecord.js';
+import { DnsClass } from '../../lib/dns/ianaClasses.js';
+import { DigestType } from '../../lib/DigestType.js';
+import { DnssecRecordType } from '../../lib/DnssecRecordType.js';
+import { RrSet } from '../../lib/dns/RrSet.js';
+import type { DnskeyFlags } from '../../lib/DnskeyFlags.js';
+import { DnskeyData } from '../../lib/rdata/DnskeyData.js';
+import { DsData } from '../../lib/rdata/DsData.js';
+import { RrsigData } from '../../lib/rdata/RrsigData.js';
+import type { DnskeyRecord } from '../../lib/dnssecRecords.js';
+import { Message } from '../../lib/dns/Message.js';
+import { Question } from '../../lib/dns/Question.js';
+import { RCODE_IDS } from '../../lib/dns/ianaRcodes.js';
+import { isChildZone } from '../../lib/dns/name.js';
 
-import type { DnskeyResponse, DsResponse, RrsigResponse, ZoneResponseSet } from './responses';
-import { generateKeyPair } from './keyGen';
-import type { SignatureGenerationOptions } from './SignatureGenerationOptions';
+import type { DnskeyResponse, DsResponse, RrsigResponse, ZoneResponseSet } from './responses.js';
+import { generateKeyPair } from './keyGen.js';
+import type { SignatureOptions } from './SignatureOptions.js';
 
 // eslint-disable-next-line @typescript-eslint/no-magic-numbers
 const FIVE_MINUTES_IN_SECONDS = minutesToSeconds(5);
 
-interface RecordGenerationOptions extends SignatureGenerationOptions {
+interface RecordGenerationOptions extends SignatureOptions {
   readonly ttl: number;
 }
 
@@ -106,7 +106,7 @@ export class ZoneSigner {
   public generateRrsig(
     rrset: RrSet,
     keyTag: number,
-    options: Partial<SignatureGenerationOptions> = {},
+    options: Partial<SignatureOptions> = {},
   ): RrsigResponse {
     const signatureInception = options.signatureInception ?? new Date();
     const signatureExpiry = options.signatureExpiry ?? addSeconds(signatureInception, rrset.ttl);

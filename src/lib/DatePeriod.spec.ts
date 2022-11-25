@@ -1,6 +1,6 @@
 import { addSeconds, subSeconds } from 'date-fns';
 
-import { DatePeriod } from './DatePeriod';
+import { DatePeriod } from './DatePeriod.js';
 
 describe('init', () => {
   test('Start date before end date should be accepted', () => {

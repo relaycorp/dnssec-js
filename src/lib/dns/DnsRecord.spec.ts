@@ -6,13 +6,13 @@ import {
   RECORD_CLASS_STR,
   RECORD_DATA_TXT_DATA,
   RECORD_TYPE_STR,
-} from '../../testUtils/dnsStubs';
+} from '../../testUtils/dnsStubs.js';
 
-import { DnsRecord } from './DnsRecord';
-import type { IanaRrTypeName } from './ianaRrTypes';
-import { getRrTypeName, IANA_RR_TYPE_IDS, IANA_RR_TYPE_NAMES } from './ianaRrTypes';
-import { DnsError } from './DnsError';
-import { DnsClass } from './ianaClasses';
+import { DnsRecord } from './DnsRecord.js';
+import type { IanaRrTypeName } from './ianaRrTypes.js';
+import { getRrTypeName, IANA_RR_TYPE_IDS, IANA_RR_TYPE_NAMES } from './ianaRrTypes.js';
+import { DnsError } from './DnsError.js';
+import { DnsClass } from './ianaClasses.js';
 
 describe('DnsRecord', () => {
   describe('constructor', () => {

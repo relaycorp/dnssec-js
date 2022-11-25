@@ -1,20 +1,20 @@
 import { addMinutes, setMilliseconds } from 'date-fns';
 import type { RRSigData } from '@leichtgewicht/dns-packet';
 
-import { DnssecAlgorithm } from '../DnssecAlgorithm';
-import { ZoneSigner } from '../../testUtils/dnssec/ZoneSigner';
-import { RrSet } from '../dns/RrSet';
-import { QUESTION, RECORD, RRSET } from '../../testUtils/dnsStubs';
-import { IANA_RR_TYPE_IDS } from '../dns/ianaRrTypes';
-import type { SignatureGenerationOptions } from '../../testUtils/dnssec/SignatureGenerationOptions';
+import { DnssecAlgorithm } from '../DnssecAlgorithm.js';
+import { ZoneSigner } from '../../testUtils/dnssec/ZoneSigner.js';
+import { RrSet } from '../dns/RrSet.js';
+import { QUESTION, RECORD, RRSET } from '../../testUtils/dnsStubs.js';
+import { IANA_RR_TYPE_IDS } from '../dns/ianaRrTypes.js';
+import type { SignatureOptions } from '../../testUtils/dnssec/SignatureOptions.js';
 
-import { RrsigData } from './RrsigData';
+import { RrsigData } from './RrsigData.js';
 
 describe('RrsigData', () => {
   const STUB_KEY_TAG = 12_345;
 
   const NOW = setMilliseconds(new Date(), 0);
-  const SIGNATURE_OPTIONS: SignatureGenerationOptions = {
+  const SIGNATURE_OPTIONS: SignatureOptions = {
     signatureExpiry: addMinutes(NOW, 10),
     signatureInception: NOW,
   };

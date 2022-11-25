@@ -1,9 +1,9 @@
 /* eslint-disable import/exports-last */
-import { DnsClass } from '../lib/dns/ianaClasses';
-import { DnsRecord } from '../lib/dns/DnsRecord';
-import { Question } from '../lib/dns/Question';
-import { RrSet } from '../lib/dns/RrSet';
-import { IANA_RR_TYPE_IDS, IANA_RR_TYPE_NAMES } from '../lib/dns/ianaRrTypes';
+import { DnsClass } from '../lib/dns/ianaClasses.js';
+import { DnsRecord } from '../lib/dns/DnsRecord.js';
+import { Question } from '../lib/dns/Question.js';
+import { RrSet } from '../lib/dns/RrSet.js';
+import { IANA_RR_TYPE_IDS, IANA_RR_TYPE_NAMES } from '../lib/dns/ianaRrTypes.js';
 
 export const RECORD_TLD = 'com.';
 

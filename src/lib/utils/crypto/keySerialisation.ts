@@ -3,11 +3,11 @@ import { createPublicKey } from 'node:crypto';
 
 import { toBufferBE } from 'bigint-buffer';
 
-import { getIntegerByteLength } from '../integers';
-import { DnssecAlgorithm } from '../../DnssecAlgorithm';
-import { DnssecError } from '../../DnssecError';
+import { getIntegerByteLength } from '../integers.js';
+import { DnssecAlgorithm } from '../../DnssecAlgorithm.js';
+import { DnssecError } from '../../DnssecError.js';
 
-import { ECDSA_CURVE_LENGTH, EDDSA_SERIALISED_KEY_LENGTH } from './curves';
+import { ECDSA_CURVE_LENGTH, EDDSA_SERIALISED_KEY_LENGTH } from './curves.js';
 
 const RSA_SINGLE_OCTET_THRESHOLD = 256;
 const RSA_MULTI_OCTET_PREFIX_LENGTH = 3;

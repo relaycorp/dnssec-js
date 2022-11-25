@@ -1,17 +1,17 @@
 import type { DigestData, DNSKeyData } from '@leichtgewicht/dns-packet';
 
-import { DsData } from './rdata/DsData';
-import type { VerificationResult } from './results';
-import type { Message } from './dns/Message';
-import { DnskeyData } from './rdata/DnskeyData';
-import { SecurityStatus } from './SecurityStatus';
-import { DnssecRecordType } from './DnssecRecordType';
-import type { DnskeyRecord } from './dnssecRecords';
-import { SignedRrSet } from './SignedRrSet';
-import { DnsClass } from './dns/ianaClasses';
-import type { DatePeriod } from './DatePeriod';
-import { Question } from './dns/Question';
-import { RCODE_IDS } from './dns/ianaRcodes';
+import { DsData } from './rdata/DsData.js';
+import type { VerificationResult } from './results.js';
+import type { Message } from './dns/Message.js';
+import { DnskeyData } from './rdata/DnskeyData.js';
+import { SecurityStatus } from './SecurityStatus.js';
+import { DnssecRecordType } from './DnssecRecordType.js';
+import type { DnskeyRecord } from './dnssecRecords.js';
+import { SignedRrSet } from './SignedRrSet.js';
+import { DnsClass } from './dns/ianaClasses.js';
+import type { DatePeriod } from './DatePeriod.js';
+import { Question } from './dns/Question.js';
+import { RCODE_IDS } from './dns/ianaRcodes.js';
 
 /**
  * A secure zone (in DNSSEC terms).

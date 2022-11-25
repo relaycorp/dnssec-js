@@ -6,7 +6,7 @@
  * See https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml#dns-parameters-4
  */
 
-import { DnsError } from './DnsError';
+import { DnsError } from './DnsError.js';
 
 export const IANA_RR_TYPE_IDS = {
   // eslint-disable-next-line id-length

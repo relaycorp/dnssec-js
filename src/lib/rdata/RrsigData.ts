@@ -6,18 +6,18 @@ import { sign as cryptoSign, verify as cryptoVerify } from 'node:crypto';
 import type { RRSigData } from '@leichtgewicht/dns-packet';
 import { fromUnixTime, getUnixTime } from 'date-fns';
 
-import type { DnssecAlgorithm } from '../DnssecAlgorithm';
-import { countLabels, normaliseName, serialiseName } from '../dns/name';
-import type { RrSet } from '../dns/RrSet';
-import { getNodejsSignatureHashAlgo } from '../utils/crypto/hashing';
-import type { IanaRrTypeName } from '../dns/ianaRrTypes';
-import { getRrTypeId } from '../dns/ianaRrTypes';
+import type { DnssecAlgorithm } from '../DnssecAlgorithm.js';
+import { countLabels, normaliseName, serialiseName } from '../dns/name.js';
+import type { RrSet } from '../dns/RrSet.js';
+import { getNodejsSignatureHashAlgo } from '../utils/crypto/hashing.js';
+import type { IanaRrTypeName } from '../dns/ianaRrTypes.js';
+import { getRrTypeId } from '../dns/ianaRrTypes.js';
 import {
   convertSignatureFromDnssec,
   convertSignatureToDnssec,
-} from '../utils/crypto/signatureSerialisation';
+} from '../utils/crypto/signatureSerialisation.js';
 
-import type { DnssecRecordData } from './DnssecRecordData';
+import type { DnssecRecordData } from './DnssecRecordData.js';
 
 function serialiseRrset(rrset: RrSet, ttl: number): Buffer {
   return Buffer.concat(rrset.records.map((record) => record.serialise(ttl)));

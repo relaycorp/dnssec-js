@@ -5,7 +5,7 @@
  * See https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml#dns-parameters-2
  */
 
-import { DnsError } from './DnsError';
+import { DnsError } from './DnsError.js';
 
 export enum DnsClass {
   IN = 1,

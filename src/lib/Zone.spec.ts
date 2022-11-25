@@ -1,30 +1,30 @@
 import { addSeconds, subSeconds } from 'date-fns';
 
-import { ZoneSigner } from '../testUtils/dnssec/ZoneSigner';
-import { QUESTION, RECORD, RECORD_TLD } from '../testUtils/dnsStubs';
-import type { DnskeyResponse, DsResponse } from '../testUtils/dnssec/responses';
-import type { SignatureGenerationOptions } from '../testUtils/dnssec/SignatureGenerationOptions';
+import { ZoneSigner } from '../testUtils/dnssec/ZoneSigner.js';
+import { QUESTION, RECORD, RECORD_TLD } from '../testUtils/dnsStubs.js';
+import type { DnskeyResponse, DsResponse } from '../testUtils/dnssec/responses.js';
+import type { SignatureOptions } from '../testUtils/dnssec/SignatureOptions.js';
 
-import { DnssecAlgorithm } from './DnssecAlgorithm';
-import { Zone } from './Zone';
-import { Message } from './dns/Message';
-import { SecurityStatus } from './SecurityStatus';
-import type { DsRecord } from './dnssecRecords';
-import { DsData } from './rdata/DsData';
-import { RrSet } from './dns/RrSet';
-import { RrsigData } from './rdata/RrsigData';
-import type { FailureResult, SuccessfulResult } from './results';
-import { Question } from './dns/Question';
-import { DnsClass } from './dns/ianaClasses';
-import { DnssecRecordType } from './DnssecRecordType';
-import { SignedRrSet } from './SignedRrSet';
-import { DatePeriod } from './DatePeriod';
-import type { DnsRecord } from './dns/DnsRecord';
-import { RCODE_IDS } from './dns/ianaRcodes';
+import { DnssecAlgorithm } from './DnssecAlgorithm.js';
+import { Zone } from './Zone.js';
+import { Message } from './dns/Message.js';
+import { SecurityStatus } from './SecurityStatus.js';
+import type { DsRecord } from './dnssecRecords.js';
+import { DsData } from './rdata/DsData.js';
+import { RrSet } from './dns/RrSet.js';
+import { RrsigData } from './rdata/RrsigData.js';
+import type { FailureResult, SuccessfulResult } from './results.js';
+import { Question } from './dns/Question.js';
+import { DnsClass } from './dns/ianaClasses.js';
+import { DnssecRecordType } from './DnssecRecordType.js';
+import { SignedRrSet } from './SignedRrSet.js';
+import { DatePeriod } from './DatePeriod.js';
+import type { DnsRecord } from './dns/DnsRecord.js';
+import { RCODE_IDS } from './dns/ianaRcodes.js';
 
 const NOW = new Date();
 const VALIDITY_PERIOD = DatePeriod.init(subSeconds(NOW, 1), addSeconds(NOW, 1));
-const SIGNATURE_OPTIONS: SignatureGenerationOptions = {
+const SIGNATURE_OPTIONS: SignatureOptions = {
   signatureExpiry: VALIDITY_PERIOD.end,
   signatureInception: VALIDITY_PERIOD.start,
 };
