@@ -3,7 +3,7 @@ import type { KeyObject } from 'node:crypto';
 import { addSeconds, setMilliseconds } from 'date-fns';
 
 import type { DnssecAlgorithm } from '../../lib/DnssecAlgorithm';
-import { Record } from '../../lib/dns/Record';
+import { DnsRecord } from '../../lib/dns/DnsRecord';
 import { DnsClass } from '../../lib/dns/ianaClasses';
 import { DigestType } from '../../lib/DigestType';
 import { DnssecRecordType } from '../../lib/DnssecRecordType';
@@ -33,7 +33,7 @@ interface RecordGenerationOptions extends SignatureGenerationOptions {
 }
 
 interface DnskeyGenerationOptions extends RecordGenerationOptions {
-  readonly additionalDnskeys: readonly Record[];
+  readonly additionalDnskeys: readonly DnsRecord[];
   readonly flags: Partial<DnskeyFlags>;
 }
 
@@ -62,7 +62,7 @@ export class ZoneSigner {
     };
     const data = new DnskeyData(this.publicKey, this.algorithm, finalFlags);
     const ttl = options.ttl ?? FIVE_MINUTES_IN_SECONDS;
-    const record = new Record(
+    const record = new DnsRecord(
       this.zoneName,
       DnssecRecordType.DNSKEY,
       DnsClass.IN,
@@ -91,7 +91,7 @@ export class ZoneSigner {
       digestType,
       DsData.calculateDnskeyDigest(childDnskey, digestType),
     );
-    const record = new Record(
+    const record = new DnsRecord(
       childZoneName,
       DnssecRecordType.DS,
       DnsClass.IN,
@@ -122,7 +122,7 @@ export class ZoneSigner {
       keyTag,
       this.algorithm,
     );
-    const record = new Record(
+    const record = new DnsRecord(
       rrset.name,
       DnssecRecordType.RRSIG,
       DnsClass.IN,

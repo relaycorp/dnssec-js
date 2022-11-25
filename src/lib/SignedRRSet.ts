@@ -1,5 +1,5 @@
 import { RRSet } from './dns/RRSet';
-import type { Record } from './dns/Record';
+import type { DnsRecord } from './dns/DnsRecord';
 import type { DnskeyRecord, RrsigRecord } from './dnssecRecords';
 import { DnssecRecordType } from './DnssecRecordType';
 import { RrsigData } from './rdata/RrsigData';
@@ -12,7 +12,7 @@ import { isChildZone } from './dns/name';
  * RRSet with one or more corresponding RRSigs.
  */
 export class SignedRRSet {
-  static initFromRecords(question: Question, records: readonly Record[]): SignedRRSet {
+  static initFromRecords(question: Question, records: readonly DnsRecord[]): SignedRRSet {
     const rrsetRecords = records.filter((r) => r.typeId !== DnssecRecordType.RRSIG);
     const rrset = RRSet.init(question, rrsetRecords);
 

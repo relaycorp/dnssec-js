@@ -19,7 +19,7 @@ import { DnsClass } from './dns/ianaClasses';
 import { DnssecRecordType } from './DnssecRecordType';
 import { SignedRRSet } from './SignedRRSet';
 import { DatePeriod } from './DatePeriod';
-import type { Record } from './dns/Record';
+import type { DnsRecord } from './dns/DnsRecord';
 import { RCODE_IDS } from './dns/ianaRcodes';
 
 const NOW = new Date();
@@ -469,7 +469,7 @@ describe('Zone', () => {
     });
   });
 
-  function generateRootZone(additionalDnskeys: readonly Record[] = []): Zone {
+  function generateRootZone(additionalDnskeys: readonly DnsRecord[] = []): Zone {
     const { dnskey, ds } = rootSigner.generateZoneResponses(rootSigner, rootDs.data.keyTag, {
       dnskey: {
         additionalDnskeys,

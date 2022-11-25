@@ -8,7 +8,7 @@ import {
   RECORD_TYPE_STR,
 } from '../../testUtils/dnsStubs';
 
-import { Record } from './Record';
+import { DnsRecord } from './DnsRecord';
 import { getRrTypeName, IANA_RR_TYPE_IDS, IANA_RR_TYPE_NAMES } from './ianaRrTypes';
 import { DnsError } from './DnsError';
 import { DnsClass } from './ianaClasses';
@@ -18,7 +18,7 @@ describe('Record', () => {
     describe('Name', () => {
       test('Missing trailing dot should be added', () => {
         const name = 'example.com';
-        const record = new Record(
+        const record = new DnsRecord(
           name,
           RECORD.typeId,
           DnsClass.IN,
@@ -31,7 +31,7 @@ describe('Record', () => {
 
       test('Present trailing dot should be left as is', () => {
         const name = 'example.com.';
-        const record = new Record(
+        const record = new DnsRecord(
           name,
           RECORD.typeId,
           DnsClass.IN,
@@ -47,7 +47,7 @@ describe('Record', () => {
       const ID = IANA_RR_TYPE_IDS.A;
 
       test('Id should be stored as is', () => {
-        const record = new Record(
+        const record = new DnsRecord(
           RECORD.name,
           ID,
           RECORD.class_,
@@ -59,7 +59,7 @@ describe('Record', () => {
       });
 
       test('Name should be converted to id', () => {
-        const record = new Record(
+        const record = new DnsRecord(
           RECORD.name,
           IANA_RR_TYPE_NAMES[ID],
           RECORD.class_,
@@ -75,14 +75,20 @@ describe('Record', () => {
 
         expect(
           () =>
-            new Record(RECORD.name, invalidName, RECORD.class_, RECORD.ttl, RECORD.dataSerialised),
+            new DnsRecord(
+              RECORD.name,
+              invalidName,
+              RECORD.class_,
+              RECORD.ttl,
+              RECORD.dataSerialised,
+            ),
         ).toThrowWithMessage(DnsError, `RR type name "${invalidName}" is not defined by IANA`);
       });
     });
 
     describe('Class', () => {
       test('Id should be stored as is', () => {
-        const record = new Record(
+        const record = new DnsRecord(
           RECORD.name,
           RECORD.typeId,
           DnsClass.CH,
@@ -94,7 +100,7 @@ describe('Record', () => {
       });
 
       test('Name should be converted to id', () => {
-        const record = new Record(
+        const record = new DnsRecord(
           RECORD.name,
           RECORD.typeId,
           'CH',
@@ -114,7 +120,7 @@ describe('Record', () => {
 
       describe('Serialised', () => {
         test('Buffer should be stored as is', () => {
-          const record = new Record(
+          const record = new DnsRecord(
             RECORD.name,
             TYPE_ID,
             RECORD.class_,
@@ -126,7 +132,7 @@ describe('Record', () => {
         });
 
         test('Data should be deserialised', () => {
-          const record = new Record(
+          const record = new DnsRecord(
             RECORD.name,
             TYPE_ID,
             RECORD.class_,
@@ -141,20 +147,20 @@ describe('Record', () => {
           const malformedData = Buffer.allocUnsafe(1);
 
           expect(
-            () => new Record(RECORD.name, TYPE_ID, RECORD.class_, RECORD.ttl, malformedData),
+            () => new DnsRecord(RECORD.name, TYPE_ID, RECORD.class_, RECORD.ttl, malformedData),
           ).toThrowWithMessage(DnsError, `Data for record type ${TYYPE_NAME} is malformed`);
         });
       });
 
       describe('Deserialised', () => {
         test('Buffer should be computed and stored if data is valid', () => {
-          const record = new Record(RECORD.name, TYPE_ID, RECORD.class_, RECORD.ttl, DATA);
+          const record = new DnsRecord(RECORD.name, TYPE_ID, RECORD.class_, RECORD.ttl, DATA);
 
           expect(record.dataSerialised).toEqual(DATA_SERIALISED);
         });
 
         test('Data should be stored as is if valid', () => {
-          const record = new Record(RECORD.name, TYPE_ID, RECORD.class_, RECORD.ttl, DATA);
+          const record = new DnsRecord(RECORD.name, TYPE_ID, RECORD.class_, RECORD.ttl, DATA);
 
           expect(record.dataFields).toEqual(DATA);
         });
@@ -163,7 +169,7 @@ describe('Record', () => {
           const invalidData = {};
 
           expect(
-            () => new Record(RECORD.name, TYPE_ID, RECORD.class_, RECORD.ttl, invalidData),
+            () => new DnsRecord(RECORD.name, TYPE_ID, RECORD.class_, RECORD.ttl, invalidData),
           ).toThrowWithMessage(DnsError, `Data for record type ${TYYPE_NAME} is invalid`);
         });
       });

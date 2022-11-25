@@ -1,11 +1,11 @@
 import type { DnssecRecordData } from './rdata/DnssecRecordData';
-import type { Record } from './dns/Record';
+import type { DnsRecord } from './dns/DnsRecord';
 import type { DnskeyData } from './rdata/DnskeyData';
 import type { DsData } from './rdata/DsData';
 import type { RrsigData } from './rdata/RrsigData';
 
 export interface DnssecRecord<Data extends DnssecRecordData> {
-  readonly record: Record;
+  readonly record: DnsRecord;
   readonly data: Data;
 }
 

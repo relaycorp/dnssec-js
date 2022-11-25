@@ -1,5 +1,5 @@
 import { DnsClass } from '../lib/dns/ianaClasses';
-import { Record } from '../lib/dns/Record';
+import { DnsRecord } from '../lib/dns/DnsRecord';
 import { Question } from '../lib/dns/Question';
 import { RRSet } from '../lib/dns/RRSet';
 import { IANA_RR_TYPE_IDS, IANA_RR_TYPE_NAMES } from '../lib/dns/ianaRrTypes';
@@ -12,7 +12,7 @@ const RECORD_DATA = Buffer.allocUnsafe(RECORD_DATA_TXT_DATA.byteLength + 1);
 RECORD_DATA.writeUint8(RECORD_DATA_TXT_DATA.byteLength);
 RECORD_DATA_TXT_DATA.copy(RECORD_DATA, 1);
 
-export const RECORD = new Record(
+export const RECORD = new DnsRecord(
   `example.${RECORD_TLD}`,
   IANA_RR_TYPE_IDS.TXT,
   DnsClass.IN,

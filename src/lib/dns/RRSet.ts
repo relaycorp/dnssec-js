@@ -1,4 +1,4 @@
-import type { Record } from './Record';
+import type { DnsRecord } from './DnsRecord';
 import type { DnsClass } from './ianaClasses';
 import type { Question } from './Question';
 import { DnsError } from './DnsError';
@@ -13,7 +13,7 @@ export class RRSet {
    * @param question
    * @param records
    */
-  public static init(question: Question, records: readonly Record[]): RRSet {
+  public static init(question: Question, records: readonly DnsRecord[]): RRSet {
     const matchingRecords = records.filter(
       (r) =>
         r.name === question.name && r.class_ === question.class_ && r.typeId === question.typeId,
@@ -47,7 +47,7 @@ export class RRSet {
     public readonly class_: DnsClass,
     public readonly type: number,
     public readonly ttl: number,
-    public readonly records: readonly Record[],
+    public readonly records: readonly DnsRecord[],
   ) {}
 }
 
@@ -57,7 +57,7 @@ export class RRSet {
  * @param originalRecords
  * @link https://www.rfc-editor.org/rfc/rfc4034#section-6.3
  */
-function canonicallySortRecords(originalRecords: readonly Record[]): readonly Record[] {
+function canonicallySortRecords(originalRecords: readonly DnsRecord[]): readonly DnsRecord[] {
   const recordSorted = Array.from(originalRecords).sort((a, b) => {
     const maxLength = Math.max(a.dataSerialised.byteLength, b.dataSerialised.byteLength);
     for (let index = 0; index < maxLength; index++) {
@@ -79,7 +79,7 @@ function canonicallySortRecords(originalRecords: readonly Record[]): readonly Re
     return 0;
   });
 
-  return recordSorted.reduce<readonly Record[]>((accumulator, record) => {
+  return recordSorted.reduce<readonly DnsRecord[]>((accumulator, record) => {
     const previousRecord = accumulator[accumulator.length - 1];
     const isDuplicated =
       previousRecord && record.dataSerialised.equals(previousRecord.dataSerialised);

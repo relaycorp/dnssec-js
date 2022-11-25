@@ -13,7 +13,7 @@ import {
   RECORD_TYPE_STR,
 } from '../../testUtils/dnsStubs';
 import { Message } from './Message';
-import type { Record } from './Record';
+import type { DnsRecord } from './DnsRecord';
 import { DnsClass } from './ianaClasses';
 import { DnsError } from './DnsError';
 import { getRcodeId, RCODE_IDS } from './ianaRcodes';
@@ -136,7 +136,7 @@ describe('Message', () => {
         const message = Message.deserialise(messageSerialised);
 
         expect(message.answers).toHaveLength(1);
-        expect(message.answers[0]).toMatchObject<Partial<Record>>({
+        expect(message.answers[0]).toMatchObject<Partial<DnsRecord>>({
           name: RECORD.name,
           typeId: RECORD.typeId,
           class_: RECORD.class_,
@@ -160,14 +160,14 @@ describe('Message', () => {
         const message = Message.deserialise(messageSerialised);
 
         expect(message.answers).toHaveLength(2);
-        expect(message.answers[0]).toMatchObject<Partial<Record>>({
+        expect(message.answers[0]).toMatchObject<Partial<DnsRecord>>({
           name: RECORD.name,
           typeId: RECORD.typeId,
           class_: DnsClass.IN,
           ttl: RECORD.ttl,
         });
         expect(Buffer.from(message.answers[0].dataSerialised)).toEqual(RECORD.dataSerialised);
-        expect(message.answers[1]).toMatchObject<Partial<Record>>({
+        expect(message.answers[1]).toMatchObject<Partial<DnsRecord>>({
           name: record2.name,
           typeId: 16,
           class_: DnsClass.IN,

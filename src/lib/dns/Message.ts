@@ -1,7 +1,7 @@
 import type { Packet } from '@leichtgewicht/dns-packet';
 import { decode } from '@leichtgewicht/dns-packet';
 
-import { Record } from './Record';
+import { DnsRecord } from './DnsRecord';
 import type { Header } from './Header';
 import { Question } from './Question';
 import { DnsError } from './DnsError';
@@ -31,7 +31,7 @@ export class Message {
       (q) => new Question(q.name, q.type as IanaRrTypeName, q.class),
     );
     const answers = messageParts.answers!.map(
-      (a) => new Record(a.name, a.type, a.class as DnsClassName, a.ttl!, a.data as any),
+      (a) => new DnsRecord(a.name, a.type, a.class as DnsClassName, a.ttl!, a.data as any),
     );
     return new Message({ rcode }, questions, answers);
   }
@@ -39,7 +39,7 @@ export class Message {
   constructor(
     public readonly header: Header,
     public readonly questions: readonly Question[],
-    public readonly answers: readonly Record[],
+    public readonly answers: readonly DnsRecord[],
   ) {}
 
   /**

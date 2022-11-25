@@ -7,7 +7,7 @@ export { DnsClass } from './lib/dns/ianaClasses';
 export type { Header } from './lib/dns/Header';
 export { Message } from './lib/dns/Message';
 export { Question } from './lib/dns/Question';
-export { Record } from './lib/dns/Record';
+export { DnsRecord } from './lib/dns/DnsRecord';
 export { RRSet } from './lib/dns/RRSet';
 
 // DNSSEC-related

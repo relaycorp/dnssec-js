@@ -21,8 +21,10 @@ interface RecordFields {
 
 /**
  * A "raw" DNS record with its data unserialised.
+ *
+ * We're using the `Dns` prefix to avoid shadowing the TypeScript type `Record`.
  */
-export class Record {
+export class DnsRecord {
   public readonly name: string;
 
   public readonly typeId: number;
@@ -83,13 +85,13 @@ export class Record {
     ]);
   }
 
-  public shallowCopy(partialRecord: Partial<RecordFields>): Record {
+  public shallowCopy(partialRecord: Partial<RecordFields>): DnsRecord {
     const name = partialRecord.name ?? this.name;
     const type = partialRecord.type ?? this.typeId;
     const class_ = partialRecord.class ?? this.class_;
     const ttl = partialRecord.ttl ?? this.ttl;
     const dataSerialised = partialRecord.dataSerialised ?? this.dataSerialised;
-    return new Record(name, type, class_, ttl, dataSerialised);
+    return new DnsRecord(name, type, class_, ttl, dataSerialised);
   }
 
   /**
