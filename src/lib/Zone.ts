@@ -1,13 +1,15 @@
+import type { DigestData, DNSKeyData } from '@leichtgewicht/dns-packet';
+
 import { DsData } from './rdata/DsData';
-import { VerificationResult } from './results';
-import { Message } from './dns/Message';
+import type { VerificationResult } from './results';
+import type { Message } from './dns/Message';
 import { DnskeyData } from './rdata/DnskeyData';
 import { SecurityStatus } from './SecurityStatus';
 import { DnssecRecordType } from './DnssecRecordType';
-import { DnskeyRecord } from './dnssecRecords';
-import { SignedRRSet } from './SignedRRSet';
+import type { DnskeyRecord } from './dnssecRecords';
+import { SignedRrSet } from './SignedRrSet';
 import { DnsClass } from './dns/ianaClasses';
-import { DatePeriod } from './DatePeriod';
+import type { DatePeriod } from './DatePeriod';
 import { Question } from './dns/Question';
 import { RCODE_IDS } from './dns/ianaRcodes';
 
@@ -20,11 +22,6 @@ export class Zone {
    *
    * This is an internal utility that would normally be `protected`/`private` but we're making
    * `public` so that it can be unit-tested directly.
-   *
-   * @param zoneName
-   * @param dnskeyMessage
-   * @param dsData
-   * @param datePeriod
    */
   public static init(
     zoneName: string,
@@ -32,23 +29,23 @@ export class Zone {
     dsData: readonly DsData[],
     datePeriod: DatePeriod,
   ): VerificationResult<Zone> {
-    if (dnskeyMessage.header.rcode !== RCODE_IDS.NoError) {
+    if (dnskeyMessage.header.rcode !== RCODE_IDS.NOERROR) {
       return {
         status: SecurityStatus.INSECURE,
         reasonChain: [`Expected DNSKEY rcode to be NOERROR (0; got ${dnskeyMessage.header.rcode})`],
       };
     }
 
-    const dnskeySignedRrset = SignedRRSet.initFromRecords(
+    const dnskeySignedRrset = SignedRrSet.initFromRecords(
       new Question(zoneName, DnssecRecordType.DNSKEY, DnsClass.IN),
       dnskeyMessage.answers,
     );
 
     const dnskeys = dnskeySignedRrset.rrset.records.map((record) => ({
-      data: DnskeyData.initFromPacket(record.dataFields, record.dataSerialised),
+      data: DnskeyData.initFromPacket(record.dataFields as DNSKeyData, record.dataSerialised),
       record,
     }));
-    const zskDnskeys = dnskeys.filter((k) => dsData.some((ds) => ds.verifyDnskey(k)));
+    const zskDnskeys = dnskeys.filter((dnskey) => dsData.some((ds) => ds.verifyDnskey(dnskey)));
 
     if (zskDnskeys.length === 0) {
       return { status: SecurityStatus.BOGUS, reasonChain: ['No DNSKEY matched specified DS(s)'] };
@@ -77,7 +74,7 @@ export class Zone {
     public readonly dnskeys: readonly DnskeyRecord[],
   ) {}
 
-  public verifyRrset(rrset: SignedRRSet, datePeriod: DatePeriod): boolean {
+  public verifyRrset(rrset: SignedRrSet, datePeriod: DatePeriod): boolean {
     return rrset.verify(this.dnskeys, datePeriod);
   }
 
@@ -87,14 +84,14 @@ export class Zone {
     dsMessage: Message,
     datePeriod: DatePeriod,
   ): VerificationResult<Zone> {
-    if (dsMessage.header.rcode !== RCODE_IDS.NoError) {
+    if (dsMessage.header.rcode !== RCODE_IDS.NOERROR) {
       return {
         status: SecurityStatus.INSECURE,
         reasonChain: [`Expected DS rcode to be NOERROR (0; got ${dsMessage.header.rcode})`],
       };
     }
 
-    const dsSignedRrset = SignedRRSet.initFromRecords(
+    const dsSignedRrset = SignedRrSet.initFromRecords(
       new Question(zoneName, DnssecRecordType.DS, DnsClass.IN),
       dsMessage.answers,
     );
@@ -107,11 +104,11 @@ export class Zone {
     }
 
     const dsRecords = dsSignedRrset.rrset.records.map((record) => ({
-      data: DsData.initFromPacket(record.dataFields),
+      data: DsData.initFromPacket(record.dataFields as DigestData),
       record,
     }));
 
-    const dsData = dsRecords.map((r) => r.data);
+    const dsData = dsRecords.map((ds) => ds.data);
     return Zone.init(zoneName, dnskeyMessage, dsData, datePeriod);
   }
 }

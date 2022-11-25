@@ -1,10 +1,11 @@
 import { addSeconds, subSeconds } from 'date-fns';
 
 import { DnssecAlgorithm } from '../lib/DnssecAlgorithm';
-import { SignatureGenerationOptions, ZoneSigner } from '../testUtils/dnssec/ZoneSigner';
+import { ZoneSigner } from '../testUtils/dnssec/ZoneSigner';
 import { Zone } from '../lib/Zone';
 import { DatePeriod } from '../lib/DatePeriod';
 import { SecurityStatus } from '../lib/SecurityStatus';
+import type { SignatureGenerationOptions } from '../testUtils/dnssec/SignatureGenerationOptions';
 
 const NOW = new Date();
 const VALIDITY_PERIOD = DatePeriod.init(subSeconds(NOW, 1), addSeconds(NOW, 1));
@@ -35,6 +36,6 @@ describe('Support for DNSSEC algorithms', () => {
       VALIDITY_PERIOD,
     );
 
-    expect(zoneResult.status).toEqual(SecurityStatus.SECURE);
+    expect(zoneResult.status).toStrictEqual(SecurityStatus.SECURE);
   });
 });

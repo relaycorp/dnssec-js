@@ -1,17 +1,32 @@
-import { generateKeyPair as cryptoGenerateKeyPair, KeyObject } from 'node:crypto';
+import type {
+  ECKeyPairKeyObjectOptions,
+  ED25519KeyPairKeyObjectOptions,
+  ED448KeyPairKeyObjectOptions,
+  RSAKeyPairKeyObjectOptions,
+  KeyObject,
+} from 'node:crypto';
+import { generateKeyPair as cryptoGenerateKeyPair } from 'node:crypto';
 import { promisify } from 'node:util';
 
 import { DnssecAlgorithm } from '../../lib/DnssecAlgorithm';
 
 const generateKeyPairAsync = promisify(cryptoGenerateKeyPair);
 
+type NodejsKeyType = 'ec' | 'ed448' | 'ed25519' | 'rsa';
+
+type NodejsKeyGenOptions =
+  | ECKeyPairKeyObjectOptions
+  | ED448KeyPairKeyObjectOptions
+  | ED25519KeyPairKeyObjectOptions
+  | RSAKeyPairKeyObjectOptions;
+
 interface KeyGenOptions {
-  readonly type: string;
-  readonly options?: object;
+  readonly type: NodejsKeyType;
+  readonly options?: NodejsKeyGenOptions;
 }
 
 const RSA_OPTIONS = {
-  type: 'rsa',
+  type: 'rsa' as NodejsKeyType,
   options: { modulusLength: 2048 },
 };
 const KEY_GEN_OPTIONS: { readonly [key in DnssecAlgorithm]: KeyGenOptions } = {
@@ -24,16 +39,21 @@ const KEY_GEN_OPTIONS: { readonly [key in DnssecAlgorithm]: KeyGenOptions } = {
   [DnssecAlgorithm.ED448]: { type: 'ed448' },
 };
 
-export interface KeyPair {
-  // No, Node.js' typings don't offer this interface as of this writing.
+/**
+ * Key pair.
+ *
+ * No, Node.js' typings don't offer this interface as of this writing.
+ */
+interface KeyPair {
   readonly publicKey: KeyObject;
   readonly privateKey: KeyObject;
 }
 
 export async function generateKeyPair(algorithm: DnssecAlgorithm): Promise<KeyPair> {
-  const options = KEY_GEN_OPTIONS[algorithm];
-  if (!options) {
+  if (!(algorithm in KEY_GEN_OPTIONS)) {
     throw new Error(`Unsupported algorithm (${algorithm})`);
   }
+  const options = KEY_GEN_OPTIONS[algorithm];
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   return generateKeyPairAsync(options.type as any, options.options);
 }

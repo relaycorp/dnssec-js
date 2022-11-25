@@ -1,11 +1,13 @@
-import { decode, Packet } from '@leichtgewicht/dns-packet';
+import type { Packet } from '@leichtgewicht/dns-packet';
+import { decode } from '@leichtgewicht/dns-packet';
 
-import { Record } from './Record';
-import { Header } from './Header';
+import { DnsRecord } from './DnsRecord';
+import type { Header } from './Header';
 import { Question } from './Question';
 import { DnsError } from './DnsError';
-import { IanaRrTypeName } from './ianaRrTypes';
-import { DnsClassName } from './ianaClasses';
+import type { IanaRrTypeName } from './ianaRrTypes';
+import type { DnsClassName } from './ianaClasses';
+import type { RcodeName } from './ianaRcodes';
 import { getRcodeId } from './ianaRcodes';
 
 /**
@@ -21,34 +23,39 @@ export class Message {
     let messageParts: Packet;
     try {
       messageParts = decode(serialisation);
-    } catch (_) {
+    } catch {
       throw new DnsError('Message serialisation does not comply with RFC 1035 (Section 4)');
     }
 
-    const rcode = getRcodeId(messageParts.rcode as any);
+    const rcode = getRcodeId(messageParts.rcode as RcodeName);
     const questions = messageParts.questions!.map(
-      (q) => new Question(q.name, q.type as IanaRrTypeName, q.class!),
+      (question) => new Question(question.name, question.type as IanaRrTypeName, question.class),
     );
     const answers = messageParts.answers!.map(
-      (a) => new Record(a.name, a.type, a.class as DnsClassName, a.ttl!, a.data as any),
+      (answer) =>
+        new DnsRecord(
+          answer.name,
+          answer.type,
+          answer.class as DnsClassName,
+          answer.ttl!,
+          answer.data as object,
+        ),
     );
     return new Message({ rcode }, questions, answers);
   }
 
-  constructor(
+  public constructor(
     public readonly header: Header,
     public readonly questions: readonly Question[],
-    public readonly answers: readonly Record[],
+    public readonly answers: readonly DnsRecord[],
   ) {}
 
   /**
    * Report whether this message answers the `question`.
    *
    * That is, whether the message questions contains `question`.
-   *
-   * @param question
    */
   public answersQuestion(question: Question): boolean {
-    return this.questions.some((q) => question.equals(q));
+    return this.questions.some((messageQuestion) => question.equals(messageQuestion));
   }
 }

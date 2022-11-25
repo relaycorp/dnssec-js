@@ -1,10 +1,11 @@
 import { createHash } from 'node:crypto';
 
 import { DigestType } from '../../DigestType';
-import { generateDigest, getNodejsHashAlgo, getNodejsSignatureHashFromDnssecAlgo } from './hashing';
 import { DnssecAlgorithm } from '../../DnssecAlgorithm';
 
-describe('getNodejsHashAlgorithmFromDnssecAlgo', () => {
+import { generateDigest, getNodejsHashAlgo, getNodejsSignatureHashAlgo } from './hashing';
+
+describe('getNodejsSignatureHashAlgo', () => {
   test.each([
     [DnssecAlgorithm.RSASHA1, 'sha1'],
     [DnssecAlgorithm.RSASHA256, 'sha256'],
@@ -14,12 +15,12 @@ describe('getNodejsHashAlgorithmFromDnssecAlgo', () => {
     [DnssecAlgorithm.ED25519, null],
     [DnssecAlgorithm.ED448, null],
   ])('%s should use %s', (dnssecAlgo, nodejsHashAlgo) => {
-    expect(getNodejsSignatureHashFromDnssecAlgo(dnssecAlgo)).toEqual(nodejsHashAlgo);
+    expect(getNodejsSignatureHashAlgo(dnssecAlgo)).toStrictEqual(nodejsHashAlgo);
   });
 
   test('Non-IANA algorithms should not be supported', () => {
     const algorithm = 0;
-    expect(() => getNodejsSignatureHashFromDnssecAlgo(algorithm)).toThrowWithMessage(
+    expect(() => getNodejsSignatureHashAlgo(algorithm)).toThrowWithMessage(
       Error,
       `Unsupported DNSSEC algorithm (${algorithm})`,
     );
@@ -34,7 +35,7 @@ describe('getNodejsHashAlgo', () => {
   ])('%s should be supported', (nodejsHashAlgo, dnssecHashAlgo) => {
     const algorithmName = getNodejsHashAlgo(dnssecHashAlgo);
 
-    expect(algorithmName).toEqual(nodejsHashAlgo);
+    expect(algorithmName).toStrictEqual(nodejsHashAlgo);
   });
 
   test('Non-IANA algorithms should not be supported', () => {
@@ -60,6 +61,6 @@ describe('generateDigest', () => {
     hash.update(PLAINTEXT);
     const expectedDigest = hash.digest();
 
-    expect(digest).toEqual(expectedDigest);
+    expect(digest).toStrictEqual(expectedDigest);
   });
 });

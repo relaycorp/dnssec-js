@@ -3,9 +3,11 @@ import { dirname } from 'node:path';
 import mainJestConfig from '../../jest.config.mjs';
 
 const currentFilePath = new URL(import.meta.url).pathname;
-const currentDirPath = dirname(currentFilePath);
+const currentDirectoryPath = dirname(currentFilePath);
 
-export default {
+const CONFIG = {
   ...mainJestConfig,
-  roots: [currentDirPath],
+  roots: [currentDirectoryPath],
 };
+
+export default CONFIG;

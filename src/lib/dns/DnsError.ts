@@ -5,4 +5,6 @@
  *
  * @see {DnssecError}
  */
-export class DnsError extends Error {}
+export class DnsError extends Error {
+  public override readonly name = 'DnsError';
+}
