@@ -1,4 +1,4 @@
-import { Question } from './dns/Question';
-import { Message } from './dns/Message';
+import type { Question } from './dns/Question';
+import type { Message } from './dns/Message';
 
-export type Resolver = (question: Question) => Promise<Message | Buffer>;
+export type Resolver = (question: Question) => Promise<Buffer | Message>;

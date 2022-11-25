@@ -3,12 +3,13 @@
  *
  * Excluding special types, such as reserved ones, `*` and ranges.
  *
- * @link https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml#dns-parameters-4
+ * See https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml#dns-parameters-4
  */
 
 import { DnsError } from './DnsError';
 
 export const IANA_RR_TYPE_IDS = {
+  // eslint-disable-next-line id-length
   A: 1,
   NS: 2,
   MD: 3,
@@ -31,7 +32,7 @@ export const IANA_RR_TYPE_IDS = {
   ISDN: 20,
   RT: 21,
   NSAP: 22,
-  'NSAP-PTR': 23,
+  NSAP_PTR: 23,
   SIG: 24,
   KEY: 25,
   PX: 26,
@@ -62,7 +63,7 @@ export const IANA_RR_TYPE_IDS = {
   NSEC3PARAM: 51,
   TLSA: 52,
   SMIMEA: 53,
-  Unassigned: 54,
+  UNASSIGNED: 54,
   HIP: 55,
   NINFO: 56,
   RKEY: 57,
@@ -96,28 +97,27 @@ export const IANA_RR_TYPE_IDS = {
   AVC: 258,
   DOA: 259,
   AMTRELAY: 260,
-  TA: 32768,
-  DLV: 32769,
+  TA: 32_768,
+  DLV: 32_769,
 };
 
 export type IanaRrTypeName = keyof typeof IANA_RR_TYPE_IDS;
-export type IanaRrTypeIdOrName = number | IanaRrTypeName;
+export type IanaRrTypeIdOrName = IanaRrTypeName | number;
 
-export const IANA_RR_TYPE_NAMES = Object.entries(IANA_RR_TYPE_IDS).reduce((acc, [name, id]) => {
-  return { ...acc, [id]: name as IanaRrTypeName };
-}, {} as { [key: number]: IanaRrTypeName });
+export const IANA_RR_TYPE_NAMES: { [key: number]: IanaRrTypeName } = Object.entries(
+  IANA_RR_TYPE_IDS,
+).reduce((accumulator, [name, id]) => ({ ...accumulator, [id]: name as IanaRrTypeName }), {});
 
 export function getRrTypeId(typeName: IanaRrTypeIdOrName): number {
   if (typeof typeName === 'number') {
     return typeName;
   }
 
-  const typeId = IANA_RR_TYPE_IDS[typeName];
-  if (typeId === undefined) {
+  if (!(typeName in IANA_RR_TYPE_IDS)) {
     throw new DnsError(`RR type name "${typeName}" is not defined by IANA`);
   }
 
-  return typeId;
+  return IANA_RR_TYPE_IDS[typeName];
 }
 
 export function getRrTypeName(typeId: number | string): IanaRrTypeName {
@@ -125,10 +125,9 @@ export function getRrTypeName(typeId: number | string): IanaRrTypeName {
     return typeId as IanaRrTypeName;
   }
 
-  const typeName = IANA_RR_TYPE_NAMES[typeId];
-  if (typeName === undefined) {
+  if (!(typeId in IANA_RR_TYPE_NAMES)) {
     throw new DnsError(`RR type id "${typeId}" is not defined by IANA`);
   }
 
-  return typeName;
+  return IANA_RR_TYPE_NAMES[typeId];
 }
