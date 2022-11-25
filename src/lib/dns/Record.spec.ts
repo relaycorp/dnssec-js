@@ -50,7 +50,7 @@ describe('Record', () => {
         const record = new DnsRecord(
           RECORD.name,
           ID,
-          RECORD.class_,
+          RECORD.classId,
           RECORD.ttl,
           RECORD.dataSerialised,
         );
@@ -62,7 +62,7 @@ describe('Record', () => {
         const record = new DnsRecord(
           RECORD.name,
           IANA_RR_TYPE_NAMES[ID],
-          RECORD.class_,
+          RECORD.classId,
           RECORD.ttl,
           RECORD.dataSerialised,
         );
@@ -78,7 +78,7 @@ describe('Record', () => {
             new DnsRecord(
               RECORD.name,
               invalidName,
-              RECORD.class_,
+              RECORD.classId,
               RECORD.ttl,
               RECORD.dataSerialised,
             ),
@@ -96,7 +96,7 @@ describe('Record', () => {
           RECORD.dataSerialised,
         );
 
-        expect(record.class_).toEqual(DnsClass.CH);
+        expect(record.classId).toEqual(DnsClass.CH);
       });
 
       test('Name should be converted to id', () => {
@@ -108,7 +108,7 @@ describe('Record', () => {
           RECORD.dataSerialised,
         );
 
-        expect(record.class_).toEqual(DnsClass.CH);
+        expect(record.classId).toEqual(DnsClass.CH);
       });
     });
 
@@ -123,7 +123,7 @@ describe('Record', () => {
           const record = new DnsRecord(
             RECORD.name,
             TYPE_ID,
-            RECORD.class_,
+            RECORD.classId,
             RECORD.ttl,
             DATA_SERIALISED,
           );
@@ -135,7 +135,7 @@ describe('Record', () => {
           const record = new DnsRecord(
             RECORD.name,
             TYPE_ID,
-            RECORD.class_,
+            RECORD.classId,
             RECORD.ttl,
             DATA_SERIALISED,
           );
@@ -147,20 +147,20 @@ describe('Record', () => {
           const malformedData = Buffer.allocUnsafe(1);
 
           expect(
-            () => new DnsRecord(RECORD.name, TYPE_ID, RECORD.class_, RECORD.ttl, malformedData),
+            () => new DnsRecord(RECORD.name, TYPE_ID, RECORD.classId, RECORD.ttl, malformedData),
           ).toThrowWithMessage(DnsError, `Data for record type ${TYYPE_NAME} is malformed`);
         });
       });
 
       describe('Deserialised', () => {
         test('Buffer should be computed and stored if data is valid', () => {
-          const record = new DnsRecord(RECORD.name, TYPE_ID, RECORD.class_, RECORD.ttl, DATA);
+          const record = new DnsRecord(RECORD.name, TYPE_ID, RECORD.classId, RECORD.ttl, DATA);
 
           expect(record.dataSerialised).toEqual(DATA_SERIALISED);
         });
 
         test('Data should be stored as is if valid', () => {
-          const record = new DnsRecord(RECORD.name, TYPE_ID, RECORD.class_, RECORD.ttl, DATA);
+          const record = new DnsRecord(RECORD.name, TYPE_ID, RECORD.classId, RECORD.ttl, DATA);
 
           expect(record.dataFields).toEqual(DATA);
         });
@@ -169,7 +169,7 @@ describe('Record', () => {
           const invalidData = {};
 
           expect(
-            () => new DnsRecord(RECORD.name, TYPE_ID, RECORD.class_, RECORD.ttl, invalidData),
+            () => new DnsRecord(RECORD.name, TYPE_ID, RECORD.classId, RECORD.ttl, invalidData),
           ).toThrowWithMessage(DnsError, `Data for record type ${TYYPE_NAME} is invalid`);
         });
       });
@@ -192,7 +192,7 @@ describe('Record', () => {
     test('Class should be set', () => {
       const question = RECORD.makeQuestion();
 
-      expect(question.class_).toEqual(RECORD.class_);
+      expect(question.classId).toEqual(RECORD.classId);
     });
   });
 
@@ -246,7 +246,7 @@ describe('Record', () => {
 
       expect(newRecord.name).toEqual(RECORD.name);
       expect(newRecord.typeId).toEqual(RECORD.typeId);
-      expect(newRecord.class_).toEqual(RECORD.class_);
+      expect(newRecord.classId).toEqual(RECORD.classId);
       expect(newRecord.ttl).toEqual(RECORD.ttl);
       expect(newRecord.dataSerialised).toBe(RECORD.dataSerialised);
     });
@@ -257,7 +257,7 @@ describe('Record', () => {
 
       expect(newRecord.name).toEqual(newName);
       expect(newRecord.typeId).toEqual(RECORD.typeId);
-      expect(newRecord.class_).toEqual(RECORD.class_);
+      expect(newRecord.classId).toEqual(RECORD.classId);
       expect(newRecord.ttl).toEqual(RECORD.ttl);
       expect(newRecord.dataSerialised).toBe(RECORD.dataSerialised);
     });
@@ -269,7 +269,7 @@ describe('Record', () => {
 
       expect(newRecord.name).toEqual(RECORD.name);
       expect(newRecord.typeId).toEqual(newType);
-      expect(newRecord.class_).toEqual(RECORD.class_);
+      expect(newRecord.classId).toEqual(RECORD.classId);
       expect(newRecord.ttl).toEqual(RECORD.ttl);
       expect(newRecord.dataSerialised).toBe(RECORD.dataSerialised);
     });
@@ -281,7 +281,7 @@ describe('Record', () => {
 
       expect(newRecord.name).toEqual(RECORD.name);
       expect(newRecord.typeId).toEqual(RECORD.typeId);
-      expect(newRecord.class_).toEqual(newClass);
+      expect(newRecord.classId).toEqual(newClass);
       expect(newRecord.ttl).toEqual(RECORD.ttl);
       expect(newRecord.dataSerialised).toBe(RECORD.dataSerialised);
     });
@@ -292,7 +292,7 @@ describe('Record', () => {
 
       expect(newRecord.name).toEqual(RECORD.name);
       expect(newRecord.typeId).toEqual(RECORD.typeId);
-      expect(newRecord.class_).toEqual(RECORD.class_);
+      expect(newRecord.classId).toEqual(RECORD.classId);
       expect(newRecord.ttl).toEqual(newTtl);
       expect(newRecord.dataSerialised).toBe(RECORD.dataSerialised);
     });
@@ -303,7 +303,7 @@ describe('Record', () => {
 
       expect(newRecord.name).toEqual(RECORD.name);
       expect(newRecord.typeId).toEqual(RECORD.typeId);
-      expect(newRecord.class_).toEqual(RECORD.class_);
+      expect(newRecord.classId).toEqual(RECORD.classId);
       expect(newRecord.ttl).toEqual(RECORD.ttl);
       expect(newRecord.dataSerialised).toBe(newData);
     });

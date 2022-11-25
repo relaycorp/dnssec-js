@@ -58,13 +58,13 @@ export class UnverifiedChain {
     const dnskeyMessages = await retrieveZoneMessages(
       zoneNames,
       DnssecRecordType.DNSKEY,
-      question.class_,
+      question.classId,
       finalResolver,
     );
     const dsMessages = await retrieveZoneMessages(
       zoneNames.slice(1), // Skip the root DS
       DnssecRecordType.DS,
-      question.class_,
+      question.classId,
       finalResolver,
     );
     const zoneMessageByKey: MessageByKey = { ...dnskeyMessages, ...dsMessages };

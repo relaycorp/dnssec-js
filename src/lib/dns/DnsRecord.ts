@@ -29,7 +29,7 @@ export class DnsRecord {
 
   public readonly typeId: number;
 
-  public readonly class_: DnsClass;
+  public readonly classId: DnsClass;
 
   public readonly dataSerialised: Buffer;
 
@@ -47,7 +47,7 @@ export class DnsRecord {
   ) {
     this.name = normaliseName(name);
     this.typeId = getRrTypeId(typeIdOrName);
-    this.class_ = getDnsClassId(classIdOrName);
+    this.classId = getDnsClassId(classIdOrName);
 
     const typeName = getRrTypeName(typeIdOrName);
     const dnsPacketCodec = enc(typeName);
@@ -67,7 +67,7 @@ export class DnsRecord {
     typeSerialised.writeUInt16BE(this.typeId);
 
     const classSerialised = Buffer.allocUnsafe(2);
-    classSerialised.writeUInt16BE(this.class_);
+    classSerialised.writeUInt16BE(this.classId);
 
     const ttlSerialised = Buffer.allocUnsafe(4);
     ttlSerialised.writeUInt32BE(ttl ?? this.ttl);
@@ -88,7 +88,7 @@ export class DnsRecord {
   public shallowCopy(partialRecord: Partial<RecordFields>): DnsRecord {
     const name = partialRecord.name ?? this.name;
     const type = partialRecord.type ?? this.typeId;
-    const class_ = partialRecord.class ?? this.class_;
+    const class_ = partialRecord.class ?? this.classId;
     const ttl = partialRecord.ttl ?? this.ttl;
     const dataSerialised = partialRecord.dataSerialised ?? this.dataSerialised;
     return new DnsRecord(name, type, class_, ttl, dataSerialised);
@@ -100,7 +100,7 @@ export class DnsRecord {
    * It may or may not equal the question in the original query message.
    */
   public makeQuestion(): Question {
-    return new Question(this.name, this.typeId, this.class_);
+    return new Question(this.name, this.typeId, this.classId);
   }
 }
 

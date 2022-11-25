@@ -16,15 +16,19 @@ export class Question {
 
   public readonly typeId: number;
 
-  public readonly class_: DnsClass;
+  public readonly classId: DnsClass;
 
-  constructor(name: string, type: IanaRrTypeIdOrName, class_: DnsClassIdOrName = DnsClass.IN) {
+  public constructor(
+    name: string,
+    type: IanaRrTypeIdOrName,
+    classIdOrName: DnsClassIdOrName = DnsClass.IN,
+  ) {
     this.name = normaliseName(name);
     this.typeId = getRrTypeId(type);
-    this.class_ = getDnsClassId(class_);
+    this.classId = getDnsClassId(classIdOrName);
   }
 
-  get key(): string {
+  public get key(): string {
     return `${this.name}/${this.typeId}`;
   }
 
@@ -40,14 +44,14 @@ export class Question {
     return (
       this.name === differentQuestion.name &&
       this.typeId === differentQuestion.typeId &&
-      this.class_ === differentQuestion.class_
+      this.classId === differentQuestion.classId
     );
   }
 
   public shallowCopy(fields: Partial<QuestionFields>): Question {
     const newName = fields.name ?? this.name;
     const newType = fields.type ?? this.typeId;
-    const newClass = fields.class ?? this.class_;
+    const newClass = fields.class ?? this.classId;
     return new Question(newName, newType, newClass);
   }
 }

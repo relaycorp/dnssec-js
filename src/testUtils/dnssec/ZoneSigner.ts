@@ -131,7 +131,7 @@ export class ZoneSigner {
     );
     const message = new Message(
       { rcode: RCODE_IDS.NoError },
-      [new Question(rrset.name, rrset.type, rrset.class_)],
+      [new Question(rrset.name, rrset.type, rrset.classId)],
       [...rrset.records, record],
     );
     return { data, message, record };

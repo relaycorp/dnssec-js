@@ -9,14 +9,14 @@ describe('constructor', () => {
   describe('Name', () => {
     test('Missing trailing dot should be added', () => {
       const name = 'example.com';
-      const question = new Question(name, QUESTION.typeId, QUESTION.class_);
+      const question = new Question(name, QUESTION.typeId, QUESTION.classId);
 
       expect(question.name).toBe(`${name}.`);
     });
 
     test('Present trailing dot should be left as is', () => {
       const name = 'example.com.';
-      const question = new Question(name, QUESTION.typeId, QUESTION.class_);
+      const question = new Question(name, QUESTION.typeId, QUESTION.classId);
 
       expect(question.name).toEqual(name);
     });
@@ -43,19 +43,19 @@ describe('constructor', () => {
     test('IN class should be used by default', () => {
       const question = new Question(QUESTION.name, IANA_RR_TYPE_IDS.A);
 
-      expect(question.class_).toEqual(DnsClass.IN);
+      expect(question.classId).toEqual(DnsClass.IN);
     });
 
     test('Id should be stored as is', () => {
       const question = new Question(QUESTION.name, IANA_RR_TYPE_IDS.A, DnsClass.IN);
 
-      expect(question.class_).toEqual(DnsClass.IN);
+      expect(question.classId).toEqual(DnsClass.IN);
     });
 
     test('Name should be converted to id', () => {
       const question = new Question(QUESTION.name, QUESTION.typeId, 'CH');
 
-      expect(question.class_).toEqual(DnsClass.CH);
+      expect(question.classId).toEqual(DnsClass.CH);
     });
   });
 });
@@ -100,7 +100,7 @@ describe('equals', () => {
   });
 
   test('Questions with different classes should be unequal', () => {
-    const differentQuestion = QUESTION.shallowCopy({ class: QUESTION.class_ + 1 });
+    const differentQuestion = QUESTION.shallowCopy({ class: QUESTION.classId + 1 });
 
     expect(QUESTION.equals(differentQuestion)).toBeFalse();
   });
@@ -118,7 +118,7 @@ describe('shallowCopy', () => {
 
     expect(copy.name).toEqual(QUESTION.name);
     expect(copy.typeId).toEqual(QUESTION.typeId);
-    expect(copy.class_).toEqual(QUESTION.class_);
+    expect(copy.classId).toEqual(QUESTION.classId);
   });
 
   test('New name should be used if set', () => {
@@ -128,7 +128,7 @@ describe('shallowCopy', () => {
 
     expect(copy.name).toEqual(newName);
     expect(copy.typeId).toEqual(QUESTION.typeId);
-    expect(copy.class_).toEqual(QUESTION.class_);
+    expect(copy.classId).toEqual(QUESTION.classId);
   });
 
   test('New type should be used if set', () => {
@@ -138,16 +138,16 @@ describe('shallowCopy', () => {
 
     expect(copy.name).toEqual(QUESTION.name);
     expect(copy.typeId).toEqual(newType);
-    expect(copy.class_).toEqual(QUESTION.class_);
+    expect(copy.classId).toEqual(QUESTION.classId);
   });
 
   test('New class should be used if set', () => {
-    const newClass = QUESTION.class_ + 1;
+    const newClass = QUESTION.classId + 1;
 
     const copy = QUESTION.shallowCopy({ class: newClass });
 
     expect(copy.name).toEqual(QUESTION.name);
     expect(copy.typeId).toEqual(QUESTION.typeId);
-    expect(copy.class_).toEqual(newClass);
+    expect(copy.classId).toEqual(newClass);
   });
 });

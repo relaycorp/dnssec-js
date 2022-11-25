@@ -19,7 +19,9 @@ export class SignedRRSet {
     const rrsigRecords = records
       .filter(
         (r) =>
-          r.typeId === DnssecRecordType.RRSIG && r.name === rrset.name && r.class_ === rrset.class_,
+          r.typeId === DnssecRecordType.RRSIG &&
+          r.name === rrset.name &&
+          r.classId === rrset.classId,
       )
       .reduce<readonly RrsigRecord[]>(function deserialise(
         accumulator,

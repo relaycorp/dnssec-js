@@ -65,7 +65,7 @@ describe('RRSet', () => {
     });
 
     test('Class property should be set', () => {
-      expect(RRSET.class_).toEqual(RECORD.class_);
+      expect(RRSET.classId).toEqual(RECORD.classId);
     });
 
     test('Type property should be set', () => {

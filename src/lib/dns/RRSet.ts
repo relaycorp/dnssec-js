@@ -16,7 +16,7 @@ export class RRSet {
   public static init(question: Question, records: readonly DnsRecord[]): RRSet {
     const matchingRecords = records.filter(
       (r) =>
-        r.name === question.name && r.class_ === question.class_ && r.typeId === question.typeId,
+        r.name === question.name && r.classId === question.classId && r.typeId === question.typeId,
     );
 
     if (matchingRecords.length === 0) {
@@ -35,7 +35,7 @@ export class RRSet {
 
     return new RRSet(
       question.name,
-      question.class_,
+      question.classId,
       question.typeId,
       ttl,
       canonicallySortRecords(matchingRecords),
@@ -44,7 +44,7 @@ export class RRSet {
 
   protected constructor(
     public readonly name: string,
-    public readonly class_: DnsClass,
+    public readonly classId: DnsClass,
     public readonly type: number,
     public readonly ttl: number,
     public readonly records: readonly DnsRecord[],

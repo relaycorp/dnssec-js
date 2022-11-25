@@ -54,7 +54,7 @@ describe('SignedRRSet', () => {
     test('RRSIG for different class should be ignored', async () => {
       const rrsig = apexSigner.generateRrsig(RRSET, STUB_KEY_TAG, RRSIG_OPTIONS);
       const differentRrsigRecord = rrsig.record.shallowCopy({ class: DnsClass.CH });
-      expect(differentRrsigRecord.class_).not.toEqual(rrsig.record.class_);
+      expect(differentRrsigRecord.classId).not.toEqual(rrsig.record.classId);
 
       const signedRrset = SignedRRSet.initFromRecords(QUESTION, [RECORD, differentRrsigRecord]);
 

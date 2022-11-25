@@ -139,7 +139,7 @@ describe('Message', () => {
         expect(message.answers[0]).toMatchObject<Partial<DnsRecord>>({
           name: RECORD.name,
           typeId: RECORD.typeId,
-          class_: RECORD.class_,
+          classId: RECORD.classId,
           ttl: RECORD.ttl,
         });
         expect(Buffer.from(message.answers[0].dataSerialised)).toEqual(RECORD.dataSerialised);
@@ -163,14 +163,14 @@ describe('Message', () => {
         expect(message.answers[0]).toMatchObject<Partial<DnsRecord>>({
           name: RECORD.name,
           typeId: RECORD.typeId,
-          class_: DnsClass.IN,
+          classId: DnsClass.IN,
           ttl: RECORD.ttl,
         });
         expect(Buffer.from(message.answers[0].dataSerialised)).toEqual(RECORD.dataSerialised);
         expect(message.answers[1]).toMatchObject<Partial<DnsRecord>>({
           name: record2.name,
           typeId: 16,
-          class_: DnsClass.IN,
+          classId: DnsClass.IN,
           ttl: record2.ttl,
         });
         expect(Buffer.from(message.answers[1].dataSerialised)).toEqual(RECORD.dataSerialised);

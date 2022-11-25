@@ -23,6 +23,6 @@ export const RECORD = new DnsRecord(
 export const RECORD_TYPE_STR = IANA_RR_TYPE_NAMES[RECORD.typeId];
 export const RECORD_CLASS_STR = 'IN';
 
-export const QUESTION = new Question(RECORD.name, RECORD.typeId, RECORD.class_);
+export const QUESTION = new Question(RECORD.name, RECORD.typeId, RECORD.classId);
 
 export const RRSET = RRSet.init(QUESTION, [RECORD]);

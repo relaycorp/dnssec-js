@@ -133,7 +133,7 @@ describe('retrieve', () => {
     const differentQuestion = new Question(RECORD_TLD, DnssecRecordType.DS, DnsClass.IN + 1);
 
     await UnverifiedChain.retrieve(differentQuestion, async (question) => {
-      expect(question.class_).toEqual(differentQuestion.class_);
+      expect(question.classId).toEqual(differentQuestion.classId);
       return stubMessage;
     });
   });
