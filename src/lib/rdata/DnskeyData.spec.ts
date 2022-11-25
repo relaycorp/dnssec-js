@@ -9,7 +9,7 @@ import {
   DNSSEC_ROOT_DNSKEY_DATA,
   DNSSEC_ROOT_DNSKEY_KEY_TAG,
 } from '../../testUtils/dnssec/iana.js';
-import type { SignatureGenerationOptions } from '../../testUtils/dnssec/SignatureGenerationOptions.js';
+import type { SignatureOptions } from '../../testUtils/dnssec/SignatureOptions';
 
 import { DnskeyData } from './DnskeyData.js';
 
@@ -130,7 +130,7 @@ describe('DnskeyData', () => {
 
   describe('verifyRrsig', () => {
     const VALIDITY_PERIOD = DatePeriod.init(subSeconds(NOW, 1), addSeconds(NOW, 1));
-    const RRSIG_OPTIONS: SignatureGenerationOptions = {
+    const RRSIG_OPTIONS: SignatureOptions = {
       signatureExpiry: SIGNATURE_EXPIRY,
       signatureInception: NOW,
     };

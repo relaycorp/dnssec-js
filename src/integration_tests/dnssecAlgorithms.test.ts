@@ -5,11 +5,11 @@ import { ZoneSigner } from '../testUtils/dnssec/ZoneSigner.js';
 import { Zone } from '../lib/Zone.js';
 import { DatePeriod } from '../lib/DatePeriod.js';
 import { SecurityStatus } from '../lib/SecurityStatus.js';
-import type { SignatureGenerationOptions } from '../testUtils/dnssec/SignatureGenerationOptions.js';
+import type { SignatureOptions } from '../testUtils/dnssec/SignatureOptions';
 
 const NOW = new Date();
 const VALIDITY_PERIOD = DatePeriod.init(subSeconds(NOW, 1), addSeconds(NOW, 1));
-const SIGNATURE_OPTIONS: SignatureGenerationOptions = {
+const SIGNATURE_OPTIONS: SignatureOptions = {
   signatureExpiry: VALIDITY_PERIOD.end,
   signatureInception: VALIDITY_PERIOD.start,
 };
