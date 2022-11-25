@@ -77,6 +77,7 @@ describe('convertSignatureToDnssec', () => {
 
     test('Invalid DER values should be refused', () => {
       class Schema {
+        // eslint-disable-next-line new-cap
         @AsnProp({ type: AsnPropTypes.Null })
         public foo = null;
       }
