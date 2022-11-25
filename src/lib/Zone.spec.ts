@@ -3,7 +3,7 @@ import { addSeconds, subSeconds } from 'date-fns';
 import { ZoneSigner } from '../testUtils/dnssec/ZoneSigner.js';
 import { QUESTION, RECORD, RECORD_TLD } from '../testUtils/dnsStubs.js';
 import type { DnskeyResponse, DsResponse } from '../testUtils/dnssec/responses.js';
-import type { SignatureOptions } from '../testUtils/dnssec/SignatureOptions';
+import type { SignatureOptions } from '../testUtils/dnssec/SignatureOptions.js';
 
 import { DnssecAlgorithm } from './DnssecAlgorithm.js';
 import { Zone } from './Zone.js';

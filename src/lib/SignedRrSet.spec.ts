@@ -6,7 +6,7 @@ import { addSeconds, setMilliseconds, subSeconds } from 'date-fns';
 
 import { QUESTION, RECORD, RECORD_TLD, RRSET } from '../testUtils/dnsStubs.js';
 import { ZoneSigner } from '../testUtils/dnssec/ZoneSigner.js';
-import type { SignatureOptions } from '../testUtils/dnssec/SignatureOptions';
+import type { SignatureOptions } from '../testUtils/dnssec/SignatureOptions.js';
 
 import { SignedRrSet } from './SignedRrSet.js';
 import { DnssecAlgorithm } from './DnssecAlgorithm.js';

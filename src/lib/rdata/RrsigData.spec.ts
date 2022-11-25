@@ -6,7 +6,7 @@ import { ZoneSigner } from '../../testUtils/dnssec/ZoneSigner.js';
 import { RrSet } from '../dns/RrSet.js';
 import { QUESTION, RECORD, RRSET } from '../../testUtils/dnsStubs.js';
 import { IANA_RR_TYPE_IDS } from '../dns/ianaRrTypes.js';
-import type { SignatureOptions } from '../../testUtils/dnssec/SignatureOptions';
+import type { SignatureOptions } from '../../testUtils/dnssec/SignatureOptions.js';
 
 import { RrsigData } from './RrsigData.js';
 

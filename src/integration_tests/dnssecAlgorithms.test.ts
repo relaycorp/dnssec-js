@@ -5,7 +5,7 @@ import { ZoneSigner } from '../testUtils/dnssec/ZoneSigner.js';
 import { Zone } from '../lib/Zone.js';
 import { DatePeriod } from '../lib/DatePeriod.js';
 import { SecurityStatus } from '../lib/SecurityStatus.js';
-import type { SignatureOptions } from '../testUtils/dnssec/SignatureOptions';
+import type { SignatureOptions } from '../testUtils/dnssec/SignatureOptions.js';
 
 const NOW = new Date();
 const VALIDITY_PERIOD = DatePeriod.init(subSeconds(NOW, 1), addSeconds(NOW, 1));

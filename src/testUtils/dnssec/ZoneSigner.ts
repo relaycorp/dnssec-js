@@ -20,7 +20,7 @@ import { isChildZone } from '../../lib/dns/name.js';
 
 import type { DnskeyResponse, DsResponse, RrsigResponse, ZoneResponseSet } from './responses.js';
 import { generateKeyPair } from './keyGen.js';
-import type { SignatureOptions } from './SignatureOptions';
+import type { SignatureOptions } from './SignatureOptions.js';
 
 // eslint-disable-next-line @typescript-eslint/no-magic-numbers
 const FIVE_MINUTES_IN_SECONDS = minutesToSeconds(5);
