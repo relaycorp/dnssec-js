@@ -5,7 +5,7 @@
     "module": "esnext",
     "outDir": "build/lib",
     "rootDir": "src",
-    "target": "esnext",
+    "target": "es2020",
     "types": ["node", "jest"],
     "typeRoots": ["node_modules/@types"]
   },
