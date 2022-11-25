@@ -19,6 +19,7 @@ import { DatePeriod } from './DatePeriod';
 import type { Resolver } from './Resolver';
 import { DnsClass } from './dns/ianaClasses';
 import { getRcodeId, RCODE_IDS } from './dns/ianaRcodes';
+import type { DnskeyRecord } from './dnssecRecords';
 
 const NOW = new Date();
 const DATE_PERIOD = DatePeriod.init(NOW, addSeconds(NOW, 60));
@@ -74,16 +75,34 @@ beforeAll(async () => {
   ];
 });
 
+function filterMessagesOut(
+  messages: readonly Message[],
+  negativeQuestions: readonly Question[],
+): readonly Message[] {
+  return messages.filter(
+    (message) => !negativeQuestions.some((question) => message.answersQuestion(question)),
+  );
+}
+
+function replaceMessages(
+  originalMessages: readonly Message[],
+  newMessages: readonly Message[],
+): readonly Message[] {
+  const negativeQuestions = newMessages.flatMap((message) => message.questions);
+  return [...filterMessagesOut(originalMessages, negativeQuestions), ...newMessages];
+}
+
 describe('retrieve', () => {
   const RESOLVER = jest.fn<Resolver>();
 
   beforeEach(() => {
+    // eslint-disable-next-line @typescript-eslint/require-await
     RESOLVER.mockImplementation(async (question: Question) => {
-      const message = chainMessages.find((m) => m.answersQuestion(question));
-      if (!message) {
+      const martchingMessage = chainMessages.find((message) => message.answersQuestion(question));
+      if (!martchingMessage) {
         throw new Error(`Could not find message that answers ${question.key}`);
       }
-      return message;
+      return martchingMessage;
     });
   });
 
@@ -94,7 +113,7 @@ describe('retrieve', () => {
   test('Root DNSKEY should be retrieved', async () => {
     const chain = await UnverifiedChain.retrieve(QUESTION, RESOLVER);
 
-    expect(chain.zoneMessageByKey[`./${DnssecRecordType.DNSKEY}`]).toEqual(
+    expect(chain.zoneMessageByKey[`./${DnssecRecordType.DNSKEY}`]).toStrictEqual(
       rootResponses.dnskey.message,
     );
   });
@@ -103,16 +122,16 @@ describe('retrieve', () => {
     const chain = await UnverifiedChain.retrieve(QUESTION, RESOLVER);
 
     expect(chain.zoneMessageByKey).not.toHaveProperty([`./${DnssecRecordType.DS}`]);
-    expect(RESOLVER).not.toHaveBeenCalledWith(rootResponses.ds.record.makeQuestion);
+    expect(RESOLVER).not.toHaveBeenCalledWith(rootResponses.ds.record.makeQuestion());
   });
 
   test('Intermediate zone DNSKEYs should be retrieved', async () => {
     const chain = await UnverifiedChain.retrieve(QUESTION, RESOLVER);
 
-    expect(chain.zoneMessageByKey[`${RECORD_TLD}/${DnssecRecordType.DNSKEY}`]).toEqual(
+    expect(chain.zoneMessageByKey[`${RECORD_TLD}/${DnssecRecordType.DNSKEY}`]).toStrictEqual(
       tldResponses.dnskey.message,
     );
-    expect(chain.zoneMessageByKey[`${RECORD.name}/${DnssecRecordType.DNSKEY}`]).toEqual(
+    expect(chain.zoneMessageByKey[`${RECORD.name}/${DnssecRecordType.DNSKEY}`]).toStrictEqual(
       apexResponses.dnskey.message,
     );
   });
@@ -120,10 +139,10 @@ describe('retrieve', () => {
   test('Intermediate zone DSs should be retrieved', async () => {
     const chain = await UnverifiedChain.retrieve(QUESTION, RESOLVER);
 
-    expect(chain.zoneMessageByKey[`${RECORD_TLD}/${DnssecRecordType.DS}`]).toEqual(
+    expect(chain.zoneMessageByKey[`${RECORD_TLD}/${DnssecRecordType.DS}`]).toStrictEqual(
       tldResponses.ds.message,
     );
-    expect(chain.zoneMessageByKey[`${RECORD.name}/${DnssecRecordType.DS}`]).toEqual(
+    expect(chain.zoneMessageByKey[`${RECORD.name}/${DnssecRecordType.DS}`]).toStrictEqual(
       apexResponses.ds.message,
     );
   });
@@ -132,8 +151,9 @@ describe('retrieve', () => {
     const stubMessage = rootResponses.dnskey.message;
     const differentQuestion = new Question(RECORD_TLD, DnssecRecordType.DS, DnsClass.IN + 1);
 
+    // eslint-disable-next-line @typescript-eslint/require-await
     await UnverifiedChain.retrieve(differentQuestion, async (question) => {
-      expect(question.classId).toEqual(differentQuestion.classId);
+      expect(question.classId).toStrictEqual(differentQuestion.classId);
       return stubMessage;
     });
   });
@@ -141,13 +161,13 @@ describe('retrieve', () => {
   test('Query response should be retrieved', async () => {
     const chain = await UnverifiedChain.retrieve(QUESTION, RESOLVER);
 
-    expect(chain.response).toEqual(queryResponse);
+    expect(chain.response).toStrictEqual(queryResponse);
   });
 
   test('Question should be stored', async () => {
     const chain = await UnverifiedChain.retrieve(QUESTION, RESOLVER);
 
-    expect(chain.query).toEqual(QUESTION);
+    expect(chain.query).toStrictEqual(QUESTION);
   });
 
   test('Returned message should be deserialised if given as a Buffer', async () => {
@@ -157,12 +177,15 @@ describe('retrieve', () => {
         flags: rcode, // `rcode` field has no effect, so we have to pass it in the flags
       }),
     );
+    // eslint-disable-next-line @typescript-eslint/require-await
     const resolver = async () => messageSerialised;
 
     const chain = await UnverifiedChain.retrieve(QUESTION, resolver);
 
-    expect(chain.response.header.rcode).toEqual(rcode);
-    expect(chain.zoneMessageByKey[`./${DnssecRecordType.DNSKEY}`].header.rcode).toEqual(rcode);
+    expect(chain.response.header.rcode).toStrictEqual(rcode);
+    expect(chain.zoneMessageByKey[`./${DnssecRecordType.DNSKEY}`].header.rcode).toStrictEqual(
+      rcode,
+    );
   });
 });
 
@@ -175,8 +198,9 @@ describe('initFromMessages', () => {
 
   test('Message without question should be ignored', () => {
     const unquestionableMessage = new Message({ rcode: RCODE_IDS.NOERROR }, [], []);
+    const messages = [unquestionableMessage, ...chainMessages];
 
-    UnverifiedChain.initFromMessages(QUESTION, [unquestionableMessage, ...chainMessages]);
+    expect(() => UnverifiedChain.initFromMessages(QUESTION, messages)).not.toThrow();
   });
 
   test('Irrelevant message should be filtered out', () => {
@@ -267,7 +291,7 @@ describe('initFromMessages', () => {
   test('Response for question should be stored', () => {
     const chain = UnverifiedChain.initFromMessages(QUESTION, chainMessages);
 
-    expect(chain.response).toEqual(queryResponse);
+    expect(chain.response).toStrictEqual(queryResponse);
   });
 });
 
@@ -287,7 +311,7 @@ describe('verify', () => {
 
       const result = chain.verify(DATE_PERIOD, trustAnchors);
 
-      expect(result).toEqual<ChainVerificationResult>({
+      expect(result).toStrictEqual<ChainVerificationResult>({
         status: SecurityStatus.INDETERMINATE,
         reasonChain: ['Cannot initialise root zone without a DNSKEY response'],
       });
@@ -309,7 +333,7 @@ describe('verify', () => {
 
       const result = chain.verify(DATE_PERIOD, [rootDs.data]);
 
-      expect(result).toEqual<ChainVerificationResult>({
+      expect(result).toStrictEqual<ChainVerificationResult>({
         status: SecurityStatus.BOGUS,
         reasonChain: ['Got invalid DNSKEY for root zone', expect.anything()],
       });
@@ -323,7 +347,7 @@ describe('verify', () => {
 
       const result = chain.verify(DATE_PERIOD, trustAnchors);
 
-      expect(result).toEqual<ChainVerificationResult>({
+      expect(result).toStrictEqual<ChainVerificationResult>({
         status: SecurityStatus.INDETERMINATE,
         reasonChain: [`Cannot verify zone ${RECORD_TLD} without a DNSKEY response`],
       });
@@ -335,7 +359,7 @@ describe('verify', () => {
 
       const result = chain.verify(DATE_PERIOD, trustAnchors);
 
-      expect(result).toEqual<ChainVerificationResult>({
+      expect(result).toStrictEqual<ChainVerificationResult>({
         status: SecurityStatus.INDETERMINATE,
         reasonChain: [`Cannot verify zone ${RECORD_TLD} without a DS response`],
       });
@@ -357,7 +381,7 @@ describe('verify', () => {
 
       const result = chain.verify(DATE_PERIOD, trustAnchors);
 
-      expect(result).toEqual<ChainVerificationResult>({
+      expect(result).toStrictEqual<ChainVerificationResult>({
         status: SecurityStatus.BOGUS,
         reasonChain: [`Failed to verify zone ${RECORD_TLD}`, expect.anything()],
       });
@@ -379,7 +403,7 @@ describe('verify', () => {
 
       const result = chain.verify(DATE_PERIOD, trustAnchors);
 
-      expect(result).toEqual<ChainVerificationResult>({
+      expect(result).toStrictEqual<ChainVerificationResult>({
         status: SecurityStatus.BOGUS,
         reasonChain: [`Failed to verify zone ${RECORD.name}`, expect.anything()],
       });
@@ -405,7 +429,9 @@ describe('verify', () => {
 
       expect(dsDataSpy).toHaveBeenCalledTimes(1);
       expect(dsDataSpy).toHaveBeenCalledWith(
-        expect.toSatisfy((k) => k.data.keyTag === rootResponses.dnskey.data.calculateKeyTag()),
+        expect.toSatisfy<DnskeyRecord>(
+          (dnskey) => dnskey.data.keyTag === rootResponses.dnskey.data.calculateKeyTag(),
+        ),
       );
     });
   });
@@ -420,7 +446,7 @@ describe('verify', () => {
 
       const result = chain.verify(period, trustAnchors);
 
-      expect(result.status).toEqual(SecurityStatus.SECURE);
+      expect(result.status).toStrictEqual(SecurityStatus.SECURE);
     });
 
     test('Date outside validity period should be refused', () => {
@@ -432,7 +458,7 @@ describe('verify', () => {
 
       const result = chain.verify(period, trustAnchors);
 
-      expect(result.status).toEqual(SecurityStatus.BOGUS);
+      expect(result.status).toStrictEqual(SecurityStatus.BOGUS);
     });
   });
 
@@ -454,7 +480,7 @@ describe('verify', () => {
 
       const result = chain.verify(DATE_PERIOD, trustAnchors);
 
-      expect(result).toEqual<VerifiedRrSet>({
+      expect(result).toStrictEqual<VerifiedRrSet>({
         status: SecurityStatus.SECURE,
         result: RRSET,
       });
@@ -467,7 +493,7 @@ describe('verify', () => {
 
       const result = chain.verify(DATE_PERIOD, trustAnchors);
 
-      expect(result).toEqual<FailureResult>({
+      expect(result).toStrictEqual<FailureResult>({
         status: SecurityStatus.BOGUS,
         reasonChain: ['Query response does not have a valid signature'],
       });
@@ -483,7 +509,7 @@ describe('verify', () => {
 
       const result = chain.verify(DatePeriod.init(date, date), trustAnchors);
 
-      expect(result).toEqual<FailureResult>({
+      expect(result).toStrictEqual<FailureResult>({
         status: SecurityStatus.BOGUS,
         reasonChain: ['Query response does not have a valid signature'],
       });
@@ -494,25 +520,10 @@ describe('verify', () => {
 
       const result = chain.verify(DATE_PERIOD, trustAnchors);
 
-      expect(result).toEqual<VerifiedRrSet>({
+      expect(result).toStrictEqual<VerifiedRrSet>({
         status: SecurityStatus.SECURE,
         result: RRSET,
       });
     });
   });
 });
-
-function filterMessagesOut(
-  messages: readonly Message[],
-  negativeQuestions: readonly Question[],
-): readonly Message[] {
-  return messages.filter((m) => !negativeQuestions.some((q) => m.answersQuestion(q)));
-}
-
-function replaceMessages(
-  originalMessages: readonly Message[],
-  newMessages: readonly Message[],
-): readonly Message[] {
-  const negativeQuestions = newMessages.flatMap((m) => m.questions);
-  return [...filterMessagesOut(originalMessages, negativeQuestions), ...newMessages];
-}
