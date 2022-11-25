@@ -36,6 +36,6 @@ describe('Support for DNSSEC algorithms', () => {
       VALIDITY_PERIOD,
     );
 
-    expect(zoneResult.status).toEqual(SecurityStatus.SECURE);
+    expect(zoneResult.status).toStrictEqual(SecurityStatus.SECURE);
   });
 });

@@ -12,6 +12,7 @@ import {
   RECORD_DATA_TXT_DATA,
   RECORD_TYPE_STR,
 } from '../../testUtils/dnsStubs';
+
 import { Message } from './Message';
 import type { DnsRecord } from './DnsRecord';
 import { DnsClass } from './ianaClasses';

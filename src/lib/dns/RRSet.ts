@@ -9,9 +9,6 @@ import { DnsError } from './DnsError';
 export class RRSet {
   /**
    * Return the RRset for the subset of `records` that match the `question`.
-   *
-   * @param question
-   * @param records
    */
   public static init(question: Question, records: readonly DnsRecord[]): RRSet {
     const matchingRecords = records.filter(
@@ -54,8 +51,7 @@ export class RRSet {
 /**
  * Sort records per RFC 4034 (Section 6.3).
  *
- * @param originalRecords
- * @link https://www.rfc-editor.org/rfc/rfc4034#section-6.3
+ * See https://www.rfc-editor.org/rfc/rfc4034#section-6.3
  */
 function canonicallySortRecords(originalRecords: readonly DnsRecord[]): readonly DnsRecord[] {
   const recordSorted = Array.from(originalRecords).sort((a, b) => {

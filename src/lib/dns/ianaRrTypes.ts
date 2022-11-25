@@ -106,11 +106,7 @@ export type IanaRrTypeIdOrName = IanaRrTypeName | number;
 
 export const IANA_RR_TYPE_NAMES: { [key: number]: IanaRrTypeName } = Object.entries(
   IANA_RR_TYPE_IDS,
-).reduce(
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-  (accumulator, [name, id]) => ({ ...accumulator, [id]: name as IanaRrTypeName }),
-  {},
-);
+).reduce((accumulator, [name, id]) => ({ ...accumulator, [id]: name as IanaRrTypeName }), {});
 
 export function getRrTypeId(typeName: IanaRrTypeIdOrName): number {
   if (typeof typeName === 'number') {

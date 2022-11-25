@@ -36,5 +36,5 @@ export async function generateKeyPair(algorithm: DnssecAlgorithm): Promise<KeyPa
   if (!options) {
     throw new Error(`Unsupported algorithm (${algorithm})`);
   }
-  return await generateKeyPairAsync(options.type as any, options.options);
+  return generateKeyPairAsync(options.type as any, options.options);
 }
