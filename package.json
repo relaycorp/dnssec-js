@@ -28,7 +28,8 @@
     "static-checks:lint": "eslint -c .eslintrc.cjs src",
     "static-checks:prettier": "prettier \"src/**/*.ts\" --list-different",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
-    "test:integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config=src/integration_tests/jest.config.mjs",
+    "test:integration": "run-s build test:integration:jest",
+    "test:integration:jest": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest-integration-transpiled.config.mjs",
     "tsc": "tsc",
     "doc-api": "typedoc src/index.ts --out build/docs",
     "clean": "del-cli build test"
