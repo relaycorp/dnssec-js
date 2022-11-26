@@ -21,15 +21,16 @@ import { DNSoverHTTPS } from 'dohdec';
 const doh = new DNSoverHTTPS({ url: 'https://cloudflare-dns.com/dns-query' });
 
 async function getARecord(domain) {
-  const question = new Question(domain, 'A');
-  const result = await dnssecLookUp(question, async () =>
-    doh.lookup(question.name, {
-      rrtype: question.getTypeName(),
-      json: false,
-      decode: false,
-      dnssec: true, // Retrieve RRSig records
-      dnssecCd: true, // Prevent Cloudflare from doing DNSSEC validation
-    }),
+  const result = await dnssecLookUp(
+    new Question(domain, 'A'),
+    async (question) =>
+      doh.lookup(question.name, {
+        rrtype: question.getTypeName(),
+        json: false,
+        decode: false,
+        dnssec: true, // Retrieve RRSig records
+        dnssecCd: true, // Prevent Cloudflare from doing DNSSEC validation
+      }),
   );
 
   if (result.status !== SecurityStatus.SECURE) {
@@ -39,7 +40,7 @@ async function getARecord(domain) {
   return result.result;
 }
 
-getARecord('example.com').then((rrset) =>
+getARecord('example.com.').then((rrset) =>
   console.log(
     'example.com:',
     rrset.records.map((r) => r.dataFields),
