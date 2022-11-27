@@ -12,7 +12,7 @@ npm install @relaycorp/dnssec
 
 ## Usage
 
-You need to write a bit of code to integrate your preferred resolver, and keep the following in mind:
+You need to write a thin integration with your preferred resolver, and keep the following in mind:
 
 - DNS responses MUST include DNSSEC signatures (i.e., `RRSIG` records).
 - DNS responses MUST be passed as a `Buffer` using DNS wire format (as defined in [RFC 1035](https://datatracker.ietf.org/doc/html/rfc1035)), or else you'll have to initialise a `Message` that contains all the relevant parts of the response (see below).
