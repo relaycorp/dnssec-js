@@ -19,6 +19,9 @@ const DNS_CLASS_IDS: { readonly [name: string]: DnsClass } = {
   HS: DnsClass.HS,
 };
 
+/**
+ * DNS class name.
+ */
 export type DnsClassName = keyof typeof DNS_CLASS_IDS;
 
 export type DnsClassIdOrName = DnsClass | DnsClassName;
