@@ -1,37 +1,36 @@
-import { KeyObject } from 'node:crypto';
-import { addSeconds, setMilliseconds } from 'date-fns';
+import type { KeyObject } from 'node:crypto';
 
-import { DnssecAlgorithm } from '../../lib/DnssecAlgorithm';
-import { Record } from '../../lib/dns/Record';
-import { DnsClass } from '../../lib/dns/ianaClasses';
-import { generateKeyPair } from './keyGen';
-import { DigestType } from '../../lib/DigestType';
-import { DnssecRecordType } from '../../lib/DnssecRecordType';
-import { RRSet } from '../../lib/dns/RRSet';
-import { DnskeyFlags } from '../../lib/DnskeyFlags';
-import { DnskeyData } from '../../lib/rdata/DnskeyData';
-import { DsData } from '../../lib/rdata/DsData';
-import { RrsigData } from '../../lib/rdata/RrsigData';
-import { DnskeyRecord } from '../../lib/dnssecRecords';
-import { Message } from '../../lib/dns/Message';
-import { Question } from '../../lib/dns/Question';
-import { DnskeyResponse, DsResponse, RrsigResponse, ZoneResponseSet } from './responses';
-import { RCODE_IDS } from '../../lib/dns/ianaRcodes';
-import { isChildZone } from '../../lib/dns/name';
+import { addSeconds, minutesToSeconds, setMilliseconds } from 'date-fns';
 
-const FIVE_MINUTES_IN_SECONDS = 5 * 60;
+import type { DnssecAlgorithm } from '../../lib/DnssecAlgorithm.js';
+import { DnsRecord } from '../../lib/dns/DnsRecord.js';
+import { DnsClass } from '../../lib/dns/ianaClasses.js';
+import { DigestType } from '../../lib/DigestType.js';
+import { DnssecRecordType } from '../../lib/DnssecRecordType.js';
+import { RrSet } from '../../lib/dns/RrSet.js';
+import type { DnskeyFlags } from '../../lib/DnskeyFlags.js';
+import { DnskeyData } from '../../lib/rdata/DnskeyData.js';
+import { DsData } from '../../lib/rdata/DsData.js';
+import { RrsigData } from '../../lib/rdata/RrsigData.js';
+import type { DnskeyRecord } from '../../lib/dnssecRecords.js';
+import { Message } from '../../lib/dns/Message.js';
+import { Question } from '../../lib/dns/Question.js';
+import { RCODE_IDS } from '../../lib/dns/ianaRcodes.js';
+import { isChildZone } from '../../lib/dns/name.js';
 
-export interface SignatureGenerationOptions {
-  readonly signatureInception: Date;
-  readonly signatureExpiry: Date;
-}
+import type { DnskeyResponse, DsResponse, RrsigResponse, ZoneResponseSet } from './responses.js';
+import { generateKeyPair } from './keyGen.js';
+import type { SignatureOptions } from './SignatureOptions.js';
 
-interface RecordGenerationOptions extends SignatureGenerationOptions {
+// eslint-disable-next-line @typescript-eslint/no-magic-numbers
+const FIVE_MINUTES_IN_SECONDS = minutesToSeconds(5);
+
+interface RecordGenerationOptions extends SignatureOptions {
   readonly ttl: number;
 }
 
 interface DnskeyGenerationOptions extends RecordGenerationOptions {
-  readonly additionalDnskeys: readonly Record[];
+  readonly additionalDnskeys: readonly DnsRecord[];
   readonly flags: Partial<DnskeyFlags>;
 }
 
@@ -45,7 +44,7 @@ export class ZoneSigner {
     return new ZoneSigner(keyPair.privateKey, keyPair.publicKey, zoneName, algorithm);
   }
 
-  constructor(
+  public constructor(
     public readonly privateKey: KeyObject,
     public readonly publicKey: KeyObject,
     public readonly zoneName: string,
@@ -56,18 +55,18 @@ export class ZoneSigner {
     const finalFlags: DnskeyFlags = {
       zoneKey: true,
       secureEntryPoint: false,
-      ...(options.flags ?? {}),
+      ...options.flags,
     };
     const data = new DnskeyData(this.publicKey, this.algorithm, finalFlags);
     const ttl = options.ttl ?? FIVE_MINUTES_IN_SECONDS;
-    const record = new Record(
+    const record = new DnsRecord(
       this.zoneName,
       DnssecRecordType.DNSKEY,
       DnsClass.IN,
       ttl,
       data.serialise(),
     );
-    const rrset = RRSet.init(record.makeQuestion(), [record, ...(options.additionalDnskeys ?? [])]);
+    const rrset = RrSet.init(record.makeQuestion(), [record, ...(options.additionalDnskeys ?? [])]);
     const rrsig = this.generateRrsig(rrset, data.calculateKeyTag(), options);
     return { data, message: rrsig.message, record, rrsig };
   }
@@ -89,7 +88,7 @@ export class ZoneSigner {
       digestType,
       DsData.calculateDnskeyDigest(childDnskey, digestType),
     );
-    const record = new Record(
+    const record = new DnsRecord(
       childZoneName,
       DnssecRecordType.DS,
       DnsClass.IN,
@@ -97,7 +96,7 @@ export class ZoneSigner {
       data.serialise(),
     );
     const rrsig = this.generateRrsig(
-      RRSet.init(record.makeQuestion(), [record]),
+      RrSet.init(record.makeQuestion(), [record]),
       dnskeyTag,
       options,
     );
@@ -105,9 +104,9 @@ export class ZoneSigner {
   }
 
   public generateRrsig(
-    rrset: RRSet,
+    rrset: RrSet,
     keyTag: number,
-    options: Partial<SignatureGenerationOptions> = {},
+    options: Partial<SignatureOptions> = {},
   ): RrsigResponse {
     const signatureInception = options.signatureInception ?? new Date();
     const signatureExpiry = options.signatureExpiry ?? addSeconds(signatureInception, rrset.ttl);
@@ -120,7 +119,7 @@ export class ZoneSigner {
       keyTag,
       this.algorithm,
     );
-    const record = new Record(
+    const record = new DnsRecord(
       rrset.name,
       DnssecRecordType.RRSIG,
       DnsClass.IN,
@@ -128,8 +127,8 @@ export class ZoneSigner {
       data.serialise(),
     );
     const message = new Message(
-      { rcode: RCODE_IDS.NoError },
-      [new Question(rrset.name, rrset.type, rrset.class_)],
+      { rcode: RCODE_IDS.NOERROR },
+      [new Question(rrset.name, rrset.type, rrset.classId)],
       [...rrset.records, record],
     );
     return { data, message, record };

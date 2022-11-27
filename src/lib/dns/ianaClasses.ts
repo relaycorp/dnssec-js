@@ -1,10 +1,11 @@
+/* eslint-disable import/exports-last */
 /**
  * DNS CLASSes.
  *
- * @link https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml#dns-parameters-2
+ * See https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml#dns-parameters-2
  */
 
-import { DnsError } from './DnsError';
+import { DnsError } from './DnsError.js';
 
 export enum DnsClass {
   IN = 1,
@@ -27,10 +28,9 @@ export function getDnsClassId(className: DnsClassIdOrName): DnsClass {
     return className;
   }
 
-  const classId = DNS_CLASS_IDS[className];
-  if (classId === undefined) {
+  if (!(className in DNS_CLASS_IDS)) {
     throw new DnsError(`DNS class "${className}" is not defined by IANA`);
   }
 
-  return classId;
+  return DNS_CLASS_IDS[className];
 }

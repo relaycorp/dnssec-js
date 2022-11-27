@@ -1,8 +1,10 @@
-import { createPublicKey, KeyObject } from 'node:crypto';
+import type { KeyObject } from 'node:crypto';
+import { createPublicKey } from 'node:crypto';
 
-import { deserialisePublicKey, serialisePublicKey } from './keySerialisation';
-import { DnssecAlgorithm } from '../../DnssecAlgorithm';
-import { DnssecError } from '../../DnssecError';
+import { DnssecAlgorithm } from '../../DnssecAlgorithm.js';
+import { DnssecError } from '../../DnssecError.js';
+
+import { deserialisePublicKey, serialisePublicKey } from './keySerialisation.js';
 
 // Parameters taken from https://www.rfc-editor.org/rfc/rfc5702.html#section-6.1
 const RSA_PUB_KEY = {
@@ -13,6 +15,7 @@ const RSA_PUB_KEY = {
 // Parameters taken from https://www.rfc-editor.org/rfc/rfc6605.html#section-6
 const ECDSA_PUB_KEYS = {
   p256: 'GojIhhXUN_u4v54ZQqGSnyhWJwaubCvTmeexv7bR6edbkrSqQpF64cYbcB7wNcP-e-MAnLr-Wi9xMWyQLc8NAA',
+
   p384:
     'xKYaNhWdGOfJ-nPrL8_arkwf2EY3MDJ-SErKivBVSum1w_egsXvSADtNJhyem5RCOpgQ6K8X1DRSEkrbYQ-OB-v8' +
     '_uX45NBwY8rp65F6Glur8I_mlVNgF6W_qTI37m40',
@@ -24,6 +27,34 @@ const EDDSA_PUB_KEYS = {
   ed448: '3kgROaDjrh0H2iuixWBrc8g2EpBBLCdGzHmn-G2MpTPhpj_OiBVHHSfPodx1FYYUcJKm1MDpJtIA',
 };
 
+function importRsaPubKey(exponent: string, modulus: string): KeyObject {
+  return createPublicKey({
+    // eslint-disable-next-line id-length
+    key: { n: modulus, e: exponent, kty: 'RSA' },
+    format: 'jwk',
+  });
+}
+
+function importEcPubKey(publicKeyBase64: string, curveName: string): KeyObject {
+  const publicKeyBuffer = Buffer.from(publicKeyBase64, 'base64url');
+  const parametersLength = publicKeyBuffer.byteLength / 2;
+  const xParameter = publicKeyBuffer.subarray(0, parametersLength).toString('base64url');
+  const yParameter = publicKeyBuffer.subarray(parametersLength).toString('base64url');
+  return createPublicKey({
+    // eslint-disable-next-line id-length
+    key: { kty: 'EC', crv: curveName, x: xParameter, y: yParameter },
+    format: 'jwk',
+  });
+}
+
+function importEdPubKey(publicKeyBase64: string, curveName: string): KeyObject {
+  return createPublicKey({
+    // eslint-disable-next-line id-length
+    key: { crv: curveName, kty: 'OKP', x: publicKeyBase64 },
+    format: 'jwk',
+  });
+}
+
 describe('serialisePublicKey', () => {
   describe('RSA', () => {
     test('Exponent length prefix should span 1 octet if exponent spans up to 255 octets', () => {
@@ -33,18 +64,18 @@ describe('serialisePublicKey', () => {
 
       const serialisation = serialisePublicKey(publicKey, DnssecAlgorithm.RSASHA256);
 
-      expect(serialisation[0]).toEqual(exponentLength);
+      expect(serialisation[0]).toStrictEqual(exponentLength);
     });
 
-    test('Exponent length prefix should span 2 octets if exponent spans more than 255 octets', () => {
+    test('Exponent length prefix should span 2 octets if exponent spans > 255 octets', () => {
       const exponentLength = 256;
       const exponent = Buffer.alloc(exponentLength, 'f').toString('base64url');
       const publicKey = importRsaPubKey(exponent, RSA_PUB_KEY.modulus);
 
       const serialisation = serialisePublicKey(publicKey, DnssecAlgorithm.RSASHA256);
 
-      expect(serialisation[0]).toEqual(0);
-      expect(serialisation.readUint16BE(1)).toEqual(exponentLength);
+      expect(serialisation[0]).toBe(0);
+      expect(serialisation.readUint16BE(1)).toStrictEqual(exponentLength);
     });
 
     test('Exponent should follow its length prefix', () => {
@@ -53,7 +84,7 @@ describe('serialisePublicKey', () => {
       const serialisation = serialisePublicKey(publicKey, DnssecAlgorithm.RSASHA256);
 
       const exponent = serialisation.subarray(1, serialisation[0] + 1);
-      expect(exponent.toString('base64url')).toEqual(RSA_PUB_KEY.exponent);
+      expect(exponent.toString('base64url')).toStrictEqual(RSA_PUB_KEY.exponent);
     });
 
     test('Modulus should follow exponent', () => {
@@ -62,7 +93,7 @@ describe('serialisePublicKey', () => {
       const serialisation = serialisePublicKey(publicKey, DnssecAlgorithm.RSASHA256);
 
       const modulus = serialisation.subarray(serialisation[0] + 1);
-      expect(modulus.toString('base64url')).toEqual(RSA_PUB_KEY.modulus);
+      expect(modulus.toString('base64url')).toStrictEqual(RSA_PUB_KEY.modulus);
     });
 
     test.each([DnssecAlgorithm.RSASHA1, DnssecAlgorithm.RSASHA256, DnssecAlgorithm.RSASHA512])(
@@ -70,16 +101,17 @@ describe('serialisePublicKey', () => {
       (algo) => {
         const publicKey = importRsaPubKey(RSA_PUB_KEY.exponent, RSA_PUB_KEY.modulus);
 
-        serialisePublicKey(publicKey, algo);
+        expect(() => serialisePublicKey(publicKey, algo)).not.toThrow();
       },
     );
 
     test('Non-RSA key should be refused', () => {
       const publicKey = importEcPubKey(ECDSA_PUB_KEYS.p256, 'P-256');
 
+      const keyType = publicKey.asymmetricKeyType!;
       expect(() => serialisePublicKey(publicKey, DnssecAlgorithm.RSASHA256)).toThrowWithMessage(
         Error,
-        `Requested serialisation of RSA key but got ${publicKey.asymmetricKeyType} key`,
+        `Requested serialisation of RSA key but got ${keyType} key`,
       );
     });
   });
@@ -91,7 +123,7 @@ describe('serialisePublicKey', () => {
       const serialisation = serialisePublicKey(publicKey, DnssecAlgorithm.ECDSAP256SHA256);
 
       const serialisationBase64 = serialisation.toString('base64url');
-      expect(serialisationBase64).toEqual(ECDSA_PUB_KEYS.p256);
+      expect(serialisationBase64).toStrictEqual(ECDSA_PUB_KEYS.p256);
     });
 
     test('P-384 key should be supported', () => {
@@ -100,18 +132,16 @@ describe('serialisePublicKey', () => {
       const serialisation = serialisePublicKey(publicKey, DnssecAlgorithm.ECDSAP384SHA384);
 
       const serialisationBase64 = serialisation.toString('base64url');
-      expect(serialisationBase64).toEqual(ECDSA_PUB_KEYS.p384);
+      expect(serialisationBase64).toStrictEqual(ECDSA_PUB_KEYS.p384);
     });
 
     test('Non-ECDSA key should be refused', () => {
       const publicKey = importEdPubKey(EDDSA_PUB_KEYS.ed25519, 'Ed25519');
 
+      const keyType = publicKey.asymmetricKeyType!;
       expect(() =>
         serialisePublicKey(publicKey, DnssecAlgorithm.ECDSAP256SHA256),
-      ).toThrowWithMessage(
-        Error,
-        `Requested serialisation of ECDSA key but got ${publicKey.asymmetricKeyType} key`,
-      );
+      ).toThrowWithMessage(Error, `Requested serialisation of ECDSA key but got ${keyType} key`);
     });
   });
 
@@ -121,7 +151,7 @@ describe('serialisePublicKey', () => {
 
       const serialisation = serialisePublicKey(publicKey, DnssecAlgorithm.ED25519);
 
-      expect(serialisation.toString('base64url')).toEqual(EDDSA_PUB_KEYS.ed25519);
+      expect(serialisation.toString('base64url')).toStrictEqual(EDDSA_PUB_KEYS.ed25519);
     });
 
     test('Ed448 should be supported', () => {
@@ -129,20 +159,21 @@ describe('serialisePublicKey', () => {
 
       const serialisation = serialisePublicKey(publicKey, DnssecAlgorithm.ED448);
 
-      expect(serialisation.toString('base64url')).toEqual(EDDSA_PUB_KEYS.ed448);
+      expect(serialisation.toString('base64url')).toStrictEqual(EDDSA_PUB_KEYS.ed448);
     });
 
     test('Non-EdDSA key should be refused', () => {
       const publicKey = importEcPubKey(ECDSA_PUB_KEYS.p256, 'P-256');
 
+      const keyType = publicKey.asymmetricKeyType!;
       expect(() => serialisePublicKey(publicKey, DnssecAlgorithm.ED25519)).toThrowWithMessage(
         Error,
-        `Requested serialisation of EdDSA key but got ${publicKey.asymmetricKeyType} key`,
+        `Requested serialisation of EdDSA key but got ${keyType} key`,
       );
     });
   });
 
-  test('Error should be thrown if algorithm is unsupported', async () => {
+  test('Error should be thrown if algorithm is unsupported', () => {
     const algorithm = 0;
     const publicKey = importRsaPubKey(RSA_PUB_KEY.exponent, RSA_PUB_KEY.modulus);
 
@@ -175,8 +206,8 @@ describe('deserialisePublicKey', () => {
         const publicKey = deserialisePublicKey(serialisation, DnssecAlgorithm.RSASHA256);
 
         const publicKeyJwk = publicKey.export({ format: 'jwk' });
-        expect(publicKeyJwk.e).toEqual(exponent);
-        expect(publicKeyJwk.n).toEqual(RSA_PUB_KEY.modulus);
+        expect(publicKeyJwk.e).toStrictEqual(exponent);
+        expect(publicKeyJwk.n).toStrictEqual(RSA_PUB_KEY.modulus);
       },
     );
 
@@ -191,8 +222,8 @@ describe('deserialisePublicKey', () => {
         const publicKey = deserialisePublicKey(serialisation, dnssecAlgorithm);
 
         const publicKeyJwk = publicKey.export({ format: 'jwk' });
-        expect(publicKeyJwk.e).toEqual(RSA_PUB_KEY.exponent);
-        expect(publicKeyJwk.n).toEqual(RSA_PUB_KEY.modulus);
+        expect(publicKeyJwk.e).toStrictEqual(RSA_PUB_KEY.exponent);
+        expect(publicKeyJwk.n).toStrictEqual(RSA_PUB_KEY.modulus);
       },
     );
   });
@@ -207,7 +238,7 @@ describe('deserialisePublicKey', () => {
 
       const deserialisation = deserialisePublicKey(serialisation, algorithm);
 
-      expect(serialisePublicKey(deserialisation, algorithm)).toEqual(serialisation);
+      expect(serialisePublicKey(deserialisation, algorithm)).toStrictEqual(serialisation);
     });
 
     test('P-256 key should span 64 octets', () => {
@@ -232,7 +263,7 @@ describe('deserialisePublicKey', () => {
 
       const deserialisation = deserialisePublicKey(serialisation, algorithm);
 
-      expect(serialisePublicKey(deserialisation, algorithm)).toEqual(serialisation);
+      expect(serialisePublicKey(deserialisation, algorithm)).toStrictEqual(serialisation);
     });
 
     test('P-384 key should span 96 octets', () => {
@@ -259,7 +290,7 @@ describe('deserialisePublicKey', () => {
 
       const deserialisation = deserialisePublicKey(serialisation, algorithm);
 
-      expect(serialisePublicKey(deserialisation, algorithm)).toEqual(serialisation);
+      expect(serialisePublicKey(deserialisation, algorithm)).toStrictEqual(serialisation);
     });
 
     test('Ed25519 key should span 32 octets', () => {
@@ -271,7 +302,7 @@ describe('deserialisePublicKey', () => {
 
       expect(() => deserialisePublicKey(serialisation, algorithm)).toThrowWithMessage(
         Error,
-        `Ed25519 public key should span 32 octets (got ${serialisation.byteLength})`,
+        `EdDSA public key should span 32 octets (got ${serialisation.byteLength})`,
       );
     });
 
@@ -284,7 +315,7 @@ describe('deserialisePublicKey', () => {
 
       const deserialisation = deserialisePublicKey(serialisation, algorithm);
 
-      expect(serialisePublicKey(deserialisation, algorithm)).toEqual(serialisation);
+      expect(serialisePublicKey(deserialisation, algorithm)).toStrictEqual(serialisation);
     });
 
     test('Ed448 key should span 57 octets', () => {
@@ -296,41 +327,16 @@ describe('deserialisePublicKey', () => {
 
       expect(() => deserialisePublicKey(serialisation, algorithm)).toThrowWithMessage(
         Error,
-        `Ed448 public key should span 57 octets (got ${serialisation.byteLength})`,
+        `EdDSA public key should span 57 octets (got ${serialisation.byteLength})`,
       );
     });
   });
 
   test('Error should be thrown if algorithm is unsupported', () => {
-    const invalidAlgorithm = 999 as any;
+    const invalidAlgorithm = 999 as unknown as DnssecAlgorithm;
     expect(() => deserialisePublicKey(Buffer.allocUnsafe(1), invalidAlgorithm)).toThrowWithMessage(
       Error,
       `Unsupported DNSSEC algorithm (${invalidAlgorithm})`,
     );
   });
 });
-
-function importRsaPubKey(exponent: string, modulus: string): KeyObject {
-  return createPublicKey({
-    key: { n: modulus, e: exponent, kty: 'RSA' },
-    format: 'jwk',
-  });
-}
-
-function importEcPubKey(publicKeyBase64: string, curveName: string): KeyObject {
-  const publicKeyBuffer = Buffer.from(publicKeyBase64, 'base64url');
-  const paramsLength = publicKeyBuffer.byteLength / 2;
-  const x = publicKeyBuffer.subarray(0, paramsLength).toString('base64url');
-  const y = publicKeyBuffer.subarray(paramsLength).toString('base64url');
-  return createPublicKey({
-    key: { kty: 'EC', crv: curveName, x, y },
-    format: 'jwk',
-  });
-}
-
-function importEdPubKey(publicKeyBase64: string, curveName: string): KeyObject {
-  return createPublicKey({
-    key: { crv: curveName, kty: 'OKP', x: publicKeyBase64 },
-    format: 'jwk',
-  });
-}

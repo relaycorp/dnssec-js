@@ -1,11 +1,17 @@
-import { Codec, enc } from '@leichtgewicht/dns-packet';
+/* eslint-disable @typescript-eslint/no-magic-numbers */
 
-import { DnsClass, DnsClassIdOrName, getDnsClassId } from './ianaClasses';
-import { normaliseName, serialiseName } from './name';
-import { Question } from './Question';
-import { getRrTypeId, getRrTypeName, IanaRrTypeIdOrName } from './ianaRrTypes';
-import { lengthPrefixRdata } from '../utils/dns';
-import { DnsError } from './DnsError';
+import type { Codec } from '@leichtgewicht/dns-packet';
+import { enc } from '@leichtgewicht/dns-packet';
+
+import { lengthPrefixRdata } from '../utils/dns.js';
+
+import type { DnsClass, DnsClassIdOrName } from './ianaClasses.js';
+import { getDnsClassId } from './ianaClasses.js';
+import { normaliseName, serialiseName } from './name.js';
+import { Question } from './Question.js';
+import type { IanaRrTypeIdOrName } from './ianaRrTypes.js';
+import { getRrTypeId, getRrTypeName } from './ianaRrTypes.js';
+import { DnsError } from './DnsError.js';
 
 interface RecordFields {
   readonly name: string;
@@ -15,21 +21,42 @@ interface RecordFields {
   readonly dataSerialised: Buffer;
 }
 
+function deserialiseRdata(serialisation: Buffer, typeName: string, codec: Codec<any>): any {
+  const lengthPrefixedData = lengthPrefixRdata(serialisation);
+  try {
+    return codec.decode(lengthPrefixedData);
+  } catch {
+    throw new DnsError(`Data for record type ${typeName} is malformed`);
+  }
+}
+
+function serialiseRdata(data: any, typeName: string, codec: Codec<any>): Buffer {
+  let lengthPrefixedData: Uint8Array;
+  try {
+    lengthPrefixedData = codec.encode(data);
+  } catch {
+    throw new DnsError(`Data for record type ${typeName} is invalid`);
+  }
+  return Buffer.from(lengthPrefixedData.subarray(2));
+}
+
 /**
  * A "raw" DNS record with its data unserialised.
+ *
+ * We're using the `Dns` prefix to avoid shadowing the TypeScript type `Record`.
  */
-export class Record {
+export class DnsRecord {
   public readonly name: string;
+
   public readonly typeId: number;
-  public readonly class_: DnsClass;
+
+  public readonly classId: DnsClass;
+
   public readonly dataSerialised: Buffer;
 
-  /**
-   * @internal Avoid exposing dns-packet types
-   */
   public readonly dataFields: any;
 
-  constructor(
+  public constructor(
     name: string,
     typeIdOrName: IanaRrTypeIdOrName,
     classIdOrName: DnsClassIdOrName,
@@ -38,7 +65,7 @@ export class Record {
   ) {
     this.name = normaliseName(name);
     this.typeId = getRrTypeId(typeIdOrName);
-    this.class_ = getDnsClassId(classIdOrName);
+    this.classId = getDnsClassId(classIdOrName);
 
     const typeName = getRrTypeName(typeIdOrName);
     const dnsPacketCodec = enc(typeName);
@@ -58,7 +85,7 @@ export class Record {
     typeSerialised.writeUInt16BE(this.typeId);
 
     const classSerialised = Buffer.allocUnsafe(2);
-    classSerialised.writeUInt16BE(this.class_);
+    classSerialised.writeUInt16BE(this.classId);
 
     const ttlSerialised = Buffer.allocUnsafe(4);
     ttlSerialised.writeUInt32BE(ttl ?? this.ttl);
@@ -76,13 +103,13 @@ export class Record {
     ]);
   }
 
-  public shallowCopy(partialRecord: Partial<RecordFields>): Record {
+  public shallowCopy(partialRecord: Partial<RecordFields>): DnsRecord {
     const name = partialRecord.name ?? this.name;
     const type = partialRecord.type ?? this.typeId;
-    const class_ = partialRecord.class ?? this.class_;
+    const classId = partialRecord.class ?? this.classId;
     const ttl = partialRecord.ttl ?? this.ttl;
     const dataSerialised = partialRecord.dataSerialised ?? this.dataSerialised;
-    return new Record(name, type, class_, ttl, dataSerialised);
+    return new DnsRecord(name, type, classId, ttl, dataSerialised);
   }
 
   /**
@@ -91,25 +118,6 @@ export class Record {
    * It may or may not equal the question in the original query message.
    */
   public makeQuestion(): Question {
-    return new Question(this.name, this.typeId, this.class_);
+    return new Question(this.name, this.typeId, this.classId);
   }
-}
-
-function deserialiseRdata(serialisation: Buffer, typeName: string, codec: Codec<any>): any {
-  const lengthPrefixedData = lengthPrefixRdata(serialisation);
-  try {
-    return codec.decode(lengthPrefixedData);
-  } catch (_) {
-    throw new DnsError(`Data for record type ${typeName} is malformed`);
-  }
-}
-
-function serialiseRdata(data: any, typeName: string, codec: Codec<any>): Buffer {
-  let lengthPrefixedData: Uint8Array;
-  try {
-    lengthPrefixedData = codec.encode(data);
-  } catch (_) {
-    throw new DnsError(`Data for record type ${typeName} is invalid`);
-  }
-  return Buffer.from(lengthPrefixedData.subarray(2));
 }

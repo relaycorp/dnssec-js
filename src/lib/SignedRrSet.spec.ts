@@ -1,88 +1,100 @@
+import type { KeyObject } from 'node:crypto';
+
+// eslint-disable-next-line @typescript-eslint/no-shadow
 import { jest } from '@jest/globals';
 import { addSeconds, setMilliseconds, subSeconds } from 'date-fns';
 
-import { SignedRRSet } from './SignedRRSet';
-import { QUESTION, RECORD, RECORD_TLD, RRSET } from '../testUtils/dnsStubs';
-import { SignatureGenerationOptions, ZoneSigner } from '../testUtils/dnssec/ZoneSigner';
-import { DnssecAlgorithm } from './DnssecAlgorithm';
-import { RRSet } from './dns/RRSet';
-import { DnskeyRecord } from './dnssecRecords';
-import { DatePeriod } from './DatePeriod';
-import { serialisePublicKey } from './utils/crypto/keySerialisation';
-import { DnskeyData } from './rdata/DnskeyData';
-import { RrsigData } from './rdata/RrsigData';
-import { DnsClass } from './dns/ianaClasses';
-import { IANA_RR_TYPE_IDS } from './dns/ianaRrTypes';
+import { QUESTION, RECORD, RECORD_TLD, RRSET } from '../testUtils/dnsStubs.js';
+import { ZoneSigner } from '../testUtils/dnssec/ZoneSigner.js';
+import type { SignatureOptions } from '../testUtils/dnssec/SignatureOptions.js';
 
-describe('SignedRRSet', () => {
-  const RRSIG_OPTIONS: Partial<SignatureGenerationOptions> = {
-    signatureExpiry: addSeconds(setMilliseconds(new Date(), 0), 60),
+import { SignedRrSet } from './SignedRrSet.js';
+import { DnssecAlgorithm } from './DnssecAlgorithm.js';
+import { RrSet } from './dns/RrSet.js';
+import type { DnskeyRecord } from './dnssecRecords.js';
+import { DatePeriod } from './DatePeriod.js';
+import { serialisePublicKey } from './utils/crypto/keySerialisation.js';
+import { DnskeyData } from './rdata/DnskeyData.js';
+import { RrsigData } from './rdata/RrsigData.js';
+import { DnsClass } from './dns/ianaClasses.js';
+import { IANA_RR_TYPE_IDS } from './dns/ianaRrTypes.js';
+
+describe('SignedRrSet', () => {
+  const NOW = setMilliseconds(new Date(), 0);
+  const RRSIG_OPTIONS: SignatureOptions = {
+    signatureInception: NOW,
+    signatureExpiry: addSeconds(NOW, 60),
   };
 
   let tldSigner: ZoneSigner;
   let apexSigner: ZoneSigner;
+
   beforeAll(async () => {
     tldSigner = await ZoneSigner.generate(DnssecAlgorithm.RSASHA256, RECORD_TLD);
     apexSigner = await ZoneSigner.generate(DnssecAlgorithm.RSASHA256, RECORD.name);
   });
 
   describe('initFromRecords', () => {
-    const STUB_KEY_TAG = 12345;
+    const STUB_KEY_TAG = 12_345;
 
     test('Empty RRSIGs should be allowed', () => {
-      const signedRrset = SignedRRSet.initFromRecords(QUESTION, [RECORD]);
+      const signedRrset = SignedRrSet.initFromRecords(QUESTION, [RECORD]);
 
       expect(signedRrset.rrsigs).toBeEmpty();
     });
 
-    test('RRSIG for different owner should be ignored', async () => {
+    test('RRSIG for different owner should be ignored', () => {
       const differentRecord = RECORD.shallowCopy({ name: `sub.${RECORD.name}` });
       const differentRrsig = apexSigner.generateRrsig(
-        RRSet.init(QUESTION.shallowCopy({ name: differentRecord.name }), [differentRecord]),
+        RrSet.init(QUESTION.shallowCopy({ name: differentRecord.name }), [differentRecord]),
         STUB_KEY_TAG,
         RRSIG_OPTIONS,
       );
 
-      const signedRrset = SignedRRSet.initFromRecords(QUESTION, [RECORD, differentRrsig.record]);
+      const signedRrset = SignedRrSet.initFromRecords(QUESTION, [RECORD, differentRrsig.record]);
 
       expect(signedRrset.rrsigs).toBeEmpty();
     });
 
-    test('RRSIG for different class should be ignored', async () => {
+    test('RRSIG for different class should be ignored', () => {
       const rrsig = apexSigner.generateRrsig(RRSET, STUB_KEY_TAG, RRSIG_OPTIONS);
       const differentRrsigRecord = rrsig.record.shallowCopy({ class: DnsClass.CH });
-      expect(differentRrsigRecord.class_).not.toEqual(rrsig.record.class_);
+      expect(differentRrsigRecord.classId).not.toStrictEqual(rrsig.record.classId);
 
-      const signedRrset = SignedRRSet.initFromRecords(QUESTION, [RECORD, differentRrsigRecord]);
+      const signedRrset = SignedRrSet.initFromRecords(QUESTION, [RECORD, differentRrsigRecord]);
 
       expect(signedRrset.rrsigs).toBeEmpty();
     });
 
-    test('RRSIG with mismatching type field should be accepted', async () => {
+    test('RRSIG with mismatching type field should be accepted', () => {
       const differentRecord = RECORD.shallowCopy({ type: IANA_RR_TYPE_IDS.A });
-      expect(differentRecord.typeId).not.toEqual(RECORD.typeId);
+      expect(differentRecord.typeId).not.toStrictEqual(RECORD.typeId);
       const differentRrsig = apexSigner.generateRrsig(
-        RRSet.init(QUESTION.shallowCopy({ type: differentRecord.typeId }), [differentRecord]),
+        RrSet.init(QUESTION.shallowCopy({ type: differentRecord.typeId }), [differentRecord]),
         STUB_KEY_TAG,
         RRSIG_OPTIONS,
       );
 
-      const signedRrset = SignedRRSet.initFromRecords(QUESTION, [RECORD, differentRrsig.record]);
+      const signedRrset = SignedRrSet.initFromRecords(QUESTION, [RECORD, differentRrsig.record]);
 
-      expect(signedRrset.rrsigs.map((r) => r.record)).toEqual([differentRrsig.record]);
+      expect(signedRrset.rrsigs.map((record) => record.record)).toStrictEqual([
+        differentRrsig.record,
+      ]);
     });
 
-    test('RRSIG with mismatching TTL should be accepted', async () => {
+    test('RRSIG with mismatching TTL should be accepted', () => {
       const differentRecord = RECORD.shallowCopy({ ttl: RECORD.ttl + 1 });
       const differentRrsig = apexSigner.generateRrsig(
-        RRSet.init(QUESTION, [differentRecord]),
+        RrSet.init(QUESTION, [differentRecord]),
         STUB_KEY_TAG,
         RRSIG_OPTIONS,
       );
 
-      const signedRrset = SignedRRSet.initFromRecords(QUESTION, [RECORD, differentRrsig.record]);
+      const signedRrset = SignedRrSet.initFromRecords(QUESTION, [RECORD, differentRrsig.record]);
 
-      expect(signedRrset.rrsigs.map((r) => r.record)).toEqual([differentRrsig.record]);
+      expect(signedRrset.rrsigs.map((record) => record.record)).toStrictEqual([
+        differentRrsig.record,
+      ]);
     });
 
     test('RRSIG with signer name outside tree should be ignored', async () => {
@@ -91,16 +103,16 @@ describe('SignedRRSet', () => {
         `not-${apexSigner.zoneName}`,
       );
       const invalidRrsig = differentApexSigner.generateRrsig(RRSET, STUB_KEY_TAG, RRSIG_OPTIONS);
-      expect(invalidRrsig.data.signerName).toEqual(differentApexSigner.zoneName);
+      expect(invalidRrsig.data.signerName).toStrictEqual(differentApexSigner.zoneName);
       const validRrsig = apexSigner.generateRrsig(RRSET, STUB_KEY_TAG, RRSIG_OPTIONS);
 
-      const signedRrset = SignedRRSet.initFromRecords(QUESTION, [
+      const signedRrset = SignedRrSet.initFromRecords(QUESTION, [
         RECORD,
         validRrsig.record,
         invalidRrsig.record,
       ]);
 
-      expect(signedRrset.rrsigs.map((r) => r.record)).toEqual([validRrsig.record]);
+      expect(signedRrset.rrsigs.map((record) => record.record)).toStrictEqual([validRrsig.record]);
     });
 
     test('RRSIG with signer name under RRset name should be ignored', async () => {
@@ -109,49 +121,49 @@ describe('SignedRRSet', () => {
         `subdomain.${apexSigner.zoneName}`,
       );
       const invalidRrsig = subdomainSigner.generateRrsig(RRSET, STUB_KEY_TAG, RRSIG_OPTIONS);
-      expect(invalidRrsig.data.signerName).toEqual(subdomainSigner.zoneName);
+      expect(invalidRrsig.data.signerName).toStrictEqual(subdomainSigner.zoneName);
       const validRrsig = apexSigner.generateRrsig(RRSET, STUB_KEY_TAG, RRSIG_OPTIONS);
 
-      const signedRrset = SignedRRSet.initFromRecords(QUESTION, [
+      const signedRrset = SignedRrSet.initFromRecords(QUESTION, [
         RECORD,
         validRrsig.record,
         invalidRrsig.record,
       ]);
 
-      expect(signedRrset.rrsigs.map((r) => r.record)).toEqual([validRrsig.record]);
+      expect(signedRrset.rrsigs.map((record) => record.record)).toStrictEqual([validRrsig.record]);
     });
 
     test('RRSIG with signer name equal to RRset name should be allowed', () => {
       const rrsig = apexSigner.generateRrsig(RRSET, STUB_KEY_TAG, RRSIG_OPTIONS);
-      expect(rrsig.data.signerName).toEqual(RRSET.name);
+      expect(rrsig.data.signerName).toStrictEqual(RRSET.name);
 
-      const signedRrset = SignedRRSet.initFromRecords(QUESTION, [RECORD, rrsig.record]);
+      const signedRrset = SignedRrSet.initFromRecords(QUESTION, [RECORD, rrsig.record]);
 
-      expect(signedRrset.rrsigs.map((r) => r.record)).toEqual([rrsig.record]);
+      expect(signedRrset.rrsigs.map((record) => record.record)).toStrictEqual([rrsig.record]);
     });
 
     test('RRSIG with signer name above RRset name should be allowed', () => {
       const rrsig = tldSigner.generateRrsig(RRSET, STUB_KEY_TAG, RRSIG_OPTIONS);
-      expect(rrsig.data.signerName).toEqual(tldSigner.zoneName);
+      expect(rrsig.data.signerName).toStrictEqual(tldSigner.zoneName);
 
-      const signedRrset = SignedRRSet.initFromRecords(QUESTION, [RECORD, rrsig.record]);
+      const signedRrset = SignedRrSet.initFromRecords(QUESTION, [RECORD, rrsig.record]);
 
-      expect(signedRrset.rrsigs.map((r) => r.record)).toEqual([rrsig.record]);
+      expect(signedRrset.rrsigs.map((record) => record.record)).toStrictEqual([rrsig.record]);
     });
 
     test('Valid records should be split into RRSet and RRSig', () => {
       const rrsig = apexSigner.generateRrsig(RRSET, STUB_KEY_TAG, RRSIG_OPTIONS);
 
-      const signedRrset = SignedRRSet.initFromRecords(QUESTION, [RECORD, rrsig.record]);
+      const signedRrset = SignedRrSet.initFromRecords(QUESTION, [RECORD, rrsig.record]);
 
-      expect(signedRrset.rrset).toEqual(RRSET);
-      expect(signedRrset.rrsigs.map((r) => r.record)).toEqual([rrsig.record]);
+      expect(signedRrset.rrset).toStrictEqual(RRSET);
+      expect(signedRrset.rrsigs.map((record) => record.record)).toStrictEqual([rrsig.record]);
     });
   });
 
   describe('signerNames', () => {
     test('Nothing should be output if there are no RRSigs', () => {
-      const signedRrset = SignedRRSet.initFromRecords(QUESTION, [RECORD]);
+      const signedRrset = SignedRrSet.initFromRecords(QUESTION, [RECORD]);
 
       expect(signedRrset.signerNames).toBeEmpty();
     });
@@ -159,16 +171,16 @@ describe('SignedRRSet', () => {
     test('A single name should be output if there is only one RRSig', () => {
       const dnskey = apexSigner.generateDnskey();
       const rrsig = apexSigner.generateRrsig(RRSET, dnskey.data.calculateKeyTag(), RRSIG_OPTIONS);
-      const signedRrset = SignedRRSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
+      const signedRrset = SignedRrSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
 
-      expect(signedRrset.signerNames).toEqual([apexSigner.zoneName]);
+      expect(signedRrset.signerNames).toStrictEqual([apexSigner.zoneName]);
     });
 
     test('Multiple names should be output if there are multiple RRSigs', () => {
       const dnskey = apexSigner.generateDnskey();
       const rrsig1 = apexSigner.generateRrsig(RRSET, dnskey.data.calculateKeyTag(), RRSIG_OPTIONS);
       const rrsig2 = tldSigner.generateRrsig(RRSET, dnskey.data.calculateKeyTag(), RRSIG_OPTIONS);
-      const signedRrset = SignedRRSet.initFromRecords(QUESTION, [
+      const signedRrset = SignedRrSet.initFromRecords(QUESTION, [
         ...RRSET.records,
         rrsig1.record,
         rrsig2.record,
@@ -185,48 +197,48 @@ describe('SignedRRSet', () => {
         RRSIG_OPTIONS,
       );
       const tldRrsig = tldSigner.generateRrsig(RRSET, dnskey.data.calculateKeyTag(), RRSIG_OPTIONS);
-      const signedRrset = SignedRRSet.initFromRecords(QUESTION, [
+      const signedRrset = SignedRrSet.initFromRecords(QUESTION, [
         ...RRSET.records,
         tldRrsig.record,
         apexRrsig.record,
       ]);
 
-      expect(signedRrset.signerNames).toEqual([apexSigner.zoneName, tldSigner.zoneName]);
+      expect(signedRrset.signerNames).toStrictEqual([apexSigner.zoneName, tldSigner.zoneName]);
     });
 
     test('Names should be deduped', () => {
       const dnskey = apexSigner.generateDnskey();
       const rrsig = apexSigner.generateRrsig(RRSET, dnskey.data.calculateKeyTag(), RRSIG_OPTIONS);
-      const signedRrset = SignedRRSet.initFromRecords(QUESTION, [
+      const signedRrset = SignedRrSet.initFromRecords(QUESTION, [
         ...RRSET.records,
         rrsig.record,
         rrsig.record, // Duplicate
       ]);
 
       expect(signedRrset.rrsigs).toHaveLength(2);
-      expect(signedRrset.signerNames).toEqual([apexSigner.zoneName]);
+      expect(signedRrset.signerNames).toStrictEqual([apexSigner.zoneName]);
     });
   });
 
   describe('verify', () => {
     const VALIDITY_PERIOD = DatePeriod.init(
-      subSeconds(RRSIG_OPTIONS.signatureExpiry!, 1),
-      RRSIG_OPTIONS.signatureExpiry!,
+      RRSIG_OPTIONS.signatureInception,
+      RRSIG_OPTIONS.signatureExpiry,
     );
 
     test('Verification should fail if no RRSig is deemed valid by any DNSKEY', () => {
       const dnskey1 = apexSigner.generateDnskey({ flags: { secureEntryPoint: true } });
       const dnskey2 = apexSigner.generateDnskey({ flags: { secureEntryPoint: false } });
       const rrsig = apexSigner.generateRrsig(RRSET, dnskey1.data.calculateKeyTag(), RRSIG_OPTIONS);
-      const signedRrset = SignedRRSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
+      const signedRrset = SignedRrSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
 
       expect(signedRrset.verify([dnskey2], VALIDITY_PERIOD)).toBeFalse();
     });
 
-    test('Verification should fail if RRSig apexSigner does not match DNSKEY RR owner', async () => {
+    test('Verification should fail if RRSig signer does not match DNSKEY RR owner', () => {
       const dnskey = apexSigner.generateDnskey();
       const rrsig = apexSigner.generateRrsig(RRSET, dnskey.data.calculateKeyTag(), RRSIG_OPTIONS);
-      const signedRrset = SignedRRSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
+      const signedRrset = SignedRrSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
       const invalidDnskey: DnskeyRecord = {
         data: dnskey.data,
         record: dnskey.record.shallowCopy({ name: `not-${dnskey.record.name}` }),
@@ -235,10 +247,10 @@ describe('SignedRRSet', () => {
       expect(signedRrset.verify([invalidDnskey], VALIDITY_PERIOD)).toBeFalse();
     });
 
-    test('Verification should fail if RRSig apexSigner does not match explicit one', () => {
+    test('Verification should fail if RRSig signer does not match explicit one', () => {
       const dnskey = apexSigner.generateDnskey();
       const rrsig = apexSigner.generateRrsig(RRSET, dnskey.data.calculateKeyTag(), RRSIG_OPTIONS);
-      const signedRrset = SignedRRSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
+      const signedRrset = SignedRrSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
 
       expect(signedRrset.verify([dnskey], VALIDITY_PERIOD, `not-${QUESTION.name}`)).toBeFalse();
     });
@@ -247,9 +259,9 @@ describe('SignedRRSet', () => {
       const dnskey = apexSigner.generateDnskey();
       const rrsig = apexSigner.generateRrsig(RRSET, dnskey.data.calculateKeyTag(), RRSIG_OPTIONS);
       const type = IANA_RR_TYPE_IDS.A;
-      expect(type).not.toEqual(RRSET.type); // Make sure we're picking something different indeed
-      const invalidRecords = RRSET.records.map((r) => r.shallowCopy({ type }));
-      const signedRrset = SignedRRSet.initFromRecords(QUESTION.shallowCopy({ type }), [
+      expect(type).not.toStrictEqual(RRSET.type); // Make sure we're picking something different
+      const invalidRecords = RRSET.records.map((record) => record.shallowCopy({ type }));
+      const signedRrset = SignedRrSet.initFromRecords(QUESTION.shallowCopy({ type }), [
         ...invalidRecords,
         rrsig.record,
       ]);
@@ -260,7 +272,7 @@ describe('SignedRRSet', () => {
     test('Verification should fail if RRSig expired', () => {
       const dnskey = apexSigner.generateDnskey();
       const rrsig = apexSigner.generateRrsig(RRSET, dnskey.data.calculateKeyTag(), RRSIG_OPTIONS);
-      const signedRrset = SignedRRSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
+      const signedRrset = SignedRrSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
       const invalidPeriod = DatePeriod.init(
         subSeconds(rrsig.data.signatureInception, 2),
         subSeconds(rrsig.data.signatureInception, 1),
@@ -284,25 +296,25 @@ describe('SignedRRSet', () => {
           validDnskey.data.calculateKeyTag(),
           RRSIG_OPTIONS,
         );
-        const signedRrset = SignedRRSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
+        const signedRrset = SignedRrSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
 
         expect(signedRrset.verify([invalidDnskey, validDnskey], VALIDITY_PERIOD)).toBeTrue();
 
         expect(verifyRrsetSpy).toHaveBeenNthCalledWith(
           1,
           expect.anything(),
-          expect.toSatisfy((k) =>
+          expect.toSatisfy<KeyObject>((key) =>
             serialisePublicKey(invalidDnskey.data.publicKey, dnssecAlgorithm).equals(
-              serialisePublicKey(k, dnssecAlgorithm),
+              serialisePublicKey(key, dnssecAlgorithm),
             ),
           ),
         );
         expect(verifyRrsetSpy).toHaveBeenNthCalledWith(
           2,
           expect.anything(),
-          expect.toSatisfy((k) =>
+          expect.toSatisfy<KeyObject>((key) =>
             serialisePublicKey(validDnskey.data.publicKey, dnssecAlgorithm).equals(
-              serialisePublicKey(k, dnssecAlgorithm),
+              serialisePublicKey(key, dnssecAlgorithm),
             ),
           ),
         );
@@ -315,7 +327,7 @@ describe('SignedRRSet', () => {
     test('Verification should succeed if deemed valid by a valid RRSig', () => {
       const dnskey = apexSigner.generateDnskey();
       const rrsig = apexSigner.generateRrsig(RRSET, dnskey.data.calculateKeyTag(), RRSIG_OPTIONS);
-      const signedRrset = SignedRRSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
+      const signedRrset = SignedRrSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
 
       expect(signedRrset.verify([dnskey], VALIDITY_PERIOD)).toBeTrue();
     });

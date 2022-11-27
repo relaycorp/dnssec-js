@@ -1,14 +1,17 @@
-import { DigestData } from '@leichtgewicht/dns-packet';
+/* eslint-disable @typescript-eslint/no-magic-numbers */
 
-import { DnssecAlgorithm } from '../DnssecAlgorithm';
-import { DigestType } from '../DigestType';
-import { generateDigest } from '../utils/crypto/hashing';
-import { DnssecRecordData } from './DnssecRecordData';
-import { DnskeyRecord } from '../dnssecRecords';
-import { serialiseName } from '../dns/name';
+import type { DigestData } from '@leichtgewicht/dns-packet';
+
+import type { DnssecAlgorithm } from '../DnssecAlgorithm.js';
+import type { DigestType } from '../DigestType.js';
+import { generateDigest } from '../utils/crypto/hashing.js';
+import type { DnskeyRecord } from '../dnssecRecords.js';
+import { serialiseName } from '../dns/name.js';
+
+import type { DnssecRecordData } from './DnssecRecordData.js';
 
 export class DsData implements DnssecRecordData {
-  static initFromPacket(packet: DigestData): DsData {
+  public static initFromPacket(packet: DigestData): DsData {
     return new DsData(
       packet.keyTag,
       packet.algorithm,
@@ -17,17 +20,17 @@ export class DsData implements DnssecRecordData {
     );
   }
 
-  static calculateDnskeyDigest(dnskey: DnskeyRecord, digestType: DigestType): Buffer {
+  public static calculateDnskeyDigest(dnskey: DnskeyRecord, digestType: DigestType): Buffer {
     const nameSerialised = serialiseName(dnskey.record.name);
     const plaintext = Buffer.concat([nameSerialised, dnskey.record.dataSerialised]);
     return generateDigest(plaintext, digestType);
   }
 
-  constructor(
-    readonly keyTag: number,
-    readonly algorithm: DnssecAlgorithm,
-    readonly digestType: DigestType,
-    readonly digest: Buffer,
+  public constructor(
+    public readonly keyTag: number,
+    public readonly algorithm: DnssecAlgorithm,
+    public readonly digestType: DigestType,
+    public readonly digest: Buffer,
   ) {}
 
   public serialise(): Buffer {
@@ -46,8 +49,6 @@ export class DsData implements DnssecRecordData {
 
   /**
    * Verify that the `key` is a ZSK and corresponds to the current DS data and.
-   *
-   * @param key
    */
   public verifyDnskey(key: DnskeyRecord): boolean {
     if (!key.data.flags.zoneKey) {

@@ -1,19 +1,21 @@
-import { Question } from './dns/Question';
-import { Resolver } from './Resolver';
-import { VerificationOptions } from './VerificationOptions';
-import { ChainVerificationResult } from './results';
-import { UnverifiedChain } from './UnverifiedChain';
-import { DatePeriod } from './DatePeriod';
-import { IANA_TRUST_ANCHORS } from './IANA_TRUST_ANCHORS';
-import { TrustAnchor } from './TrustAnchor';
-import { DsData } from './rdata/DsData';
+import type { Question } from './dns/Question.js';
+import type { Resolver } from './Resolver.js';
+import type { VerificationOptions } from './VerificationOptions.js';
+import type { ChainVerificationResult } from './results.js';
+import { UnverifiedChain } from './UnverifiedChain.js';
+import { DatePeriod } from './DatePeriod.js';
+import { IANA_TRUST_ANCHORS } from './ianaTrustAnchors.js';
+import type { TrustAnchor } from './TrustAnchor.js';
+import { DsData } from './rdata/DsData.js';
+
+function convertTrustAnchors(trustAnchors: readonly TrustAnchor[]): readonly DsData[] {
+  return trustAnchors.map(
+    (anchor) => new DsData(anchor.keyTag, anchor.algorithm, anchor.digestType, anchor.digest),
+  );
+}
 
 /**
  * Retrieve RRset for `question` and return it only if DNSSEC validation succeeds.
- *
- * @param question
- * @param resolver
- * @param options
  */
 export async function dnssecLookUp(
   question: Question,
@@ -29,8 +31,4 @@ export async function dnssecLookUp(
     ? convertTrustAnchors(options.trustAnchors)
     : IANA_TRUST_ANCHORS;
   return unverifiedChain.verify(datePeriod, dsData);
-}
-
-function convertTrustAnchors(trustAnchors: readonly TrustAnchor[]): readonly DsData[] {
-  return trustAnchors.map((a) => new DsData(a.keyTag, a.algorithm, a.digestType, a.digest));
 }

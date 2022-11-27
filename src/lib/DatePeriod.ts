@@ -1,7 +1,9 @@
 export class DatePeriod {
   public static init(start: Date, end: Date): DatePeriod {
     if (end < start) {
-      throw new Error(`End date should not be before start date (${start} <= ${end})`);
+      throw new Error(
+        `End date should not be before start date (${start.toISOString()} <= ${end.toISOString()})`,
+      );
     }
     return new DatePeriod(start, end);
   }

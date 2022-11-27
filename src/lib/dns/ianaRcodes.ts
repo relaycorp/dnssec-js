@@ -1,22 +1,23 @@
+/* eslint-disable import/exports-last */
 /**
  * DNS RCODEs
  *
- * @link https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml#dns-parameters-6
+ * See https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml#dns-parameters-6
  */
-import { DnsError } from './DnsError';
+import { DnsError } from './DnsError.js';
 
 export const RCODE_IDS = {
-  NoError: 0,
-  FormErr: 1,
-  ServFail: 2,
-  NXDomain: 3,
-  NotImp: 4,
-  Refused: 5,
-  YXDomain: 6,
-  YXRRSet: 7,
-  NXRRSet: 8,
-  NotAuth: 9,
-  NotZone: 10,
+  NOERROR: 0,
+  FORMERR: 1,
+  SERVFAIL: 2,
+  NXDOMAIN: 3,
+  NOTIMP: 4,
+  REFUSED: 5,
+  YXDOMAIN: 6,
+  YXRRSET: 7,
+  NXRRSET: 8,
+  NOTAUTH: 9,
+  NOTZONE: 10,
   DSOTYPENI: 11,
   BADVERS: 16,
   BADKEY: 17,
@@ -29,12 +30,10 @@ export const RCODE_IDS = {
 };
 
 export type RcodeName = keyof typeof RCODE_IDS;
-export type RcodeIdOrName = number | RcodeName;
+export type RcodeIdOrName = RcodeName | number;
 
 const RCODE_IDS_NORMALISED: { readonly [name: string]: number } = Object.entries(RCODE_IDS).reduce(
-  (acc, [name, id]) => {
-    return { ...acc, [name.toUpperCase()]: id };
-  },
+  (accumulator, [name, id]) => ({ ...accumulator, [name.toUpperCase()]: id }),
   {},
 );
 
@@ -43,10 +42,10 @@ export function getRcodeId(codeName: RcodeIdOrName): number {
     return codeName;
   }
 
-  const codeId = RCODE_IDS_NORMALISED[codeName.toUpperCase()];
-  if (codeId === undefined) {
+  const codeNameSanitised = codeName.toUpperCase();
+  if (!(codeNameSanitised in RCODE_IDS_NORMALISED)) {
     throw new DnsError(`DNS RCode "${codeName}" is not defined by IANA`);
   }
 
-  return codeId;
+  return RCODE_IDS_NORMALISED[codeNameSanitised];
 }

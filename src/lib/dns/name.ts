@@ -3,7 +3,7 @@ export function serialiseName(name: string): Buffer {
     return Buffer.alloc(1);
   }
   const labels = name
-    .replace(/\.$/, '')
+    .replace(/\.$/u, '')
     .split('.')
     .map((label) => {
       const labelSerialised = Buffer.from(label);
@@ -18,7 +18,7 @@ export function normaliseName(name: string): string {
 }
 
 export function countLabels(name: string): number {
-  const nameWithoutTrailingDot = name.replace(/\.$/, '');
+  const nameWithoutTrailingDot = name.replace(/\.$/u, '');
   if (nameWithoutTrailingDot === '') {
     return 0;
   }

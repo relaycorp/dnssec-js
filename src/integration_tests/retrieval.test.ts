@@ -1,16 +1,31 @@
 import { DNSoverHTTPS } from 'dohdec';
 
-import { Resolver } from '../lib/Resolver';
-import { Question } from '../lib/dns/Question';
-import { SecurityStatus } from '../lib/SecurityStatus';
-import { RRSet } from '../lib/dns/RRSet';
-import { FailureResult, VerifiedRRSet } from '../lib/results';
-import { dnssecLookUp } from '../lib/lookup';
+import type { Resolver } from '../lib/Resolver.js';
+import { Question } from '../lib/dns/Question.js';
+import { SecurityStatus } from '../lib/SecurityStatus.js';
+import { RrSet } from '../lib/dns/RrSet.js';
+import type { FailureResult, VerifiedRrSet } from '../lib/results.js';
+import { dnssecLookUp } from '../lib/lookup.js';
 
 const DOH_CLIENT = new DNSoverHTTPS({ url: 'https://cloudflare-dns.com/dns-query' });
+
 afterAll(() => {
   DOH_CLIENT.close();
 });
+
+async function retryUponFailure<Type>(
+  wrappedFunction: () => Promise<Type>,
+  attempts: number,
+): Promise<Type> {
+  try {
+    return await wrappedFunction();
+  } catch (error) {
+    if (attempts <= 1) {
+      throw error as Error;
+    }
+    return await retryUponFailure(wrappedFunction, attempts - 1);
+  }
+}
 
 const RESOLVER: Resolver = async (question) =>
   (await retryUponFailure(
@@ -30,9 +45,9 @@ test('Positive response in valid DNSSEC zone should be SECURE', async () => {
 
   const result = await dnssecLookUp(question, RESOLVER);
 
-  expect(result).toEqual<VerifiedRRSet>({
+  expect(result).toStrictEqual<VerifiedRrSet>({
     status: SecurityStatus.SECURE,
-    result: expect.any(RRSet),
+    result: expect.any(RrSet),
   });
 });
 
@@ -41,19 +56,8 @@ test('Response from bogus secure zone should be BOGUS', async () => {
 
   const result = await dnssecLookUp(question, RESOLVER);
 
-  expect(result).toEqual<FailureResult>({
+  expect(result).toStrictEqual<FailureResult>({
     status: SecurityStatus.BOGUS,
     reasonChain: expect.arrayContaining([`Failed to verify zone ${question.name}`]),
   });
 });
-
-async function retryUponFailure<T>(func: () => Promise<T>, attempts: number): Promise<T> {
-  try {
-    return func();
-  } catch (err) {
-    if (attempts <= 1) {
-      throw err;
-    }
-    return retryUponFailure(func, attempts - 1);
-  }
-}

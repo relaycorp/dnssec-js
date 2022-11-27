@@ -1,21 +1,22 @@
-import { getRcodeId, RCODE_IDS } from './ianaRcodes';
-import { DnsError } from './DnsError';
+import type { RcodeIdOrName } from './ianaRcodes.js';
+import { getRcodeId, RCODE_IDS } from './ianaRcodes.js';
+import { DnsError } from './DnsError.js';
 
 describe('getRcodeId', () => {
   test('Input should be returned if it already is a number', () => {
-    expect(getRcodeId(RCODE_IDS.NoError)).toEqual(RCODE_IDS.NoError);
+    expect(getRcodeId(RCODE_IDS.NOERROR)).toStrictEqual(RCODE_IDS.NOERROR);
   });
 
   test('Name should be converted to id', () => {
-    expect(getRcodeId('NoError')).toEqual(RCODE_IDS.NoError);
+    expect(getRcodeId('NOERROR')).toStrictEqual(RCODE_IDS.NOERROR);
   });
 
   test('Name lookup should be case-insensitive', () => {
-    expect(getRcodeId('NOERROR' as any)).toEqual(RCODE_IDS.NoError);
+    expect(getRcodeId('NOERROR' as RcodeIdOrName)).toStrictEqual(RCODE_IDS.NOERROR);
   });
 
   test('Code not defined by IANA should cause an error', () => {
-    const invalidName = 'BAZINGA' as any;
+    const invalidName = 'BAZINGA' as RcodeIdOrName;
 
     expect(() => getRcodeId(invalidName)).toThrowWithMessage(
       DnsError,
