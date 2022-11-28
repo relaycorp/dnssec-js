@@ -1,6 +1,6 @@
 # `@relaycorp/dnssec`
 
-[![npm version](https://badge.fury.io/js/@relaycorp%2Fdnssec.svg)](https://badge.fury.io/js/@relaycorp%2Fdnssec)
+[![npm version](https://badge.fury.io/js/@relaycorp%2Fdnssec.svg)](https://www.npmjs.com/package/@relaycorp/dnssec)
 
 This is a resolver-agnostic DNSSEC verification library for Node.js. You're free to use any transport you want: UDP, DNS-over-TLS (DoT), DNS-over-HTTP (DoH), etc.
 
