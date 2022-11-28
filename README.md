@@ -71,6 +71,13 @@ example.com/A = RrSet {
 }
 ```
 
+### Successful RRset
+
+When DNSSEC validation succeeds, you get a `VerifiedRrSet` object with the following properties:
+
+- `status`: Set to `SecurityStatus.SECURE`.
+- `result`: An RRset containing one or more records (`DnsRecord` instances). Each record exposes its data in both serialised and deserialised forms in the `dataSerialised` and `dataFields` properties, respectively. `dataFields` is an object whose structure is determined by [`dns-packet`](https://www.npmjs.com/package/dns-packet).
+
 ### Error handling
 
 As this is primarily a DNSSEC library, we treat DNS and DNSSEC errors differently:
