@@ -412,7 +412,7 @@ describe('verify', () => {
   });
 
   describe('Trust anchors', () => {
-    let dsDataSpy: jest.SpyInstance;
+    let dsDataSpy: jest.SpiedFunction<any>;
 
     beforeEach(() => {
       dsDataSpy = jest.spyOn(rootResponses.ds.data, 'verifyDnskey') as any;

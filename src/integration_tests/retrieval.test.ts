@@ -47,7 +47,7 @@ test('Positive response in valid DNSSEC zone should be SECURE', async () => {
 
   expect(result).toStrictEqual<VerifiedRrSet>({
     status: SecurityStatus.SECURE,
-    result: expect.any(RrSet),
+    result: expect.toSatisfy((rrset) => rrset instanceof RrSet),
   });
 });
 
