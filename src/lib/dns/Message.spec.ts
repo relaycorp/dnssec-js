@@ -21,12 +21,12 @@ import { getRcodeId, RCODE_IDS } from './ianaRcodes.js';
 
 describe('Message', () => {
   describe('deserialise', () => {
-    const DP_QUESTION: DPQuestion = {
+    const dnsPacketQuestion: DPQuestion = {
       class: RECORD_CLASS_STR,
       name: QUESTION.name,
       type: RECORD_TYPE_STR,
     };
-    const DP_ANSWER: DPAnswer = {
+    const dnsPacketAnswer: DPAnswer = {
       type: RECORD_TYPE_STR as any,
       class: RECORD_CLASS_STR,
       name: RECORD.name,
@@ -75,7 +75,7 @@ describe('Message', () => {
       test('One question should be output if the message had one', () => {
         const serialisation = encode({
           type: 'response',
-          questions: [DP_QUESTION],
+          questions: [dnsPacketQuestion],
         });
 
         const message = Message.deserialise(serialisation);
@@ -88,7 +88,7 @@ describe('Message', () => {
         const additionalQuestion = QUESTION.shallowCopy({ name: `sub.${QUESTION.name}` });
         const serialisation = encode({
           type: 'response',
-          questions: [DP_QUESTION, { ...DP_QUESTION, name: additionalQuestion.name }],
+          questions: [dnsPacketQuestion, { ...dnsPacketQuestion, name: additionalQuestion.name }],
         });
 
         const message = Message.deserialise(serialisation);
@@ -98,7 +98,7 @@ describe('Message', () => {
       });
 
       test('Questions should be capped at the length prefix', () => {
-        const serialisation = serialiseMessage([DP_QUESTION, DP_QUESTION], 1);
+        const serialisation = serialiseMessage([dnsPacketQuestion, dnsPacketQuestion], 1);
 
         const message = Message.deserialise(serialisation);
 
@@ -107,7 +107,7 @@ describe('Message', () => {
       });
 
       test('Serialisation should be regarded malformed if QCOUNT is too high', () => {
-        const serialisation = serialiseMessage([DP_QUESTION], 2);
+        const serialisation = serialiseMessage([dnsPacketQuestion], 2);
 
         expect(() => Message.deserialise(serialisation)).toThrowWithMessage(
           DnsError,
@@ -141,7 +141,7 @@ describe('Message', () => {
       test('One answer should be output if the message had one', () => {
         const messageSerialised = encode({
           type: 'response',
-          answers: [DP_ANSWER],
+          answers: [dnsPacketAnswer],
         });
 
         const message = Message.deserialise(messageSerialised);
@@ -165,7 +165,7 @@ describe('Message', () => {
         };
         const messageSerialised = encode({
           type: 'response',
-          answers: [DP_ANSWER, record2],
+          answers: [dnsPacketAnswer, record2],
         });
 
         const message = Message.deserialise(messageSerialised);
@@ -188,7 +188,7 @@ describe('Message', () => {
       });
 
       test('Answers should be capped at the length prefix', () => {
-        const serialisation = serialiseMessage([DP_ANSWER, DP_ANSWER], 1);
+        const serialisation = serialiseMessage([dnsPacketAnswer, dnsPacketAnswer], 1);
 
         const message = Message.deserialise(serialisation);
 
@@ -196,7 +196,7 @@ describe('Message', () => {
       });
 
       test('Serialisation should be regarded malformed if ANCOUNT is too high', () => {
-        const serialisation = serialiseMessage([DP_ANSWER], 2);
+        const serialisation = serialiseMessage([dnsPacketAnswer], 2);
 
         expect(() => Message.deserialise(serialisation)).toThrowWithMessage(
           DnsError,

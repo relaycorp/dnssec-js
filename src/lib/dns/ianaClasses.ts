@@ -14,8 +14,11 @@ export enum DnsClass {
 }
 
 const DNS_CLASS_IDS: { readonly [name: string]: DnsClass } = {
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   IN: DnsClass.IN,
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   CH: DnsClass.CH,
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   HS: DnsClass.HS,
 };
 

@@ -45,30 +45,30 @@ describe('DnsRecord', () => {
     });
 
     describe('Type', () => {
-      const ID = IANA_RR_TYPE_IDS.A;
+      const stubId = IANA_RR_TYPE_IDS.A;
 
       test('Id should be stored as is', () => {
         const record = new DnsRecord(
           RECORD.name,
-          ID,
+          stubId,
           RECORD.classId,
           RECORD.ttl,
           RECORD.dataSerialised,
         );
 
-        expect(record.typeId).toStrictEqual(ID);
+        expect(record.typeId).toStrictEqual(stubId);
       });
 
       test('Name should be converted to id', () => {
         const record = new DnsRecord(
           RECORD.name,
-          IANA_RR_TYPE_NAMES[ID],
+          IANA_RR_TYPE_NAMES[stubId],
           RECORD.classId,
           RECORD.ttl,
           RECORD.dataSerialised,
         );
 
-        expect(record.typeId).toStrictEqual(ID);
+        expect(record.typeId).toStrictEqual(stubId);
       });
 
       test('Name not defined by IANA should cause an error', () => {
@@ -114,64 +114,78 @@ describe('DnsRecord', () => {
     });
 
     describe('Data', () => {
-      const TYPE_ID = IANA_RR_TYPE_IDS.MX;
-      const TYYPE_NAME = getRrTypeName(TYPE_ID);
-      const DATA: MxData = { exchange: 'foo', preference: 3 };
-      const DATA_SERIALISED = Buffer.from(mx.encode(DATA)).subarray(2); // Chop off length prefix
+      const stubTypeId = IANA_RR_TYPE_IDS.MX;
+      const stubTypeName = getRrTypeName(stubTypeId);
+      const stubData: MxData = { exchange: 'foo', preference: 3 };
+
+      // Chop off length prefix
+      const stubDataSerialised = Buffer.from(mx.encode(stubData)).subarray(2);
 
       describe('Serialised', () => {
         test('Buffer should be stored as is', () => {
           const record = new DnsRecord(
             RECORD.name,
-            TYPE_ID,
+            stubTypeId,
             RECORD.classId,
             RECORD.ttl,
-            DATA_SERIALISED,
+            stubDataSerialised,
           );
 
-          expect(record.dataSerialised).toStrictEqual(DATA_SERIALISED);
+          expect(record.dataSerialised).toStrictEqual(stubDataSerialised);
         });
 
         test('Data should be deserialised', () => {
           const record = new DnsRecord(
             RECORD.name,
-            TYPE_ID,
+            stubTypeId,
             RECORD.classId,
             RECORD.ttl,
-            DATA_SERIALISED,
+            stubDataSerialised,
           );
 
-          expect(record.dataFields).toStrictEqual(DATA);
+          expect(record.dataFields).toStrictEqual(stubData);
         });
 
         test('Malformed data should be refused', () => {
           const malformedData = Buffer.allocUnsafe(1);
 
           expect(
-            () => new DnsRecord(RECORD.name, TYPE_ID, RECORD.classId, RECORD.ttl, malformedData),
-          ).toThrowWithMessage(DnsError, `Data for record type ${TYYPE_NAME} is malformed`);
+            () => new DnsRecord(RECORD.name, stubTypeId, RECORD.classId, RECORD.ttl, malformedData),
+          ).toThrowWithMessage(DnsError, `Data for record type ${stubTypeName} is malformed`);
         });
       });
 
       describe('Deserialised', () => {
         test('Buffer should be computed and stored if data is valid', () => {
-          const record = new DnsRecord(RECORD.name, TYPE_ID, RECORD.classId, RECORD.ttl, DATA);
+          const record = new DnsRecord(
+            RECORD.name,
+            stubTypeId,
+            RECORD.classId,
+            RECORD.ttl,
+            stubData,
+          );
 
-          expect(record.dataSerialised).toStrictEqual(DATA_SERIALISED);
+          expect(record.dataSerialised).toStrictEqual(stubDataSerialised);
         });
 
         test('Data should be stored as is if valid', () => {
-          const record = new DnsRecord(RECORD.name, TYPE_ID, RECORD.classId, RECORD.ttl, DATA);
+          const record = new DnsRecord(
+            RECORD.name,
+            stubTypeId,
+            RECORD.classId,
+            RECORD.ttl,
+            stubData,
+          );
 
-          expect(record.dataFields).toStrictEqual(DATA);
+          expect(record.dataFields).toStrictEqual(stubData);
         });
 
         test('Invalid data should be refused', () => {
           const invalidData = {};
 
           expect(
-            () => new DnsRecord(RECORD.name, TYPE_ID, RECORD.classId, RECORD.ttl, invalidData),
-          ).toThrowWithMessage(DnsError, `Data for record type ${TYYPE_NAME} is invalid`);
+            () => new DnsRecord(RECORD.name, stubTypeId, RECORD.classId, RECORD.ttl, invalidData),
+          ).toThrowWithMessage(DnsError, `Data for record type ${stubTypeName} is invalid`);
         });
       });
     });

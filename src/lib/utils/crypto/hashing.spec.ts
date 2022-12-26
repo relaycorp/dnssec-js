@@ -48,17 +48,17 @@ describe('getNodejsHashAlgo', () => {
 });
 
 describe('generateDigest', () => {
-  const PLAINTEXT = Buffer.from('hello world');
+  const stubPlaintext = Buffer.from('hello world');
 
   test.each([
     ['sha1', DigestType.SHA1],
     ['sha256', DigestType.SHA256],
     ['sha384', DigestType.SHA384],
   ])('%s', (nodejsHashAlgo, dnssecHashAlgo) => {
-    const digest = generateDigest(PLAINTEXT, dnssecHashAlgo);
+    const digest = generateDigest(stubPlaintext, dnssecHashAlgo);
 
     const hash = createHash(nodejsHashAlgo);
-    hash.update(PLAINTEXT);
+    hash.update(stubPlaintext);
     const expectedDigest = hash.digest();
 
     expect(digest).toStrictEqual(expectedDigest);
