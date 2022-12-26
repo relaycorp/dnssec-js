@@ -29,9 +29,9 @@ const SIGNATURE_OPTIONS: SignatureOptions = {
   signatureInception: VALIDITY_PERIOD.start,
 };
 
-describe('Zone', () => {
-  const TLD_DNSKEY_QUESTION = new Question(RECORD_TLD, DnssecRecordType.DNSKEY, DnsClass.IN);
+const TLD_DNSKEY_QUESTION = new Question(RECORD_TLD, DnssecRecordType.DNSKEY, DnsClass.IN);
 
+describe('Zone', () => {
   let rootSigner: ZoneSigner;
   let rootDnskey: DnskeyResponse;
   let rootDs: DsRecord;
@@ -430,18 +430,18 @@ describe('Zone', () => {
   });
 
   describe('verifyRrset', () => {
-    const STUB_QUESTION = QUESTION.shallowCopy({ name: '.' });
-    const STUB_RRSET = RrSet.init(STUB_QUESTION, [RECORD.shallowCopy({ name: '.' })]);
+    const stubQuestion = QUESTION.shallowCopy({ name: '.' });
+    const stubRrset = RrSet.init(stubQuestion, [RECORD.shallowCopy({ name: '.' })]);
 
     test('Invalid SignedRRset should be refused', () => {
       const zone = generateRootZone();
       const rrsig = rootSigner.generateRrsig(
-        STUB_RRSET,
+        stubRrset,
         zone.dnskeys[0].data.calculateKeyTag(),
         SIGNATURE_OPTIONS,
       );
-      const signedRrset = SignedRrSet.initFromRecords(STUB_QUESTION, [
-        ...STUB_RRSET.records,
+      const signedRrset = SignedRrSet.initFromRecords(stubQuestion, [
+        ...stubRrset.records,
         rrsig.record,
       ]);
       const invalidPeriod = DatePeriod.init(
@@ -457,12 +457,12 @@ describe('Zone', () => {
       const zskData = zone.dnskeys[0].data;
       expect(zskData.flags.zoneKey).toBeTrue();
       const rrsig = rootSigner.generateRrsig(
-        STUB_RRSET,
+        stubRrset,
         zskData.calculateKeyTag(),
         SIGNATURE_OPTIONS,
       );
-      const signedRrset = SignedRrSet.initFromRecords(STUB_QUESTION, [
-        ...STUB_RRSET.records,
+      const signedRrset = SignedRrSet.initFromRecords(stubQuestion, [
+        ...stubRrset.records,
         rrsig.record,
       ]);
 
@@ -473,12 +473,12 @@ describe('Zone', () => {
       const nonZsk = rootSigner.generateDnskey({ flags: { zoneKey: false } });
       const zone = generateRootZone([nonZsk.record]);
       const rrsig = rootSigner.generateRrsig(
-        STUB_RRSET,
+        stubRrset,
         nonZsk.data.calculateKeyTag(),
         SIGNATURE_OPTIONS,
       );
-      const signedRrset = SignedRrSet.initFromRecords(STUB_QUESTION, [
-        ...STUB_RRSET.records,
+      const signedRrset = SignedRrSet.initFromRecords(stubQuestion, [
+        ...stubRrset.records,
         rrsig.record,
       ]);
 

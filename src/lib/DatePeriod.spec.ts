@@ -2,6 +2,8 @@ import { addSeconds, subSeconds } from 'date-fns';
 
 import { DatePeriod } from './DatePeriod.js';
 
+const NOW = new Date();
+
 describe('init', () => {
   test('Start date before end date should be accepted', () => {
     const start = new Date();
@@ -34,53 +36,52 @@ describe('init', () => {
 });
 
 describe('overlaps', () => {
-  const NOW = new Date();
-  const PERIOD = DatePeriod.init(subSeconds(NOW, 1), addSeconds(NOW, 1));
+  const stubPeriod = DatePeriod.init(subSeconds(NOW, 1), addSeconds(NOW, 1));
 
   test('Other period should not have a start date after end date', () => {
     const start = new Date();
     const end = subSeconds(start, 1);
 
-    expect(PERIOD.overlaps(start, end)).toBeFalse();
+    expect(stubPeriod.overlaps(start, end)).toBeFalse();
   });
 
   test('Other end date should not be before own start date', () => {
-    const end = subSeconds(PERIOD.start, 1);
+    const end = subSeconds(stubPeriod.start, 1);
     const start = subSeconds(end, 1);
 
-    expect(PERIOD.overlaps(start, end)).toBeFalse();
+    expect(stubPeriod.overlaps(start, end)).toBeFalse();
   });
 
   test('Other start date should not be after own end date', () => {
-    const start = addSeconds(PERIOD.end, 1);
+    const start = addSeconds(stubPeriod.end, 1);
     const end = addSeconds(start, 1);
 
-    expect(PERIOD.overlaps(start, end)).toBeFalse();
+    expect(stubPeriod.overlaps(start, end)).toBeFalse();
   });
 
   test('Other start date may be before own start date', () => {
-    const start = subSeconds(PERIOD.start, 1);
+    const start = subSeconds(stubPeriod.start, 1);
     const end = addSeconds(start, 1);
 
-    expect(PERIOD.overlaps(start, end)).toBeTrue();
+    expect(stubPeriod.overlaps(start, end)).toBeTrue();
   });
 
   test('Other end date may be after own end date', () => {
-    const end = addSeconds(PERIOD.end, 1);
+    const end = addSeconds(stubPeriod.end, 1);
     const start = subSeconds(end, 1);
 
-    expect(PERIOD.overlaps(start, end)).toBeTrue();
+    expect(stubPeriod.overlaps(start, end)).toBeTrue();
   });
 
   test('Other period may be within own period', () => {
-    const start = addSeconds(PERIOD.start, 0.5);
-    const end = subSeconds(PERIOD.end, 1);
+    const start = addSeconds(stubPeriod.start, 0.5);
+    const end = subSeconds(stubPeriod.end, 1);
 
-    expect(PERIOD.overlaps(start, end)).toBeTrue();
+    expect(stubPeriod.overlaps(start, end)).toBeTrue();
   });
 
   test('Other period may equal own period', () => {
-    expect(PERIOD.overlaps(PERIOD.start, PERIOD.end)).toBeTrue();
+    expect(stubPeriod.overlaps(stubPeriod.start, stubPeriod.end)).toBeTrue();
   });
 
   test('Own date may be a single point in time within other period', () => {

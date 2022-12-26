@@ -13,11 +13,11 @@ import type { SignatureOptions } from '../../testUtils/dnssec/SignatureOptions.j
 
 import { DnskeyData } from './DnskeyData.js';
 
-describe('DnskeyData', () => {
-  const NOW = setMilliseconds(new Date(), 0);
-  const SIGNATURE_INCEPTION = subSeconds(NOW, 1);
-  const SIGNATURE_EXPIRY = addMinutes(SIGNATURE_INCEPTION, 10);
+const NOW = setMilliseconds(new Date(), 0);
+const SIGNATURE_INCEPTION = subSeconds(NOW, 1);
+const SIGNATURE_EXPIRY = addMinutes(SIGNATURE_INCEPTION, 10);
 
+describe('DnskeyData', () => {
   let tldSigner: ZoneSigner;
 
   beforeAll(async () => {
@@ -129,8 +129,8 @@ describe('DnskeyData', () => {
   });
 
   describe('verifyRrsig', () => {
-    const VALIDITY_PERIOD = DatePeriod.init(subSeconds(NOW, 1), addSeconds(NOW, 1));
-    const RRSIG_OPTIONS: SignatureOptions = {
+    const stubValidityPeriod = DatePeriod.init(subSeconds(NOW, 1), addSeconds(NOW, 1));
+    const stubRrsigOptions: SignatureOptions = {
       signatureExpiry: SIGNATURE_EXPIRY,
       signatureInception: NOW,
     };
@@ -154,36 +154,36 @@ describe('DnskeyData', () => {
       const { data: rrsigData } = differentTldSigner.generateRrsig(
         RRSET,
         dnskeyData.calculateKeyTag(),
-        RRSIG_OPTIONS,
+        stubRrsigOptions,
       );
 
-      expect(dnskeyData.verifyRrsig(rrsigData, VALIDITY_PERIOD)).toBeFalse();
+      expect(dnskeyData.verifyRrsig(rrsigData, stubValidityPeriod)).toBeFalse();
     });
 
     test('Key tag should match', () => {
       const differentKeyTag = dnskeyData.calculateKeyTag() + 1;
-      const { data: rrsigData } = tldSigner.generateRrsig(RRSET, differentKeyTag, RRSIG_OPTIONS);
+      const { data: rrsigData } = tldSigner.generateRrsig(RRSET, differentKeyTag, stubRrsigOptions);
 
-      expect(dnskeyData.verifyRrsig(rrsigData, VALIDITY_PERIOD)).toBeFalse();
+      expect(dnskeyData.verifyRrsig(rrsigData, stubValidityPeriod)).toBeFalse();
     });
 
     test('Signature validity be within required period', () => {
       const { data: rrsigData } = tldSigner.generateRrsig(RRSET, dnskeyData.calculateKeyTag(), {
-        signatureExpiry: subSeconds(VALIDITY_PERIOD.start, 1),
-        signatureInception: subSeconds(VALIDITY_PERIOD.start, 2),
+        signatureExpiry: subSeconds(stubValidityPeriod.start, 1),
+        signatureInception: subSeconds(stubValidityPeriod.start, 2),
       });
 
-      expect(dnskeyData.verifyRrsig(rrsigData, VALIDITY_PERIOD)).toBeFalse();
+      expect(dnskeyData.verifyRrsig(rrsigData, stubValidityPeriod)).toBeFalse();
     });
 
     test('Valid RRSIg should be SECURE', () => {
       const { data: rrsigData } = tldSigner.generateRrsig(
         RRSET,
         dnskeyData.calculateKeyTag(),
-        RRSIG_OPTIONS,
+        stubRrsigOptions,
       );
 
-      expect(dnskeyData.verifyRrsig(rrsigData, VALIDITY_PERIOD)).toBeTrue();
+      expect(dnskeyData.verifyRrsig(rrsigData, stubValidityPeriod)).toBeTrue();
     });
   });
 });

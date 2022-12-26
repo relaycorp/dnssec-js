@@ -1,4 +1,4 @@
-/* eslint-disable import/exports-last */
+/* eslint-disable import/exports-last,@typescript-eslint/naming-convention */
 /**
  * DNS RCODEs
  *

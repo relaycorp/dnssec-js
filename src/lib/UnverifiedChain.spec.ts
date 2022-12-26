@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-shadow
 import { jest } from '@jest/globals';
 import { encode } from '@leichtgewicht/dns-packet';
 import { addSeconds, subSeconds } from 'date-fns';
@@ -94,11 +93,11 @@ function replaceMessages(
 }
 
 describe('retrieve', () => {
-  const RESOLVER = jest.fn<Resolver>();
+  const stubResolver = jest.fn<Resolver>();
 
   beforeEach(() => {
     // eslint-disable-next-line @typescript-eslint/require-await
-    RESOLVER.mockImplementation(async (question: Question) => {
+    stubResolver.mockImplementation(async (question: Question) => {
       const martchingMessage = chainMessages.find((message) => message.answersQuestion(question));
       if (!martchingMessage) {
         throw new Error(`Could not find message that answers ${question.key}`);
@@ -108,11 +107,11 @@ describe('retrieve', () => {
   });
 
   afterEach(() => {
-    RESOLVER.mockReset();
+    stubResolver.mockReset();
   });
 
   test('Root DNSKEY should be retrieved', async () => {
-    const chain = await UnverifiedChain.retrieve(QUESTION, RESOLVER);
+    const chain = await UnverifiedChain.retrieve(QUESTION, stubResolver);
 
     expect(chain.zoneMessageByKey[`./${DnssecRecordType.DNSKEY}`]).toStrictEqual(
       rootResponses.dnskey.message,
@@ -120,14 +119,14 @@ describe('retrieve', () => {
   });
 
   test('Root DS should not be retrieved', async () => {
-    const chain = await UnverifiedChain.retrieve(QUESTION, RESOLVER);
+    const chain = await UnverifiedChain.retrieve(QUESTION, stubResolver);
 
     expect(chain.zoneMessageByKey).not.toHaveProperty([`./${DnssecRecordType.DS}`]);
-    expect(RESOLVER).not.toHaveBeenCalledWith(rootResponses.ds.record.makeQuestion());
+    expect(stubResolver).not.toHaveBeenCalledWith(rootResponses.ds.record.makeQuestion());
   });
 
   test('Intermediate zone DNSKEYs should be retrieved', async () => {
-    const chain = await UnverifiedChain.retrieve(QUESTION, RESOLVER);
+    const chain = await UnverifiedChain.retrieve(QUESTION, stubResolver);
 
     expect(chain.zoneMessageByKey[`${RECORD_TLD}/${DnssecRecordType.DNSKEY}`]).toStrictEqual(
       tldResponses.dnskey.message,
@@ -138,7 +137,7 @@ describe('retrieve', () => {
   });
 
   test('Intermediate zone DSs should be retrieved', async () => {
-    const chain = await UnverifiedChain.retrieve(QUESTION, RESOLVER);
+    const chain = await UnverifiedChain.retrieve(QUESTION, stubResolver);
 
     expect(chain.zoneMessageByKey[`${RECORD_TLD}/${DnssecRecordType.DS}`]).toStrictEqual(
       tldResponses.ds.message,
@@ -160,13 +159,13 @@ describe('retrieve', () => {
   });
 
   test('Query response should be retrieved', async () => {
-    const chain = await UnverifiedChain.retrieve(QUESTION, RESOLVER);
+    const chain = await UnverifiedChain.retrieve(QUESTION, stubResolver);
 
     expect(chain.response).toStrictEqual(queryResponse);
   });
 
   test('Question should be stored', async () => {
-    const chain = await UnverifiedChain.retrieve(QUESTION, RESOLVER);
+    const chain = await UnverifiedChain.retrieve(QUESTION, stubResolver);
 
     expect(chain.query).toStrictEqual(QUESTION);
   });

@@ -10,15 +10,15 @@ import type { SignatureOptions } from '../../testUtils/dnssec/SignatureOptions.j
 
 import { RrsigData } from './RrsigData.js';
 
+const STUB_KEY_TAG = 12_345;
+
+const NOW = setMilliseconds(new Date(), 0);
+const SIGNATURE_OPTIONS: SignatureOptions = {
+  signatureExpiry: addMinutes(NOW, 10),
+  signatureInception: NOW,
+};
+
 describe('RrsigData', () => {
-  const STUB_KEY_TAG = 12_345;
-
-  const NOW = setMilliseconds(new Date(), 0);
-  const SIGNATURE_OPTIONS: SignatureOptions = {
-    signatureExpiry: addMinutes(NOW, 10),
-    signatureInception: NOW,
-  };
-
   let signer: ZoneSigner;
 
   beforeAll(async () => {

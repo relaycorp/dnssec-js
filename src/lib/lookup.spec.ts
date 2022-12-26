@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-shadow
 import { jest } from '@jest/globals';
 import { subSeconds } from 'date-fns';
 
@@ -30,31 +29,31 @@ afterEach(() => {
 jest.spyOn(UnverifiedChain, 'retrieve').mockResolvedValue({ verify: MOCK_VERIFIER } as any);
 
 describe('dnssecLookUp', () => {
-  const RESOLVER = jest.fn<Resolver>();
+  const stubResolver = jest.fn<Resolver>();
 
   afterEach(() => {
-    RESOLVER.mockReset();
+    stubResolver.mockReset();
   });
 
   test('Question should be used as is', async () => {
-    await dnssecLookUp(QUESTION, RESOLVER);
+    await dnssecLookUp(QUESTION, stubResolver);
 
     expect(UnverifiedChain.retrieve).toHaveBeenCalledTimes(1);
     expect(UnverifiedChain.retrieve).toHaveBeenCalledWith(QUESTION, expect.anything());
   });
 
   test('Resolver should be used as is', async () => {
-    await dnssecLookUp(QUESTION, RESOLVER);
+    await dnssecLookUp(QUESTION, stubResolver);
 
     expect(UnverifiedChain.retrieve).toHaveBeenCalledTimes(1);
-    expect(UnverifiedChain.retrieve).toHaveBeenCalledWith(expect.anything(), RESOLVER);
+    expect(UnverifiedChain.retrieve).toHaveBeenCalledWith(expect.anything(), stubResolver);
   });
 
   describe('Validity period', () => {
     test('Single date should be converted to date period', async () => {
       const date = subSeconds(new Date(), 60);
 
-      await dnssecLookUp(QUESTION, RESOLVER, { dateOrPeriod: date });
+      await dnssecLookUp(QUESTION, stubResolver, { dateOrPeriod: date });
 
       expect(MOCK_VERIFIER).toHaveBeenCalledTimes(1);
       expect(MOCK_VERIFIER).toHaveBeenCalledWith(
@@ -66,7 +65,7 @@ describe('dnssecLookUp', () => {
     test('Date period should be used as is', async () => {
       const datePeriod = DatePeriod.init(new Date(), new Date());
 
-      await dnssecLookUp(QUESTION, RESOLVER, { dateOrPeriod: datePeriod });
+      await dnssecLookUp(QUESTION, stubResolver, { dateOrPeriod: datePeriod });
 
       expect(MOCK_VERIFIER).toHaveBeenCalledTimes(1);
       expect(MOCK_VERIFIER).toHaveBeenCalledWith(datePeriod, expect.anything());
@@ -75,7 +74,7 @@ describe('dnssecLookUp', () => {
     test('Current date should be used by default', async () => {
       const startDate = new Date();
 
-      await dnssecLookUp(QUESTION, RESOLVER);
+      await dnssecLookUp(QUESTION, stubResolver);
 
       const endDate = new Date();
       expect(MOCK_VERIFIER).toHaveBeenCalledWith(
@@ -89,7 +88,7 @@ describe('dnssecLookUp', () => {
 
   describe('Trust anchors', () => {
     test('IANA trust anchors should be used by default', async () => {
-      await dnssecLookUp(QUESTION, RESOLVER);
+      await dnssecLookUp(QUESTION, stubResolver);
 
       expect(MOCK_VERIFIER).toHaveBeenCalledTimes(1);
       expect(MOCK_VERIFIER).toHaveBeenCalledWith(expect.anything(), IANA_TRUST_ANCHORS);
@@ -103,7 +102,7 @@ describe('dnssecLookUp', () => {
         keyTag: 42,
       };
 
-      await dnssecLookUp(QUESTION, RESOLVER, { trustAnchors: [trustAnchor] });
+      await dnssecLookUp(QUESTION, stubResolver, { trustAnchors: [trustAnchor] });
 
       expect(MOCK_VERIFIER).toHaveBeenCalledTimes(1);
       expect(MOCK_VERIFIER).toHaveBeenCalledWith(
@@ -121,7 +120,7 @@ describe('dnssecLookUp', () => {
   });
 
   test('Verification result should be output', async () => {
-    const result = await dnssecLookUp(QUESTION, RESOLVER);
+    const result = await dnssecLookUp(QUESTION, stubResolver);
 
     expect(result).toStrictEqual<VerifiedRrSet>({
       status: SecurityStatus.SECURE,
