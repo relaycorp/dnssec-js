@@ -16,7 +16,6 @@ import type { DnskeyRecord } from '../../dnssecRecords.js';
 import { Message } from '../../dns/Message.js';
 import { Question } from '../../dns/Question.js';
 import { RCODE_IDS } from '../../dns/ianaRcodes.js';
-import { isChildZone } from '../../dns/name.js';
 
 import type { DnskeyResponse, DsResponse, RrsigResponse, ZoneResponseSet } from './responses.js';
 import { generateKeyPair } from './keyGen.js';
@@ -77,10 +76,6 @@ export class ZoneSigner {
     dnskeyTag: number,
     options: Partial<DsGenerationOptions> = {},
   ): DsResponse {
-    const isRootZone = childZoneName === this.zoneName && this.zoneName === '.';
-    if (!isRootZone && !isChildZone(this.zoneName, childZoneName)) {
-      throw new Error(`${childZoneName} isn't a child of ${this.zoneName}`);
-    }
     const digestType = options.digestType ?? DigestType.SHA256;
     const data = new DsData(
       childDnskey.data.calculateKeyTag(),
