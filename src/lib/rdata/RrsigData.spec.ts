@@ -2,11 +2,11 @@ import { addMinutes, setMilliseconds } from 'date-fns';
 import type { RRSigData } from '@leichtgewicht/dns-packet';
 
 import { DnssecAlgorithm } from '../DnssecAlgorithm.js';
-import { ZoneSigner } from '../../testUtils/dnssec/ZoneSigner.js';
+import { ZoneSigner } from '../utils/dnssec/ZoneSigner.js';
 import { RrSet } from '../dns/RrSet.js';
 import { QUESTION, RECORD, RRSET } from '../../testUtils/dnsStubs.js';
 import { IANA_RR_TYPE_IDS } from '../dns/ianaRrTypes.js';
-import type { SignatureOptions } from '../../testUtils/dnssec/SignatureOptions.js';
+import type { SignatureOptions } from '../utils/dnssec/SignatureOptions.js';
 
 import { RrsigData } from './RrsigData.js';
 

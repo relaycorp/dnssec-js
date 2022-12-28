@@ -2,14 +2,11 @@ import type { DNSKeyData } from '@leichtgewicht/dns-packet';
 import { addMinutes, addSeconds, setMilliseconds, subSeconds } from 'date-fns';
 
 import { DnssecAlgorithm } from '../DnssecAlgorithm.js';
-import { ZoneSigner } from '../../testUtils/dnssec/ZoneSigner.js';
+import { ZoneSigner } from '../utils/dnssec/ZoneSigner.js';
 import { RECORD_TLD, RRSET } from '../../testUtils/dnsStubs.js';
 import { DatePeriod } from '../DatePeriod.js';
-import {
-  DNSSEC_ROOT_DNSKEY_DATA,
-  DNSSEC_ROOT_DNSKEY_KEY_TAG,
-} from '../../testUtils/dnssec/iana.js';
-import type { SignatureOptions } from '../../testUtils/dnssec/SignatureOptions.js';
+import { DNSSEC_ROOT_DNSKEY_DATA, DNSSEC_ROOT_DNSKEY_KEY_TAG } from '../utils/dnssec/iana.js';
+import type { SignatureOptions } from '../utils/dnssec/SignatureOptions.js';
 
 import { DnskeyData } from './DnskeyData.js';
 

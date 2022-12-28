@@ -4,9 +4,9 @@ import { jest } from '@jest/globals';
 import { addSeconds, setMilliseconds, subSeconds } from 'date-fns';
 
 import { QUESTION, RECORD, RECORD_TLD, RRSET } from '../testUtils/dnsStubs.js';
-import { ZoneSigner } from '../testUtils/dnssec/ZoneSigner.js';
-import type { SignatureOptions } from '../testUtils/dnssec/SignatureOptions.js';
 
+import { ZoneSigner } from './utils/dnssec/ZoneSigner.js';
+import type { SignatureOptions } from './utils/dnssec/SignatureOptions.js';
 import { SignedRrSet } from './SignedRrSet.js';
 import { DnssecAlgorithm } from './DnssecAlgorithm.js';
 import { RrSet } from './dns/RrSet.js';

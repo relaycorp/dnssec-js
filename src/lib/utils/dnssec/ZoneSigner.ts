@@ -2,21 +2,21 @@ import type { KeyObject } from 'node:crypto';
 
 import { addSeconds, minutesToSeconds, setMilliseconds } from 'date-fns';
 
-import type { DnssecAlgorithm } from '../../lib/DnssecAlgorithm.js';
-import { DnsRecord } from '../../lib/dns/DnsRecord.js';
-import { DnsClass } from '../../lib/dns/ianaClasses.js';
-import { DigestType } from '../../lib/DigestType.js';
-import { DnssecRecordType } from '../../lib/DnssecRecordType.js';
-import { RrSet } from '../../lib/dns/RrSet.js';
-import type { DnskeyFlags } from '../../lib/DnskeyFlags.js';
-import { DnskeyData } from '../../lib/rdata/DnskeyData.js';
-import { DsData } from '../../lib/rdata/DsData.js';
-import { RrsigData } from '../../lib/rdata/RrsigData.js';
-import type { DnskeyRecord } from '../../lib/dnssecRecords.js';
-import { Message } from '../../lib/dns/Message.js';
-import { Question } from '../../lib/dns/Question.js';
-import { RCODE_IDS } from '../../lib/dns/ianaRcodes.js';
-import { isChildZone } from '../../lib/dns/name.js';
+import type { DnssecAlgorithm } from '../../DnssecAlgorithm.js';
+import { DnsRecord } from '../../dns/DnsRecord.js';
+import { DnsClass } from '../../dns/ianaClasses.js';
+import { DigestType } from '../../DigestType.js';
+import { DnssecRecordType } from '../../DnssecRecordType.js';
+import { RrSet } from '../../dns/RrSet.js';
+import type { DnskeyFlags } from '../../DnskeyFlags.js';
+import { DnskeyData } from '../../rdata/DnskeyData.js';
+import { DsData } from '../../rdata/DsData.js';
+import { RrsigData } from '../../rdata/RrsigData.js';
+import type { DnskeyRecord } from '../../dnssecRecords.js';
+import { Message } from '../../dns/Message.js';
+import { Question } from '../../dns/Question.js';
+import { RCODE_IDS } from '../../dns/ianaRcodes.js';
+import { isChildZone } from '../../dns/name.js';
 
 import type { DnskeyResponse, DsResponse, RrsigResponse, ZoneResponseSet } from './responses.js';
 import { generateKeyPair } from './keyGen.js';
