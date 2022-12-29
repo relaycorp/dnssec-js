@@ -8,7 +8,7 @@ import type {
 import { generateKeyPair as cryptoGenerateKeyPair } from 'node:crypto';
 import { promisify } from 'node:util';
 
-import { DnssecAlgorithm } from '../../lib/DnssecAlgorithm.js';
+import { DnssecAlgorithm } from '../../DnssecAlgorithm.js';
 
 const generateKeyPairAsync = promisify(cryptoGenerateKeyPair);
 
@@ -50,9 +50,6 @@ interface KeyPair {
 }
 
 export async function generateKeyPair(algorithm: DnssecAlgorithm): Promise<KeyPair> {
-  if (!(algorithm in KEY_GEN_OPTIONS)) {
-    throw new Error(`Unsupported algorithm (${algorithm})`);
-  }
   const options = KEY_GEN_OPTIONS[algorithm];
   // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   return generateKeyPairAsync(options.type as any, options.options);

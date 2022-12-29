@@ -2,11 +2,11 @@ import { jest } from '@jest/globals';
 import { encode } from '@leichtgewicht/dns-packet';
 import { addSeconds, subSeconds } from 'date-fns';
 
-import { ZoneSigner } from '../testUtils/dnssec/ZoneSigner.js';
 import { QUESTION, RECORD, RECORD_TLD, RRSET } from '../testUtils/dnsStubs.js';
-import type { ZoneResponseSet } from '../testUtils/dnssec/responses.js';
-import type { SignatureOptions } from '../testUtils/dnssec/SignatureOptions.js';
 
+import { ZoneSigner } from './utils/dnssec/ZoneSigner.js';
+import type { ZoneResponseSet } from './utils/dnssec/responses.js';
+import type { SignatureOptions } from './utils/dnssec/SignatureOptions.js';
 import { DnssecAlgorithm } from './DnssecAlgorithm.js';
 import { Message } from './dns/Message.js';
 import { UnverifiedChain } from './UnverifiedChain.js';
@@ -183,7 +183,7 @@ describe('retrieve', () => {
     const chain = await UnverifiedChain.retrieve(QUESTION, resolver);
 
     expect(chain.response.header.rcode).toStrictEqual(rcode);
-    expect(chain.zoneMessageByKey[`./${DnssecRecordType.DNSKEY}`].header.rcode).toStrictEqual(
+    expect(chain.zoneMessageByKey[`./${DnssecRecordType.DNSKEY}`]!.header.rcode).toStrictEqual(
       rcode,
     );
   });

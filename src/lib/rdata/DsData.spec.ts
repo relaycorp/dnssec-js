@@ -1,12 +1,12 @@
 import type { DigestData } from '@leichtgewicht/dns-packet';
 
-import { ZoneSigner } from '../../testUtils/dnssec/ZoneSigner.js';
+import { ZoneSigner } from '../utils/dnssec/ZoneSigner.js';
 import { DnssecAlgorithm } from '../DnssecAlgorithm.js';
 import { DigestType } from '../DigestType.js';
 import type { DnskeyRecord, DsRecord } from '../dnssecRecords.js';
 import { serialiseName } from '../dns/name.js';
 import { generateDigest } from '../utils/crypto/hashing.js';
-import { copyDnssecRecordData } from '../../testUtils/dnssec/records.js';
+import { copyDnssecRecordData } from '../utils/dnssec/records.js';
 import { RECORD_TLD } from '../../testUtils/dnsStubs.js';
 
 import { DnskeyData } from './DnskeyData.js';

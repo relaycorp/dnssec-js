@@ -127,7 +127,48 @@ dnssecLookUp(QUESTION, RESOLVER, { trustAnchors: [customTrustAnchor] });
 
 If your DNS lookup library parses responses eagerly and doesn't give you access to the original response in wire format, you will have to convert their messages to `Message` instances. Refer to our API docs to learn how to initialise `Message`s.
 
-### API documentation
+## Testing
+
+To facilitate the simulation of the various outcomes of DNSSEC validation, we provide the `MockChain` utility so that you can pass a custom resolver and trust anchor to `dnssecLookUp()`. This is particularly useful in unit tests where you aren't able to mock this module (e.g., Jest doesn't support mocking our ESM as of this writing).
+
+The following example shows how to generate a verified RRset:
+
+```javascript
+import {
+  dnssecLookUp,
+  DnsRecord,
+  MockChain,
+  RrSet,
+  SecurityStatus,
+} from '@relaycorp/dnssec';
+
+const RECORD = new DnsRecord(
+  `example.com.`,
+  'TXT',
+  DnsClass.IN,
+  42,
+  'The data',
+);
+const QUESTION = RECORD.makeQuestion();
+const RRSET = RrSet.init(QUESTION, [RECORD]);
+
+test('Generating a SECURE result', async () => {
+  const mockChain = await MockChain.generate(RECORD.name);
+
+  const { resolver, trustAnchors } = mockChain.generateFixture(
+    RRSET,
+    SecurityStatus.SECURE,
+  );
+
+  const result = await dnssecLookUp(QUESTION, resolver, { trustAnchors });
+  expect(result).toStrictEqual({
+    status: SecurityStatus.SECURE,
+    result: RRSET,
+  });
+});
+```
+
+## API documentation
 
 The API documentation is available on [docs.relaycorp.tech](https://docs.relaycorp.tech/dnssec-js/).
 
