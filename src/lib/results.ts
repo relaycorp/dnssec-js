@@ -10,8 +10,13 @@ export interface SuccessfulResult<Result> extends BaseResult {
   readonly result: Result;
 }
 
+export type FailureStatus =
+  | SecurityStatus.BOGUS
+  | SecurityStatus.INDETERMINATE
+  | SecurityStatus.INSECURE;
+
 export interface FailureResult extends BaseResult {
-  readonly status: SecurityStatus.BOGUS | SecurityStatus.INDETERMINATE | SecurityStatus.INSECURE;
+  readonly status: FailureStatus;
   readonly reasonChain: readonly string[];
 }
 

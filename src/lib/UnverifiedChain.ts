@@ -11,21 +11,13 @@ import type { Resolver } from './Resolver.js';
 import type { DnsClass } from './dns/ianaClasses.js';
 import type { DsData } from './rdata/DsData.js';
 import type { RrSet } from './dns/RrSet.js';
+import { getZonesInChain } from './utils/dns.js';
 
 interface MessageByKey {
-  readonly [key: string]: Message;
+  readonly [key: string]: Message | undefined;
 }
 
 type FinalResolver = (question: Question) => Promise<Message>;
-
-function getZonesInChain(zoneName: string, shouldIncludeRoot = true): readonly string[] {
-  if (zoneName === '') {
-    return shouldIncludeRoot ? ['.'] : [];
-  }
-  const parentZoneName = zoneName.replace(/^[^.]+\./u, '');
-  const parentZones = getZonesInChain(parentZoneName, shouldIncludeRoot);
-  return [...parentZones, zoneName];
-}
 
 async function retrieveZoneMessages(
   zoneNames: readonly string[],
@@ -62,17 +54,18 @@ export class UnverifiedChain {
       };
     }, {});
 
-    if (!(query.key in allMessages)) {
+    const queryResponse = allMessages[query.key];
+    if (!queryResponse) {
       throw new Error(`At least one message must answer ${query.key}`);
     }
 
-    return new UnverifiedChain(query, allMessages[query.key], messageByKey);
+    return new UnverifiedChain(query, queryResponse, messageByKey);
   }
 
   public static async retrieve(question: Question, resolver: Resolver): Promise<UnverifiedChain> {
     const finalResolver: FinalResolver = async (currentQuestion) => {
       const message = await resolver(currentQuestion);
-      return message instanceof Message ? message : Message.deserialise(message);
+      return message instanceof Buffer ? Message.deserialise(message) : message;
     };
     const zoneNames = getZonesInChain(question.name);
     const dnskeyMessages = await retrieveZoneMessages(
@@ -119,13 +112,14 @@ export class UnverifiedChain {
     datePeriod: DatePeriod,
   ): VerificationResult<Zone> {
     const rootDnskeyKey = `./${DnssecRecordType.DNSKEY}`;
-    if (!(rootDnskeyKey in this.zoneMessageByKey)) {
+    const rootDnskeyResponse = this.zoneMessageByKey[rootDnskeyKey];
+    if (!rootDnskeyResponse) {
       return {
         status: SecurityStatus.INDETERMINATE,
         reasonChain: ['Cannot initialise root zone without a DNSKEY response'],
       };
     }
-    const result = Zone.initRoot(this.zoneMessageByKey[rootDnskeyKey], trustAnchors, datePeriod);
+    const result = Zone.initRoot(rootDnskeyResponse, trustAnchors, datePeriod);
     if (result.status !== SecurityStatus.SECURE) {
       return augmentFailureResult(result, 'Got invalid DNSKEY for root zone');
     }
@@ -140,26 +134,23 @@ export class UnverifiedChain {
     let zones = [rootZone];
     for (const zoneName of getZonesInChain(apexZoneName, false)) {
       const dnskeyKey = `${zoneName}/${DnssecRecordType.DNSKEY}`;
-      if (!(dnskeyKey in this.zoneMessageByKey)) {
+      const dnskeyResponse = this.zoneMessageByKey[dnskeyKey];
+      if (!dnskeyResponse) {
         return {
           status: SecurityStatus.INDETERMINATE,
           reasonChain: [`Cannot verify zone ${zoneName} without a DNSKEY response`],
         };
       }
       const dsKey = `${zoneName}/${DnssecRecordType.DS}`;
-      if (!(dsKey in this.zoneMessageByKey)) {
+      const dsResponse = this.zoneMessageByKey[dsKey];
+      if (dsResponse === undefined) {
         return {
           status: SecurityStatus.INDETERMINATE,
           reasonChain: [`Cannot verify zone ${zoneName} without a DS response`],
         };
       }
       const parent = zones[zones.length - 1];
-      const zoneResult = parent.initChild(
-        zoneName,
-        this.zoneMessageByKey[dnskeyKey],
-        this.zoneMessageByKey[dsKey],
-        datePeriod,
-      );
+      const zoneResult = parent.initChild(zoneName, dnskeyResponse, dsResponse, datePeriod);
       if (zoneResult.status !== SecurityStatus.SECURE) {
         return augmentFailureResult(zoneResult, `Failed to verify zone ${zoneName}`);
       }

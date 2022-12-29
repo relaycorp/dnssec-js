@@ -101,7 +101,7 @@ export class ZoneSigner {
   public generateRrsig(
     rrset: RrSet,
     keyTag: number,
-    options: Partial<SignatureOptions> = {},
+    options: Partial<SignatureOptions>,
   ): RrsigResponse {
     const signatureInception = options.signatureInception ?? new Date();
     const signatureExpiry = options.signatureExpiry ?? addSeconds(signatureInception, rrset.ttl);
@@ -135,7 +135,7 @@ export class ZoneSigner {
     options: Partial<{
       readonly dnskey: Partial<DnskeyGenerationOptions>;
       readonly ds: Partial<DsGenerationOptions>;
-    }> = {},
+    }>,
   ): ZoneResponseSet {
     const dnskey = this.generateDnskey(options.dnskey);
     const ds = parent.generateDs(

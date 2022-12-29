@@ -183,7 +183,7 @@ describe('retrieve', () => {
     const chain = await UnverifiedChain.retrieve(QUESTION, resolver);
 
     expect(chain.response.header.rcode).toStrictEqual(rcode);
-    expect(chain.zoneMessageByKey[`./${DnssecRecordType.DNSKEY}`].header.rcode).toStrictEqual(
+    expect(chain.zoneMessageByKey[`./${DnssecRecordType.DNSKEY}`]!.header.rcode).toStrictEqual(
       rcode,
     );
   });
