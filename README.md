@@ -138,6 +138,7 @@ import {
   dnssecLookUp,
   DnsRecord,
   MockChain,
+  RrSet,
   SecurityStatus,
 } from '@relaycorp/dnssec';
 
