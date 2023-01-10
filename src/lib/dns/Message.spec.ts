@@ -3,7 +3,7 @@ import type {
   Question as DPQuestion,
   TxtAnswer,
 } from '@leichtgewicht/dns-packet';
-import { encode } from '@leichtgewicht/dns-packet';
+import { decode, encode } from '@leichtgewicht/dns-packet';
 
 import {
   QUESTION,
@@ -18,6 +18,7 @@ import type { DnsRecord } from './DnsRecord.js';
 import { DnsClass } from './ianaClasses.js';
 import { DnsError } from './DnsError.js';
 import { getRcodeId, RCODE_IDS } from './ianaRcodes.js';
+import { getRrTypeName } from './ianaRrTypes.js';
 
 describe('Message', () => {
   describe('deserialise', () => {
@@ -214,19 +215,107 @@ describe('Message', () => {
       );
     });
   });
-});
 
-describe('answersQuestion', () => {
-  test('True should be returned if message contains question', () => {
-    const message = new Message({ rcode: RCODE_IDS.NOERROR }, [QUESTION], []);
+  describe('serialise', () => {
+    describe('Header', () => {
+      test('RCODE should be honoured', () => {
+        const message = new Message({ rcode: RCODE_IDS.NOERROR }, [], []);
 
-    expect(message.answersQuestion(QUESTION)).toBeTrue();
+        const serialisation = message.serialise();
+
+        const messageDeserialised = decode(serialisation);
+        expect(messageDeserialised.rcode).toBe('NOERROR');
+      });
+    });
+
+    describe('Question', () => {
+      test('No question should be included if there were none', () => {
+        const message = new Message({ rcode: RCODE_IDS.NOERROR }, [], []);
+
+        const serialisation = message.serialise();
+
+        const messageDeserialised = decode(serialisation);
+        expect(messageDeserialised.questions).toBeEmpty();
+      });
+
+      test('One question should be included if there was one', () => {
+        const message = new Message({ rcode: RCODE_IDS.NOERROR }, [QUESTION], []);
+
+        const serialisation = message.serialise();
+
+        const messageDeserialised = decode(serialisation);
+        expect(messageDeserialised.questions).toStrictEqual<DPQuestion[]>([
+          {
+            type: QUESTION.getTypeName(),
+            name: QUESTION.name.replace(/\.$/u, ''),
+            class: 'IN',
+          },
+        ]);
+      });
+
+      test('Multiple questions should be included if applicable', () => {
+        const question2 = QUESTION.shallowCopy({ type: QUESTION.typeId + 1 });
+        const message = new Message({ rcode: RCODE_IDS.NOERROR }, [QUESTION, question2], []);
+
+        const serialisation = message.serialise();
+
+        const messageDeserialised = decode(serialisation);
+        expect(messageDeserialised.questions).toHaveLength(2);
+      });
+    });
+
+    describe('Answer', () => {
+      test('No answer should be included if there were none', () => {
+        const message = new Message({ rcode: RCODE_IDS.NOERROR }, [], []);
+
+        const serialisation = message.serialise();
+
+        const messageDeserialised = decode(serialisation);
+        expect(messageDeserialised.answers).toBeEmpty();
+      });
+
+      test('One answer should be included if there was one', () => {
+        const message = new Message({ rcode: RCODE_IDS.NOERROR }, [], [RECORD]);
+
+        const serialisation = message.serialise();
+
+        const messageDeserialised = decode(serialisation);
+        expect(messageDeserialised.answers).toHaveLength(1);
+        expect(messageDeserialised.answers![0]).toMatchObject<Partial<DPAnswer>>({
+          class: 'IN',
+          name: QUESTION.name.replace(/\.$/u, ''),
+          type: getRrTypeName(RECORD.typeId) as 'TXT',
+
+          data: expect.toSatisfy<Uint8Array[]>((data) =>
+            Buffer.from(data[0]).equals((RECORD.dataFields as Buffer[])[0]),
+          ),
+        });
+      });
+
+      test('Multiple answers should be included if applicable', () => {
+        const record2 = RECORD.shallowCopy({ name: `sub.${RECORD.name}` });
+        const message = new Message({ rcode: RCODE_IDS.NOERROR }, [], [RECORD, record2]);
+
+        const serialisation = message.serialise();
+
+        const messageDeserialised = decode(serialisation);
+        expect(messageDeserialised.answers).toHaveLength(2);
+      });
+    });
   });
 
-  test('False should be returned if message does not contain question', () => {
-    const message = new Message({ rcode: RCODE_IDS.NOERROR }, [QUESTION], []);
-    const differentQuestion = QUESTION.shallowCopy({ type: QUESTION.typeId + 1 });
+  describe('answersQuestion', () => {
+    test('True should be returned if message contains question', () => {
+      const message = new Message({ rcode: RCODE_IDS.NOERROR }, [QUESTION], []);
 
-    expect(message.answersQuestion(differentQuestion)).toBeFalse();
+      expect(message.answersQuestion(QUESTION)).toBeTrue();
+    });
+
+    test('False should be returned if message does not contain question', () => {
+      const message = new Message({ rcode: RCODE_IDS.NOERROR }, [QUESTION], []);
+      const differentQuestion = QUESTION.shallowCopy({ type: QUESTION.typeId + 1 });
+
+      expect(message.answersQuestion(differentQuestion)).toBeFalse();
+    });
   });
 });
