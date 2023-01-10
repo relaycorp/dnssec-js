@@ -5,6 +5,7 @@ import { SecurityStatus } from '../SecurityStatus.js';
 import { dnssecLookUp } from '../lookup.js';
 import { type FailureStatus } from '../results.js';
 import { DatePeriod } from '../DatePeriod.js';
+import { DnsError } from '../dns/DnsError.js';
 
 import { MockChain } from './MockChain.js';
 
@@ -33,6 +34,18 @@ describe('MockChain', () => {
 
       const result = await dnssecLookUp(QUESTION, resolver, { trustAnchors });
       expect(result.status).toStrictEqual(status);
+    });
+
+    test('Missing record should result in NXDOMAIN response', async () => {
+      const mockChain = await MockChain.generate(RECORD.name);
+
+      const { resolver, trustAnchors } = mockChain.generateFixture(RRSET, SecurityStatus.SECURE);
+
+      await expect(
+        dnssecLookUp(QUESTION.shallowCopy({ name: `sub.${QUESTION.name}` }), resolver, {
+          trustAnchors,
+        }),
+      ).rejects.toThrowWithMessage(DnsError, /should have at least one matching record/u);
     });
 
     test('Signatures should be valid for 60 seconds by default', async () => {

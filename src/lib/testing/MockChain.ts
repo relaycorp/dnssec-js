@@ -7,7 +7,7 @@ import { DnssecAlgorithm } from '../DnssecAlgorithm.js';
 import { type RrSet } from '../dns/RrSet.js';
 import { type DatePeriod } from '../DatePeriod.js';
 import { type SignatureOptions } from '../utils/dnssec/SignatureOptions.js';
-import { type ZoneResponseSet } from '../utils/dnssec/responses.js';
+import { type DsResponse, type ZoneResponseSet } from '../utils/dnssec/responses.js';
 import { Message } from '../dns/Message.js';
 import { type Resolver } from '../Resolver.js';
 import { type DsData } from '../rdata/DsData.js';
@@ -43,6 +43,69 @@ export class MockChain {
     });
   }
 
+  private generateBogusResponses(
+    rrset: RrSet,
+    zoneResponses: Message[],
+    apexDs: DsResponse,
+    apexSigner: ZoneSigner,
+    signatureOptions: SignatureOptions,
+  ) {
+    const invalidKeyTag = Math.ceil(apexDs.data.keyTag / 2) + 2;
+    const rrsig = apexSigner.generateRrsig(rrset, invalidKeyTag, signatureOptions);
+    return [...zoneResponses, rrsig.message];
+  }
+
+  private generateInsecureResponses(
+    rrset: RrSet,
+    zoneResponses: Message[],
+    apexSigner: ZoneSigner,
+    apexDs: DsResponse,
+    signatureOptions: SignatureOptions,
+  ) {
+    const rrsig = apexSigner.generateRrsig(rrset, apexDs.data.keyTag, signatureOptions);
+    return [
+      ...zoneResponses.map((response) =>
+        response === apexDs.message
+          ? new Message({ rcode: RCODE_IDS.NXDOMAIN }, response.questions, [])
+          : response,
+      ),
+      rrsig.message,
+    ];
+  }
+
+  private generateIndeterminateResponses(
+    rrset: RrSet,
+    zoneResponses: Message[],
+    apexSigner: ZoneSigner,
+    apexDs: DsResponse,
+    apexResponses: ZoneResponseSet | undefined,
+    signatureOptions: SignatureOptions,
+  ) {
+    const rrsig = apexSigner.generateRrsig(rrset, apexDs.data.keyTag, signatureOptions);
+    const apexDnskey = apexResponses!.dnskey;
+    const unsignedApexDnskeyMessage = new Message(
+      apexDnskey.message.header,
+      apexDnskey.message.questions,
+      [apexDnskey.record],
+    );
+    return [
+      ...zoneResponses.filter((response) => response !== apexDnskey.message),
+      unsignedApexDnskeyMessage,
+      rrsig.message,
+    ];
+  }
+
+  private generateSecureResponses(
+    rrset: RrSet,
+    zoneResponses: Message[],
+    apexSigner: ZoneSigner,
+    apexDs: DsResponse,
+    signatureOptions: SignatureOptions,
+  ) {
+    const rrsig = apexSigner.generateRrsig(rrset, apexDs.data.keyTag, signatureOptions);
+    return [...zoneResponses, rrsig.message];
+  }
+
   protected generateResolver(
     responsesByZone: readonly ZoneResponseSet[],
     status: SecurityStatus,
@@ -50,47 +113,58 @@ export class MockChain {
     signatureOptions: SignatureOptions,
   ): Resolver {
     const apexResponses = responsesByZone.at(-1);
-    const apexDsMessage = apexResponses!.ds;
-    const apexSigner = this.signers.at(-1);
-
+    const apexDs = apexResponses!.ds;
+    const apexSigner = this.signers.at(-1)!;
     const zoneResponses = responsesByZone.flatMap((set) => [set.ds.message, set.dnskey.message]);
     let responses: readonly Message[];
     switch (status) {
       case SecurityStatus.INSECURE: {
-        const rrsig = apexSigner!.generateRrsig(rrset, apexDsMessage.data.keyTag, signatureOptions);
-        responses = [
-          ...zoneResponses.map((response) =>
-            response === apexDsMessage.message
-              ? new Message({ rcode: RCODE_IDS.NXDOMAIN }, response.questions, [])
-              : response,
-          ),
-          rrsig.message,
-        ];
+        responses = this.generateInsecureResponses(
+          rrset,
+          zoneResponses,
+          apexSigner,
+          apexDs,
+          signatureOptions,
+        );
         break;
       }
       case SecurityStatus.BOGUS: {
-        const invalidKeyTag = Math.ceil(apexDsMessage.data.keyTag / 2) + 2;
-        const rrsig = apexSigner!.generateRrsig(rrset, invalidKeyTag, signatureOptions);
-        responses = [...zoneResponses, rrsig.message];
+        responses = this.generateBogusResponses(
+          rrset,
+          zoneResponses,
+          apexDs,
+          apexSigner,
+          signatureOptions,
+        );
         break;
       }
       case SecurityStatus.INDETERMINATE: {
-        const rrsig = apexSigner!.generateRrsig(rrset, apexDsMessage.data.keyTag, signatureOptions);
-        responses = [
-          ...zoneResponses.filter((response) => response !== apexDsMessage.message),
-          rrsig.message,
-        ];
+        responses = this.generateIndeterminateResponses(
+          rrset,
+          zoneResponses,
+          apexSigner,
+          apexDs,
+          apexResponses,
+          signatureOptions,
+        );
         break;
       }
       default: {
-        const rrsig = apexSigner!.generateRrsig(rrset, apexDsMessage.data.keyTag, signatureOptions);
-        responses = [...zoneResponses, rrsig.message];
+        responses = this.generateSecureResponses(
+          rrset,
+          zoneResponses,
+          apexSigner,
+          apexDs,
+          signatureOptions,
+        );
         break;
       }
     }
-
     // eslint-disable-next-line @typescript-eslint/require-await
-    return async (question) => responses.find((response) => response.answersQuestion(question))!;
+    return async (question) => {
+      const matchingResponse = responses.find((response) => response.answersQuestion(question));
+      return matchingResponse ?? new Message({ rcode: RCODE_IDS.NXDOMAIN }, [question], []);
+    };
   }
 
   protected generateTrustAnchors(dsData: DsData): readonly TrustAnchor[] {
