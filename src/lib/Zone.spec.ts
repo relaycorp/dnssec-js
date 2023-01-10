@@ -194,6 +194,20 @@ describe('Zone', () => {
       });
     });
 
+    test('DNSKEY should be INDETERMINATE if it has no RRSigs', () => {
+      const dnskeyUnsignedMessage = new Message(
+        tldDnskey.message.header,
+        tldDnskey.message.questions,
+        [tldDnskey.record],
+      );
+      const result = Zone.init(RECORD_TLD, dnskeyUnsignedMessage, [rootDs.data], VALIDITY_PERIOD);
+
+      expect(result).toStrictEqual<FailureResult>({
+        status: SecurityStatus.INDETERMINATE,
+        reasonChain: ['DNSKEY RR is unsigned'],
+      });
+    });
+
     test('Zone should be initialised if ZSK is found', () => {
       const result = Zone.init(RECORD_TLD, tldDnskey.message, [tldDs.data], VALIDITY_PERIOD);
 

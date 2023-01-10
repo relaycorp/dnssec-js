@@ -41,6 +41,13 @@ export class Zone {
       dnskeyMessage.answers,
     );
 
+    if (dnskeySignedRrset.rrsigs.length === 0) {
+      return {
+        status: SecurityStatus.INDETERMINATE,
+        reasonChain: ['DNSKEY RR is unsigned'],
+      };
+    }
+
     const dnskeys = dnskeySignedRrset.rrset.records.map((record) => ({
       data: DnskeyData.initFromPacket(record.dataFields as DNSKeyData, record.dataSerialised),
       record,
