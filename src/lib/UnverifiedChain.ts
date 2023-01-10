@@ -66,7 +66,7 @@ export class UnverifiedChain {
   public static async retrieve(question: Question, resolver: Resolver): Promise<UnverifiedChain> {
     const finalResolver: FinalResolver = async (currentQuestion) => {
       const message = await resolver(currentQuestion);
-      return message instanceof Uint8Array ? Message.deserialise(message) : message;
+      return message instanceof Buffer ? Message.deserialise(message) : message;
     };
     const zoneNames = getZonesInChain(question.name);
     const dnskeyMessages = await retrieveZoneMessages(
