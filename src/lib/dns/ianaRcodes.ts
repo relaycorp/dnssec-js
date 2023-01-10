@@ -37,15 +37,28 @@ const RCODE_IDS_NORMALISED: { readonly [name: string]: number } = Object.entries
   {},
 );
 
+const RCODE_NAMES: { readonly [name: number]: RcodeName } = Object.fromEntries(
+  Object.entries(RCODE_IDS_NORMALISED).map(([name, id]) => [id, name as RcodeName]),
+);
+
 export function getRcodeId(codeName: RcodeIdOrName): number {
   if (typeof codeName === 'number') {
     return codeName;
   }
 
   const codeNameSanitised = codeName.toUpperCase();
-  if (!(codeNameSanitised in RCODE_IDS_NORMALISED)) {
-    throw new DnsError(`DNS RCode "${codeName}" is not defined by IANA`);
+  const id = RCODE_IDS_NORMALISED[codeNameSanitised] as number | undefined;
+  if (id === undefined) {
+    throw new DnsError(`DNS RCode name "${codeName}" is not defined by IANA`);
   }
 
-  return RCODE_IDS_NORMALISED[codeNameSanitised];
+  return id;
+}
+
+export function getRcodeName(codeId: number): RcodeName {
+  const name = RCODE_NAMES[codeId] as RcodeName | undefined;
+  if (!name) {
+    throw new DnsError(`DNS RCode id ${codeId} is not defined by IANA`);
+  }
+  return name;
 }

@@ -27,6 +27,10 @@ const DNS_CLASS_IDS: { readonly [name: string]: DnsClass } = {
  */
 export type DnsClassName = keyof typeof DNS_CLASS_IDS;
 
+const DNS_CLASS_NAMES: { readonly [name: number]: DnsClassName } = Object.fromEntries(
+  Object.entries(DNS_CLASS_IDS).map(([name, id]) => [id, name as DnsClassName]),
+);
+
 export type DnsClassIdOrName = DnsClass | DnsClassName;
 
 export function getDnsClassId(className: DnsClassIdOrName): DnsClass {
@@ -35,8 +39,16 @@ export function getDnsClassId(className: DnsClassIdOrName): DnsClass {
   }
 
   if (!(className in DNS_CLASS_IDS)) {
-    throw new DnsError(`DNS class "${className}" is not defined by IANA`);
+    throw new DnsError(`DNS class name "${className}" is not defined by IANA`);
   }
 
   return DNS_CLASS_IDS[className];
+}
+
+export function getDnsClassName(classId: DnsClass): DnsClassName {
+  const name = DNS_CLASS_NAMES[classId] as DnsClassName | undefined;
+  if (name === undefined) {
+    throw new DnsError(`DNS class id "${classId}" is not defined by IANA`);
+  }
+  return name;
 }
