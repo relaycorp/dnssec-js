@@ -1,5 +1,5 @@
 import type { DnsClassName } from './ianaClasses.js';
-import { DnsClass, getDnsClassId } from './ianaClasses.js';
+import { DnsClass, getDnsClassId, getDnsClassName } from './ianaClasses.js';
 import { DnsError } from './DnsError.js';
 
 describe('getDnsClassId', () => {
@@ -16,7 +16,22 @@ describe('getDnsClassId', () => {
 
     expect(() => getDnsClassId(invalidName)).toThrowWithMessage(
       DnsError,
-      `DNS class "${invalidName}" is not defined by IANA`,
+      `DNS class name "${invalidName}" is not defined by IANA`,
+    );
+  });
+});
+
+describe('getDnsClassName', () => {
+  test('Id should be converted to name', () => {
+    expect(getDnsClassName(DnsClass.CH)).toBe('CH');
+  });
+
+  test('Class not defined by IANA should cause an error', () => {
+    const invalidId = 42 as DnsClass;
+
+    expect(() => getDnsClassName(invalidId)).toThrowWithMessage(
+      DnsError,
+      `DNS class id "${invalidId}" is not defined by IANA`,
     );
   });
 });

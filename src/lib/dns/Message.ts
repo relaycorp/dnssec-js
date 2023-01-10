@@ -1,5 +1,11 @@
 import type { Packet } from '@leichtgewicht/dns-packet';
-import { decode } from '@leichtgewicht/dns-packet';
+import {
+  decode,
+  encode,
+  type Answer,
+  type Question as DpQuestion,
+  type RecordClass,
+} from '@leichtgewicht/dns-packet';
 
 import { DnsRecord } from './DnsRecord.js';
 import type { Header } from './Header.js';
@@ -8,7 +14,9 @@ import { DnsError } from './DnsError.js';
 import type { IanaRrTypeName } from './ianaRrTypes.js';
 import type { DnsClassName } from './ianaClasses.js';
 import type { RcodeName } from './ianaRcodes.js';
-import { getRcodeId } from './ianaRcodes.js';
+import { getRcodeId, getRcodeName } from './ianaRcodes.js';
+import { getRrTypeName } from './ianaRrTypes.js';
+import { getDnsClassName } from './ianaClasses.js';
 
 /**
  * Partial representation of DNS messages (the generalisation for "queries" and "answers").
@@ -49,6 +57,22 @@ export class Message {
     public readonly questions: readonly Question[],
     public readonly answers: readonly DnsRecord[],
   ) {}
+
+  public serialise(): Uint8Array {
+    const rcode = getRcodeName(this.header.rcode);
+    const questions: DpQuestion[] = this.questions.map((question) => ({
+      name: question.name,
+      type: question.getTypeName(),
+    }));
+    const answers: Answer[] = this.answers.map((answer) => ({
+      name: answer.name,
+      type: getRrTypeName(answer.typeId) as any,
+      ttl: answer.ttl,
+      class: getDnsClassName(answer.classId) as RecordClass,
+      data: answer.dataFields,
+    }));
+    return encode({ rcode, questions, answers });
+  }
 
   /**
    * Report whether this message answers the `question`.
