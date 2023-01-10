@@ -196,13 +196,10 @@ describe('Zone', () => {
 
     test('DNSKEY should be INDETERMINATE if it has no RRSigs', () => {
       const dnskey = tldSigner.generateDnskey(SIGNATURE_OPTIONS);
-      const ds = rootSigner.generateDs(dnskey, RECORD_TLD, rootDs.data.keyTag, {
-        digestType: tldDs.data.digestType,
-      });
       const dnskeyUnsignedMessage = new Message(dnskey.message.header, dnskey.message.questions, [
         dnskey.record,
       ]);
-      const result = Zone.init(RECORD_TLD, dnskeyUnsignedMessage, [ds.data], VALIDITY_PERIOD);
+      const result = Zone.init(RECORD_TLD, dnskeyUnsignedMessage, [rootDs.data], VALIDITY_PERIOD);
 
       expect(result).toStrictEqual<FailureResult>({
         status: SecurityStatus.INDETERMINATE,
