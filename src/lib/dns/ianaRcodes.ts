@@ -47,7 +47,7 @@ export function getRcodeId(codeName: RcodeIdOrName): number {
   }
 
   const codeNameSanitised = codeName.toUpperCase();
-  const id = RCODE_IDS_NORMALISED[codeNameSanitised];
+  const id = RCODE_IDS_NORMALISED[codeNameSanitised] as number | undefined;
   if (id === undefined) {
     throw new DnsError(`DNS RCode name "${codeName}" is not defined by IANA`);
   }
@@ -56,7 +56,7 @@ export function getRcodeId(codeName: RcodeIdOrName): number {
 }
 
 export function getRcodeName(codeId: number): RcodeName {
-  const name = RCODE_NAMES[codeId];
+  const name = RCODE_NAMES[codeId] as RcodeName | undefined;
   if (!name) {
     throw new DnsError(`DNS RCode id ${codeId} is not defined by IANA`);
   }
