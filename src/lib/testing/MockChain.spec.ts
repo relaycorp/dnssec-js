@@ -36,7 +36,7 @@ describe('MockChain', () => {
       expect(result.status).toStrictEqual(status);
     });
 
-    test('Unsupported record should result in NXDOMAIN response', async () => {
+    test('Missing record should result in NXDOMAIN response', async () => {
       const mockChain = await MockChain.generate(RECORD.name);
 
       const { resolver, trustAnchors } = mockChain.generateFixture(RRSET, SecurityStatus.SECURE);
