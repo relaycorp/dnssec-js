@@ -195,10 +195,7 @@ describe('Zone', () => {
     });
 
     test('DNSKEY should be INDETERMINATE if it has no RRSigs', () => {
-      const dnskey = tldSigner.generateDnskey({
-        flags: { zoneKey: false },
-        ...SIGNATURE_OPTIONS,
-      });
+      const dnskey = tldSigner.generateDnskey(SIGNATURE_OPTIONS);
       const ds = rootSigner.generateDs(dnskey, RECORD_TLD, rootDs.data.keyTag, {
         digestType: tldDs.data.digestType,
       });
