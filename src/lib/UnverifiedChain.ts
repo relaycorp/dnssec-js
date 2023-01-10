@@ -27,8 +27,9 @@ async function retrieveZoneMessages(
 ): Promise<MessageByKey> {
   const question = new Question('.', recordType, classType);
   return zoneNames.reduce(async (messages, zoneName) => {
+    const messageByKey = await messages;
     const message = await resolver(question.shallowCopy({ name: zoneName }));
-    return { ...(await messages), [`${zoneName}/${recordType}`]: message };
+    return { ...messageByKey, [`${zoneName}/${recordType}`]: message };
   }, Promise.resolve({} as MessageByKey));
 }
 
