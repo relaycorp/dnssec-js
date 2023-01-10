@@ -187,6 +187,15 @@ describe('retrieve', () => {
       rcode,
     );
   });
+
+  test('Retrieval should error out with the first resolution error', async () => {
+    const originalError = new Error('Whoops');
+    stubResolver.mockRejectedValueOnce(originalError);
+
+    await expect(UnverifiedChain.retrieve(QUESTION, stubResolver)).rejects.toBe(originalError);
+
+    expect(stubResolver).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('initFromMessages', () => {
