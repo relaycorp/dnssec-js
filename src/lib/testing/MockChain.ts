@@ -106,12 +106,12 @@ export class MockChain {
     return [...zoneResponses, rrsig.message];
   }
 
-  protected generateResolver(
+  private generateResponses(
     responsesByZone: readonly ZoneResponseSet[],
     status: SecurityStatus,
     rrset: RrSet,
     signatureOptions: SignatureOptions,
-  ): Resolver {
+  ) {
     const apexResponses = responsesByZone.at(-1);
     const apexDs = apexResponses!.ds;
     const apexSigner = this.signers.at(-1)!;
@@ -160,6 +160,10 @@ export class MockChain {
         break;
       }
     }
+    return responses;
+  }
+
+  protected generateResolver(responses: readonly Message[]): Resolver {
     // eslint-disable-next-line @typescript-eslint/require-await
     return async (question) => {
       const matchingResponse = responses.find((response) => response.answersQuestion(question));
@@ -189,9 +193,10 @@ export class MockChain {
       : { signatureInception: now, signatureExpiry: addMinutes(now, 1) };
     const responsesByZone = this.generateZoneResponses(signatureOptions);
 
-    const resolver = this.generateResolver(responsesByZone, status, rrset, signatureOptions);
+    const responses = this.generateResponses(responsesByZone, status, rrset, signatureOptions);
+    const resolver = this.generateResolver(responses);
     const rootResponses = responsesByZone.at(0);
     const trustAnchors = this.generateTrustAnchors(rootResponses!.ds.data);
-    return { resolver, trustAnchors };
+    return { resolver, trustAnchors, responses };
   }
 }

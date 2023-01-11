@@ -23,6 +23,15 @@ describe('MockChain', () => {
       });
     });
 
+    test('Generated responses should be output', async () => {
+      const mockChain = await MockChain.generate(RECORD.name);
+
+      const { responses } = mockChain.generateFixture(RRSET, SecurityStatus.SECURE);
+
+      expect(responses.length).toBeGreaterThan(0);
+      expect(responses.some((response) => response.answersQuestion(QUESTION))).toBeTrue();
+    });
+
     test.each<FailureStatus>([
       SecurityStatus.INSECURE,
       SecurityStatus.BOGUS,
