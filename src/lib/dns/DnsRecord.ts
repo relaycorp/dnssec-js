@@ -61,7 +61,7 @@ export class DnsRecord {
     typeIdOrName: IanaRrTypeIdOrName,
     classIdOrName: DnsClassIdOrName,
     public readonly ttl: number,
-    data: Buffer | object,
+    data: unknown,
   ) {
     this.name = normaliseName(name);
     this.typeId = getRrTypeId(typeIdOrName);
