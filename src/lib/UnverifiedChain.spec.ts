@@ -12,7 +12,11 @@ import { Message } from './utils/dns/Message.js';
 import { UnverifiedChain } from './UnverifiedChain.js';
 import { DnssecRecordType } from './records/DnssecRecordType.js';
 import { Question } from './utils/dns/Question.js';
-import type { ChainVerificationResult, FailureResult, VerifiedRrSet } from './results.js';
+import type {
+  ChainVerificationResult,
+  FailureResult,
+  VerifiedRrSet,
+} from './securityStatusResults.js';
 import { SecurityStatus } from './SecurityStatus.js';
 import type { DsData } from './records/DsData.js';
 import { DatePeriod } from './DatePeriod.js';

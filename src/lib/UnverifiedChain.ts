@@ -1,8 +1,8 @@
 import { Question } from './utils/dns/Question.js';
 import { Message } from './utils/dns/Message.js';
 import { DnssecRecordType } from './records/DnssecRecordType.js';
-import type { ChainVerificationResult, VerificationResult } from './results.js';
-import { augmentFailureResult } from './results.js';
+import type { ChainVerificationResult, VerificationResult } from './securityStatusResults.js';
+import { augmentFailureResult } from './securityStatusResults.js';
 import { SecurityStatus } from './SecurityStatus.js';
 import { Zone } from './Zone.js';
 import type { DatePeriod } from './DatePeriod.js';

@@ -6,7 +6,7 @@ import { QUESTION, RRSET } from '../testUtils/dnsStubs.js';
 import { dnssecLookUp } from './lookup.js';
 import type { Resolver } from './Resolver.js';
 import { UnverifiedChain } from './UnverifiedChain.js';
-import type { VerifiedRrSet } from './results.js';
+import type { VerifiedRrSet } from './securityStatusResults.js';
 import { SecurityStatus } from './SecurityStatus.js';
 import { DatePeriod } from './DatePeriod.js';
 import type { TrustAnchor } from './TrustAnchor.js';

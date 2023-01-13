@@ -1,7 +1,7 @@
 import type { Question } from './utils/dns/Question.js';
 import type { Resolver } from './Resolver.js';
 import type { VerificationOptions } from './VerificationOptions.js';
-import type { ChainVerificationResult } from './results.js';
+import type { ChainVerificationResult } from './securityStatusResults.js';
 import { UnverifiedChain } from './UnverifiedChain.js';
 import { DatePeriod } from './DatePeriod.js';
 import type { TrustAnchor } from './TrustAnchor.js';

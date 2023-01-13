@@ -13,7 +13,7 @@ import type { DsRecord } from './records/dnssecRecords.js';
 import { DsData } from './records/DsData.js';
 import { RrSet } from './utils/dns/RrSet.js';
 import { RrsigData } from './records/RrsigData.js';
-import type { FailureResult, SuccessfulResult } from './results.js';
+import type { FailureResult, SuccessfulResult } from './securityStatusResults.js';
 import { Question } from './utils/dns/Question.js';
 import { DnsClass } from './utils/dns/ianaClasses.js';
 import { DnssecRecordType } from './records/DnssecRecordType.js';

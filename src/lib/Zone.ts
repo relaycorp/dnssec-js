@@ -1,7 +1,7 @@
 import type { DigestData, DNSKeyData } from '@leichtgewicht/dns-packet';
 
 import { DsData } from './records/DsData.js';
-import type { VerificationResult } from './results.js';
+import type { VerificationResult } from './securityStatusResults.js';
 import type { Message } from './utils/dns/Message.js';
 import { DnskeyData } from './records/DnskeyData.js';
 import { SecurityStatus } from './SecurityStatus.js';

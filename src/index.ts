@@ -17,13 +17,13 @@ export { DigestType } from './lib/DigestType.js';
 export { DnssecAlgorithm } from './lib/DnssecAlgorithm.js';
 export type { Resolver } from './lib/Resolver.js';
 export { dnssecLookUp } from './lib/lookup.js';
+export { SecurityStatus } from './lib/SecurityStatus.js';
 export type {
   ChainVerificationResult,
   FailureResult,
   FailureStatus,
   VerifiedRrSet,
-} from './lib/results.js';
-export { SecurityStatus } from './lib/SecurityStatus.js';
+} from './lib/securityStatusResults.js';
 export type { TrustAnchor } from './lib/TrustAnchor.js';
 export type { VerificationOptions } from './lib/VerificationOptions.js';
 export { MockChain } from './lib/testing/MockChain.js';
