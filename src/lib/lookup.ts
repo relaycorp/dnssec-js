@@ -4,9 +4,9 @@ import type { VerificationOptions } from './VerificationOptions.js';
 import type { ChainVerificationResult } from './results.js';
 import { UnverifiedChain } from './UnverifiedChain.js';
 import { DatePeriod } from './DatePeriod.js';
-import { IANA_TRUST_ANCHORS } from './ianaTrustAnchors.js';
 import type { TrustAnchor } from './TrustAnchor.js';
 import { DsData } from './rdata/DsData.js';
+import { IANA_TRUST_ANCHORS } from './ianaTrustAnchors.js';
 
 function convertTrustAnchors(trustAnchors: readonly TrustAnchor[]): readonly DsData[] {
   return trustAnchors.map(

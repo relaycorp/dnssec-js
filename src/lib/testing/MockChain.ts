@@ -1,25 +1,25 @@
 /* eslint-disable @typescript-eslint/no-magic-numbers */
 import { addMinutes } from 'date-fns';
 
-import { ZoneSigner } from '../utils/dnssec/ZoneSigner.js';
-import { getZonesInChain } from '../utils/dns.js';
 import { DnssecAlgorithm } from '../DnssecAlgorithm.js';
 import { type RrSet } from '../dns/RrSet.js';
 import { type DatePeriod } from '../DatePeriod.js';
-import { type SignatureOptions } from '../utils/dnssec/SignatureOptions.js';
-import { type DsResponse, type ZoneResponseSet } from '../utils/dnssec/responses.js';
+import { type DsResponse, type ZoneResponseSet } from '../dnssecResponses.js';
 import { Message } from '../dns/Message.js';
 import { type Resolver } from '../Resolver.js';
 import { type DsData } from '../rdata/DsData.js';
 import { type TrustAnchor } from '../TrustAnchor.js';
 import { SecurityStatus } from '../SecurityStatus.js';
 import { RCODE_IDS } from '../dns/ianaRcodes.js';
+import { getZonesInName } from '../dns/name.js';
 
 import { type MockChainFixture } from './MockChainFixture.js';
+import { type SignatureOptions } from './SignatureOptions.js';
+import { ZoneSigner } from './ZoneSigner.js';
 
 export class MockChain {
   public static async generate(zoneName: string): Promise<MockChain> {
-    const zoneNames = getZonesInChain(zoneName);
+    const zoneNames = getZonesInName(zoneName);
     const signers = await Promise.all(
       zoneNames.map(async (name) => ZoneSigner.generate(DnssecAlgorithm.RSASHA256, name)),
     );

@@ -3,8 +3,7 @@
 import type { Codec } from '@leichtgewicht/dns-packet';
 import { enc } from '@leichtgewicht/dns-packet';
 
-import { lengthPrefixRdata } from '../utils/dns.js';
-
+import { lengthPrefixRdata } from './rdata.js';
 import type { DnsClass, DnsClassIdOrName } from './ianaClasses.js';
 import { getDnsClassId } from './ianaClasses.js';
 import { normaliseName, serialiseName } from './name.js';

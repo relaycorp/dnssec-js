@@ -1,5 +1,5 @@
-import type { DnskeyRecord, DsRecord, RrsigRecord } from '../../dnssecRecords.js';
-import type { Message } from '../../dns/Message.js';
+import type { DnskeyRecord, DsRecord, RrsigRecord } from './dnssecRecords.js';
+import type { Message } from './dns/Message.js';
 
 interface DnssecResponseMixin {
   readonly message: Message;

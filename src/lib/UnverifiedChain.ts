@@ -11,7 +11,7 @@ import type { Resolver } from './Resolver.js';
 import type { DnsClass } from './dns/ianaClasses.js';
 import type { DsData } from './rdata/DsData.js';
 import type { RrSet } from './dns/RrSet.js';
-import { getZonesInChain } from './utils/dns.js';
+import { getZonesInName } from './dns/name.js';
 
 interface MessageByKey {
   readonly [key: string]: Message | undefined;
@@ -43,7 +43,7 @@ export class UnverifiedChain {
       const { key } = question;
       return { ...accumulator, [key]: message };
     }, {});
-    const zoneNames = getZonesInChain(query.name);
+    const zoneNames = getZonesInName(query.name);
     const messageByKey = zoneNames.reduce<MessageByKey>((accumulator, zoneName) => {
       const dsKey = `${zoneName}/${DnssecRecordType.DS}`;
       const dsMessage = zoneName === '.' ? null : allMessages[dsKey];
@@ -68,7 +68,7 @@ export class UnverifiedChain {
       const message = await resolver(currentQuestion);
       return message instanceof Buffer ? Message.deserialise(message) : message;
     };
-    const zoneNames = getZonesInChain(question.name);
+    const zoneNames = getZonesInName(question.name);
     const dnskeyMessages = await retrieveZoneMessages(
       zoneNames,
       DnssecRecordType.DNSKEY,
@@ -133,7 +133,7 @@ export class UnverifiedChain {
     datePeriod: DatePeriod,
   ): VerificationResult<readonly Zone[]> {
     let zones = [rootZone];
-    for (const zoneName of getZonesInChain(apexZoneName, false)) {
+    for (const zoneName of getZonesInName(apexZoneName, false)) {
       const dnskeyKey = `${zoneName}/${DnssecRecordType.DNSKEY}`;
       const dnskeyResponse = this.zoneMessageByKey[dnskeyKey];
       if (!dnskeyResponse) {

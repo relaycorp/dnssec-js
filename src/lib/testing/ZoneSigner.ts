@@ -2,23 +2,28 @@ import type { KeyObject } from 'node:crypto';
 
 import { addSeconds, minutesToSeconds, setMilliseconds } from 'date-fns';
 
-import type { DnssecAlgorithm } from '../../DnssecAlgorithm.js';
-import { DnsRecord } from '../../dns/DnsRecord.js';
-import { DnsClass } from '../../dns/ianaClasses.js';
-import { DigestType } from '../../DigestType.js';
-import { DnssecRecordType } from '../../DnssecRecordType.js';
-import { RrSet } from '../../dns/RrSet.js';
-import type { DnskeyFlags } from '../../DnskeyFlags.js';
-import { DnskeyData } from '../../rdata/DnskeyData.js';
-import { DsData } from '../../rdata/DsData.js';
-import { RrsigData } from '../../rdata/RrsigData.js';
-import type { DnskeyRecord } from '../../dnssecRecords.js';
-import { Message } from '../../dns/Message.js';
-import { Question } from '../../dns/Question.js';
-import { RCODE_IDS } from '../../dns/ianaRcodes.js';
+import type { DnssecAlgorithm } from '../DnssecAlgorithm.js';
+import { DnsRecord } from '../dns/DnsRecord.js';
+import { DnsClass } from '../dns/ianaClasses.js';
+import { DigestType } from '../DigestType.js';
+import { DnssecRecordType } from '../DnssecRecordType.js';
+import { RrSet } from '../dns/RrSet.js';
+import type { DnskeyFlags } from '../DnskeyFlags.js';
+import { DnskeyData } from '../rdata/DnskeyData.js';
+import { DsData } from '../rdata/DsData.js';
+import { RrsigData } from '../rdata/RrsigData.js';
+import type { DnskeyRecord } from '../dnssecRecords.js';
+import { Message } from '../dns/Message.js';
+import { Question } from '../dns/Question.js';
+import { RCODE_IDS } from '../dns/ianaRcodes.js';
+import type {
+  DnskeyResponse,
+  DsResponse,
+  RrsigResponse,
+  ZoneResponseSet,
+} from '../dnssecResponses.js';
+import { generateKeyPair } from '../utils/crypto/keyGen.js';
 
-import type { DnskeyResponse, DsResponse, RrsigResponse, ZoneResponseSet } from './responses.js';
-import { generateKeyPair } from './keyGen.js';
 import type { SignatureOptions } from './SignatureOptions.js';
 
 // eslint-disable-next-line @typescript-eslint/no-magic-numbers
