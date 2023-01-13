@@ -1,6 +1,6 @@
-import { DsData } from '../../rdata/DsData.js';
-import { DnssecAlgorithm } from '../../DnssecAlgorithm.js';
-import { DigestType } from '../../DigestType.js';
+import { DsData } from './rdata/DsData.js';
+import { DnssecAlgorithm } from './DnssecAlgorithm.js';
+import { DigestType } from './DigestType.js';
 
 /**
  * Set of root Key-Signing Keys (KSKs) as published by IANA.

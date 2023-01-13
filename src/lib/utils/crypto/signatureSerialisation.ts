@@ -4,7 +4,7 @@ import { toBigIntBE, toBufferBE } from 'bigint-buffer';
 import { DnssecAlgorithm } from '../../DnssecAlgorithm.js';
 import { DnssecError } from '../../DnssecError.js';
 
-import { EcdsaSignature } from './asn1Schemas/EcdsaSignature.js';
+import { EcdsaSignature } from './EcdsaSignature.js';
 import { ECDSA_CURVE_LENGTH } from './curves.js';
 
 function convertEcdsaSignatureToDnssec(

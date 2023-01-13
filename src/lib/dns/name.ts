@@ -32,3 +32,12 @@ export function isChildZone(parentName: string, presumedChildName: string): bool
   }
   return presumedChildName.endsWith(`.${parentName}`);
 }
+
+export function getZonesInName(zoneName: string, shouldIncludeRoot = true): readonly string[] {
+  if (zoneName === '') {
+    return shouldIncludeRoot ? ['.'] : [];
+  }
+  const parentZoneName = zoneName.replace(/^[^.]+\./u, '');
+  const parentZones = getZonesInName(parentZoneName, shouldIncludeRoot);
+  return [...parentZones, zoneName];
+}

@@ -1,6 +1,6 @@
-import { DnskeyData } from '../../rdata/DnskeyData.js';
-import { deserialisePublicKey } from '../crypto/keySerialisation.js';
-import { DnssecAlgorithm } from '../../DnssecAlgorithm.js';
+import { DnskeyData } from '../lib/rdata/DnskeyData.js';
+import { deserialisePublicKey } from '../lib/utils/crypto/keySerialisation.js';
+import { DnssecAlgorithm } from '../lib/DnssecAlgorithm.js';
 
 const DNSSEC_ROOT_DNSKEY_SERIALISATION = Buffer.from(
   'AwEAAaz/tAm8yTn4Mfeh5eyI96WSVexTBAvkMgJzkKTOiW1vkIbzxeF3+/4RgWOq7HrxRixHlFlExOLAJr5emLvN7SWXg' +

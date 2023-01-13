@@ -1,11 +1,11 @@
 import { addSeconds, subSeconds } from 'date-fns';
 
 import { DnssecAlgorithm } from '../lib/DnssecAlgorithm.js';
-import { ZoneSigner } from '../lib/utils/dnssec/ZoneSigner.js';
+import { ZoneSigner } from '../lib/testing/ZoneSigner.js';
 import { Zone } from '../lib/Zone.js';
 import { DatePeriod } from '../lib/DatePeriod.js';
 import { SecurityStatus } from '../lib/SecurityStatus.js';
-import type { SignatureOptions } from '../lib/utils/dnssec/SignatureOptions.js';
+import type { SignatureOptions } from '../lib/testing/SignatureOptions.js';
 
 const NOW = new Date();
 const VALIDITY_PERIOD = DatePeriod.init(subSeconds(NOW, 1), addSeconds(NOW, 1));

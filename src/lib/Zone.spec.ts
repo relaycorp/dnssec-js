@@ -2,9 +2,9 @@ import { addSeconds, subSeconds } from 'date-fns';
 
 import { QUESTION, RECORD, RECORD_TLD } from '../testUtils/dnsStubs.js';
 
-import { ZoneSigner } from './utils/dnssec/ZoneSigner.js';
-import type { DnskeyResponse, DsResponse } from './utils/dnssec/responses.js';
-import type { SignatureOptions } from './utils/dnssec/SignatureOptions.js';
+import { ZoneSigner } from './testing/ZoneSigner.js';
+import type { DnskeyResponse, DsResponse } from './dnssecResponses.js';
+import type { SignatureOptions } from './testing/SignatureOptions.js';
 import { DnssecAlgorithm } from './DnssecAlgorithm.js';
 import { Zone } from './Zone.js';
 import { Message } from './dns/Message.js';
