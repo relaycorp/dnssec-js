@@ -9,7 +9,7 @@ import { UnverifiedChain } from './UnverifiedChain.js';
 import type { VerifiedRrSet } from './results.js';
 import { SecurityStatus } from './SecurityStatus.js';
 import { DatePeriod } from './DatePeriod.js';
-import { IANA_TRUST_ANCHORS } from './ianaTrustAnchors.js';
+import { IANA_TRUST_ANCHORS } from './utils/dnssec/ianaTrustAnchors.js';
 import type { TrustAnchor } from './TrustAnchor.js';
 import type { DsData } from './rdata/DsData.js';
 import { DnssecAlgorithm } from './DnssecAlgorithm.js';
