@@ -7,11 +7,11 @@ import type { RRSigData } from '@leichtgewicht/dns-packet';
 import { fromUnixTime, getUnixTime } from 'date-fns';
 
 import type { DnssecAlgorithm } from '../DnssecAlgorithm.js';
-import { countLabels, normaliseName, serialiseName } from '../dns/name.js';
-import type { RrSet } from '../dns/RrSet.js';
+import { countLabels, normaliseName, serialiseName } from '../utils/dns/name.js';
+import type { RrSet } from '../utils/dns/RrSet.js';
 import { getNodejsSignatureHashAlgo } from '../utils/crypto/hashing.js';
-import type { IanaRrTypeName } from '../dns/ianaRrTypes.js';
-import { getRrTypeId } from '../dns/ianaRrTypes.js';
+import type { IanaRrTypeName } from '../utils/dns/ianaRrTypes.js';
+import { getRrTypeId } from '../utils/dns/ianaRrTypes.js';
 import {
   convertSignatureFromDnssec,
   convertSignatureToDnssec,

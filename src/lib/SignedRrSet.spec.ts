@@ -9,14 +9,14 @@ import { ZoneSigner } from './testing/ZoneSigner.js';
 import type { SignatureOptions } from './testing/SignatureOptions.js';
 import { SignedRrSet } from './SignedRrSet.js';
 import { DnssecAlgorithm } from './DnssecAlgorithm.js';
-import { RrSet } from './dns/RrSet.js';
-import type { DnskeyRecord } from './dnssecRecords.js';
+import { RrSet } from './utils/dns/RrSet.js';
+import type { DnskeyRecord } from './records/dnssecRecords.js';
 import { DatePeriod } from './DatePeriod.js';
 import { serialisePublicKey } from './utils/crypto/keySerialisation.js';
-import { DnskeyData } from './rdata/DnskeyData.js';
-import { RrsigData } from './rdata/RrsigData.js';
-import { DnsClass } from './dns/ianaClasses.js';
-import { IANA_RR_TYPE_IDS } from './dns/ianaRrTypes.js';
+import { DnskeyData } from './records/DnskeyData.js';
+import { RrsigData } from './records/RrsigData.js';
+import { DnsClass } from './utils/dns/ianaClasses.js';
+import { IANA_RR_TYPE_IDS } from './utils/dns/ianaRrTypes.js';
 
 const NOW = setMilliseconds(new Date(), 0);
 const RRSIG_OPTIONS: SignatureOptions = {

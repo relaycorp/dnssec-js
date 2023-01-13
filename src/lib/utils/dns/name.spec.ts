@@ -1,6 +1,6 @@
 import { name as NAME } from '@leichtgewicht/dns-packet';
 
-import { RECORD, RECORD_TLD } from '../../testUtils/dnsStubs.js';
+import { RECORD, RECORD_TLD } from '../../../testUtils/dnsStubs.js';
 
 import { countLabels, isChildZone, normaliseName, serialiseName } from './name.js';
 

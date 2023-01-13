@@ -10,7 +10,7 @@ import type { VerifiedRrSet } from './results.js';
 import { SecurityStatus } from './SecurityStatus.js';
 import { DatePeriod } from './DatePeriod.js';
 import type { TrustAnchor } from './TrustAnchor.js';
-import type { DsData } from './rdata/DsData.js';
+import type { DsData } from './records/DsData.js';
 import { DnssecAlgorithm } from './DnssecAlgorithm.js';
 import { DigestType } from './DigestType.js';
 import { IANA_TRUST_ANCHORS } from './ianaTrustAnchors.js';

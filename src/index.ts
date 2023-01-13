@@ -1,15 +1,15 @@
 /* eslint-disable import/no-unused-modules */
 
 // DNS-related
-export type { IanaRrTypeName, IanaRrTypeIdOrName } from './lib/dns/ianaRrTypes.js';
-export type { DnsClassIdOrName } from './lib/dns/ianaClasses.js';
-export type { DnsClassName } from './lib/dns/ianaClasses.js';
-export { DnsClass } from './lib/dns/ianaClasses.js';
-export type { Header } from './lib/dns/Header.js';
-export { Message } from './lib/dns/Message.js';
-export { Question } from './lib/dns/Question.js';
-export { DnsRecord } from './lib/dns/DnsRecord.js';
-export { RrSet } from './lib/dns/RrSet.js';
+export type { IanaRrTypeName, IanaRrTypeIdOrName } from './lib/utils/dns/ianaRrTypes.js';
+export type { DnsClassIdOrName } from './lib/utils/dns/ianaClasses.js';
+export type { DnsClassName } from './lib/utils/dns/ianaClasses.js';
+export { DnsClass } from './lib/utils/dns/ianaClasses.js';
+export type { Header } from './lib/utils/dns/Header.js';
+export { Message } from './lib/utils/dns/Message.js';
+export { Question } from './lib/utils/dns/Question.js';
+export { DnsRecord } from './lib/utils/dns/DnsRecord.js';
+export { RrSet } from './lib/utils/dns/RrSet.js';
 
 // DNSSEC-related
 export { DatePeriod } from './lib/DatePeriod.js';

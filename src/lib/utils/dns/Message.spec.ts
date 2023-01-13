@@ -11,7 +11,7 @@ import {
   RECORD_CLASS_STR,
   RECORD_DATA_TXT_DATA,
   RECORD_TYPE_STR,
-} from '../../testUtils/dnsStubs.js';
+} from '../../../testUtils/dnsStubs.js';
 
 import { Message } from './Message.js';
 import type { DnsRecord } from './DnsRecord.js';

@@ -1,4 +1,4 @@
-import { QUESTION, RECORD, RRSET } from '../../testUtils/dnsStubs.js';
+import { QUESTION, RECORD, RRSET } from '../../../testUtils/dnsStubs.js';
 
 import { RrSet } from './RrSet.js';
 import { DnsClass } from './ianaClasses.js';

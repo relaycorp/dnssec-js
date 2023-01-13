@@ -1,17 +1,17 @@
 import type { DigestData, DNSKeyData } from '@leichtgewicht/dns-packet';
 
-import { DsData } from './rdata/DsData.js';
+import { DsData } from './records/DsData.js';
 import type { VerificationResult } from './results.js';
-import type { Message } from './dns/Message.js';
-import { DnskeyData } from './rdata/DnskeyData.js';
+import type { Message } from './utils/dns/Message.js';
+import { DnskeyData } from './records/DnskeyData.js';
 import { SecurityStatus } from './SecurityStatus.js';
-import { DnssecRecordType } from './DnssecRecordType.js';
-import type { DnskeyRecord } from './dnssecRecords.js';
+import { DnssecRecordType } from './records/DnssecRecordType.js';
+import type { DnskeyRecord } from './records/dnssecRecords.js';
 import { SignedRrSet } from './SignedRrSet.js';
-import { DnsClass } from './dns/ianaClasses.js';
+import { DnsClass } from './utils/dns/ianaClasses.js';
 import type { DatePeriod } from './DatePeriod.js';
-import { Question } from './dns/Question.js';
-import { RCODE_IDS } from './dns/ianaRcodes.js';
+import { Question } from './utils/dns/Question.js';
+import { RCODE_IDS } from './utils/dns/ianaRcodes.js';
 
 /**
  * A secure zone (in DNSSEC terms).

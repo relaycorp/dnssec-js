@@ -1,5 +1,5 @@
-import type { DnssecRecord } from '../lib/dnssecRecords.js';
-import type { DnssecRecordData } from '../lib/rdata/DnssecRecordData.js';
+import type { DnssecRecord } from '../lib/records/dnssecRecords.js';
+import type { DnssecRecordData } from '../lib/records/DnssecRecordData.js';
 
 export function copyDnssecRecordData<
   Rdata extends DnssecRecordData,

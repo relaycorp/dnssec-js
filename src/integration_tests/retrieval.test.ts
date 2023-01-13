@@ -1,9 +1,9 @@
 import { DNSoverHTTPS } from 'dohdec';
 
 import type { Resolver } from '../lib/Resolver.js';
-import { Question } from '../lib/dns/Question.js';
+import { Question } from '../lib/utils/dns/Question.js';
 import { SecurityStatus } from '../lib/SecurityStatus.js';
-import { RrSet } from '../lib/dns/RrSet.js';
+import { RrSet } from '../lib/utils/dns/RrSet.js';
 import type { FailureResult, VerifiedRrSet } from '../lib/results.js';
 import { dnssecLookUp } from '../lib/lookup.js';
 

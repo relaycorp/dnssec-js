@@ -1,4 +1,4 @@
-import { QUESTION, RECORD_TYPE_STR } from '../../testUtils/dnsStubs.js';
+import { QUESTION, RECORD_TYPE_STR } from '../../../testUtils/dnsStubs.js';
 
 import { Question } from './Question.js';
 import { IANA_RR_TYPE_IDS, IANA_RR_TYPE_NAMES } from './ianaRrTypes.js';

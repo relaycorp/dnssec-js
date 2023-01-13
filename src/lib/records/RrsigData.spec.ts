@@ -3,9 +3,9 @@ import type { RRSigData } from '@leichtgewicht/dns-packet';
 
 import { DnssecAlgorithm } from '../DnssecAlgorithm.js';
 import { ZoneSigner } from '../testing/ZoneSigner.js';
-import { RrSet } from '../dns/RrSet.js';
+import { RrSet } from '../utils/dns/RrSet.js';
 import { QUESTION, RECORD, RRSET } from '../../testUtils/dnsStubs.js';
-import { IANA_RR_TYPE_IDS } from '../dns/ianaRrTypes.js';
+import { IANA_RR_TYPE_IDS } from '../utils/dns/ianaRrTypes.js';
 import type { SignatureOptions } from '../testing/SignatureOptions.js';
 
 import { RrsigData } from './RrsigData.js';

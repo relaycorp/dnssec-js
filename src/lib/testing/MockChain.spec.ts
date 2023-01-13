@@ -5,7 +5,7 @@ import { SecurityStatus } from '../SecurityStatus.js';
 import { dnssecLookUp } from '../lookup.js';
 import { type FailureStatus } from '../results.js';
 import { DatePeriod } from '../DatePeriod.js';
-import { DnsError } from '../dns/DnsError.js';
+import { DnsError } from '../utils/dns/DnsError.js';
 
 import { MockChain } from './MockChain.js';
 
