@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/prefer-literal-enum-member */
 
-import { IANA_RR_TYPE_IDS } from './dns/ianaRrTypes.js';
+import { IANA_RR_TYPE_IDS } from '../utils/dns/ianaRrTypes.js';
 
 export enum DnssecRecordType {
   DS = IANA_RR_TYPE_IDS.DS,

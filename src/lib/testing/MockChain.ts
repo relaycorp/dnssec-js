@@ -2,16 +2,16 @@
 import { addMinutes } from 'date-fns';
 
 import { DnssecAlgorithm } from '../DnssecAlgorithm.js';
-import { type RrSet } from '../dns/RrSet.js';
+import { type RrSet } from '../utils/dns/RrSet.js';
 import { type DatePeriod } from '../DatePeriod.js';
 import { type DsResponse, type ZoneResponseSet } from '../dnssecResponses.js';
-import { Message } from '../dns/Message.js';
+import { Message } from '../utils/dns/Message.js';
 import { type Resolver } from '../Resolver.js';
-import { type DsData } from '../rdata/DsData.js';
+import { type DsData } from '../records/DsData.js';
 import { type TrustAnchor } from '../TrustAnchor.js';
 import { SecurityStatus } from '../SecurityStatus.js';
-import { RCODE_IDS } from '../dns/ianaRcodes.js';
-import { getZonesInName } from '../dns/name.js';
+import { RCODE_IDS } from '../utils/dns/ianaRcodes.js';
+import { getZonesInName } from '../utils/dns/name.js';
 
 import { type MockChainFixture } from './MockChainFixture.js';
 import { type SignatureOptions } from './SignatureOptions.js';

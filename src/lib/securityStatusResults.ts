@@ -1,5 +1,5 @@
 import type { SecurityStatus } from './SecurityStatus.js';
-import type { RrSet } from './dns/RrSet.js';
+import type { RrSet } from './utils/dns/RrSet.js';
 
 interface BaseResult {
   readonly status: SecurityStatus;

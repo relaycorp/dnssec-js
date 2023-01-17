@@ -1,4 +1,4 @@
-import { DnskeyData } from '../lib/rdata/DnskeyData.js';
+import { DnskeyData } from '../lib/records/DnskeyData.js';
 import { deserialisePublicKey } from '../lib/utils/crypto/keySerialisation.js';
 import { DnssecAlgorithm } from '../lib/DnssecAlgorithm.js';
 

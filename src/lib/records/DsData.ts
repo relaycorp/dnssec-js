@@ -5,9 +5,9 @@ import type { DigestData } from '@leichtgewicht/dns-packet';
 import type { DnssecAlgorithm } from '../DnssecAlgorithm.js';
 import type { DigestType } from '../DigestType.js';
 import { generateDigest } from '../utils/crypto/hashing.js';
-import type { DnskeyRecord } from '../dnssecRecords.js';
-import { serialiseName } from '../dns/name.js';
+import { serialiseName } from '../utils/dns/name.js';
 
+import type { DnskeyRecord } from './dnssecRecords.js';
 import type { DnssecRecordData } from './DnssecRecordData.js';
 
 export class DsData implements DnssecRecordData {

@@ -1,17 +1,17 @@
-import { Question } from './dns/Question.js';
-import { Message } from './dns/Message.js';
-import { DnssecRecordType } from './DnssecRecordType.js';
-import type { ChainVerificationResult, VerificationResult } from './results.js';
-import { augmentFailureResult } from './results.js';
+import { Question } from './utils/dns/Question.js';
+import { Message } from './utils/dns/Message.js';
+import { DnssecRecordType } from './records/DnssecRecordType.js';
+import type { ChainVerificationResult, VerificationResult } from './securityStatusResults.js';
+import { augmentFailureResult } from './securityStatusResults.js';
 import { SecurityStatus } from './SecurityStatus.js';
 import { Zone } from './Zone.js';
 import type { DatePeriod } from './DatePeriod.js';
 import { SignedRrSet } from './SignedRrSet.js';
 import type { Resolver } from './Resolver.js';
-import type { DnsClass } from './dns/ianaClasses.js';
-import type { DsData } from './rdata/DsData.js';
-import type { RrSet } from './dns/RrSet.js';
-import { getZonesInName } from './dns/name.js';
+import type { DnsClass } from './utils/dns/ianaClasses.js';
+import type { DsData } from './records/DsData.js';
+import type { RrSet } from './utils/dns/RrSet.js';
+import { getZonesInName } from './utils/dns/name.js';
 
 interface MessageByKey {
   readonly [key: string]: Message | undefined;

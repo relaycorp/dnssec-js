@@ -5,10 +5,10 @@ import type { KeyObject } from 'node:crypto';
 import type { DNSKeyData } from '@leichtgewicht/dns-packet';
 
 import type { DnssecAlgorithm } from '../DnssecAlgorithm.js';
-import type { DnskeyFlags } from '../DnskeyFlags.js';
 import { deserialisePublicKey, serialisePublicKey } from '../utils/crypto/keySerialisation.js';
 import type { DatePeriod } from '../DatePeriod.js';
 
+import type { DnskeyFlags } from './DnskeyFlags.js';
 import type { DnssecRecordData } from './DnssecRecordData.js';
 import type { RrsigData } from './RrsigData.js';
 

@@ -3,19 +3,19 @@ import type { KeyObject } from 'node:crypto';
 import { addSeconds, minutesToSeconds, setMilliseconds } from 'date-fns';
 
 import type { DnssecAlgorithm } from '../DnssecAlgorithm.js';
-import { DnsRecord } from '../dns/DnsRecord.js';
-import { DnsClass } from '../dns/ianaClasses.js';
+import { DnsRecord } from '../utils/dns/DnsRecord.js';
+import { DnsClass } from '../utils/dns/ianaClasses.js';
 import { DigestType } from '../DigestType.js';
-import { DnssecRecordType } from '../DnssecRecordType.js';
-import { RrSet } from '../dns/RrSet.js';
-import type { DnskeyFlags } from '../DnskeyFlags.js';
-import { DnskeyData } from '../rdata/DnskeyData.js';
-import { DsData } from '../rdata/DsData.js';
-import { RrsigData } from '../rdata/RrsigData.js';
-import type { DnskeyRecord } from '../dnssecRecords.js';
-import { Message } from '../dns/Message.js';
-import { Question } from '../dns/Question.js';
-import { RCODE_IDS } from '../dns/ianaRcodes.js';
+import { DnssecRecordType } from '../records/DnssecRecordType.js';
+import { RrSet } from '../utils/dns/RrSet.js';
+import type { DnskeyFlags } from '../records/DnskeyFlags.js';
+import { DnskeyData } from '../records/DnskeyData.js';
+import { DsData } from '../records/DsData.js';
+import { RrsigData } from '../records/RrsigData.js';
+import type { DnskeyRecord } from '../records/dnssecRecords.js';
+import { Message } from '../utils/dns/Message.js';
+import { Question } from '../utils/dns/Question.js';
+import { RCODE_IDS } from '../utils/dns/ianaRcodes.js';
 import type {
   DnskeyResponse,
   DsResponse,

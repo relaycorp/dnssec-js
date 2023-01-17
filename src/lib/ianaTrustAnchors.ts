@@ -1,4 +1,4 @@
-import { DsData } from './rdata/DsData.js';
+import { DsData } from './records/DsData.js';
 import { DnssecAlgorithm } from './DnssecAlgorithm.js';
 import { DigestType } from './DigestType.js';
 

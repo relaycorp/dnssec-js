@@ -6,7 +6,7 @@ import {
   RECORD_CLASS_STR,
   RECORD_DATA_TXT_DATA,
   RECORD_TYPE_STR,
-} from '../../testUtils/dnsStubs.js';
+} from '../../../testUtils/dnsStubs.js';
 
 import { DnsRecord } from './DnsRecord.js';
 import type { IanaRrTypeName } from './ianaRrTypes.js';

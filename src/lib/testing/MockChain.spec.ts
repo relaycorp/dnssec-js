@@ -3,9 +3,9 @@ import { addMinutes, addSeconds, setMilliseconds, subSeconds } from 'date-fns';
 import { QUESTION, RECORD, RRSET } from '../../testUtils/dnsStubs.js';
 import { SecurityStatus } from '../SecurityStatus.js';
 import { dnssecLookUp } from '../lookup.js';
-import { type FailureStatus } from '../results.js';
+import { type FailureStatus } from '../securityStatusResults.js';
 import { DatePeriod } from '../DatePeriod.js';
-import { DnsError } from '../dns/DnsError.js';
+import { DnsError } from '../utils/dns/DnsError.js';
 
 import { MockChain } from './MockChain.js';
 
