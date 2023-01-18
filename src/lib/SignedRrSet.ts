@@ -6,9 +6,14 @@ import type { DnskeyRecord, RrsigRecord } from './records/dnssecRecords.js';
 import { DnssecRecordType } from './records/DnssecRecordType.js';
 import { RrsigData } from './records/RrsigData.js';
 import type { Question } from './utils/dns/Question.js';
-import type { DatePeriod } from './DatePeriod.js';
-import type { DnskeyData } from './records/DnskeyData.js';
+import { DatePeriod } from './DatePeriod.js';
 import { isChildZone } from './utils/dns/name.js';
+import { type DatedValue } from './DatedValue.js';
+
+interface RrsigWithDnskeyData {
+  readonly rrsig: RrsigRecord;
+  readonly dnskey: DatedValue<DnskeyRecord>;
+}
 
 /**
  * RRset with one or more corresponding RRSigs.
@@ -52,26 +57,44 @@ export class SignedRrSet {
     return Array.from(uniqueNames).sort((name1, name2) => name2.length - name1.length);
   }
 
-  public verify(
-    dnsKeys: readonly DnskeyRecord[],
+  protected filterRrsigs(
+    dnsKeys: readonly DatedValue<DnskeyRecord>[],
     datePeriod: DatePeriod,
-    expectedSigner?: string,
-  ): boolean {
-    const validRrsigs = this.rrsigs.reduce<
-      readonly { readonly rrsig: RrsigData; readonly dnskey: DnskeyData }[]
-    >((accumulator, rrsig) => {
+    expectedSigner: string | undefined,
+  ) {
+    return this.rrsigs.reduce<readonly RrsigWithDnskeyData[]>((accumulator, rrsig) => {
       const matchingDnskeys = dnsKeys.filter(
         (dnskey) =>
-          dnskey.data.verifyRrsig(rrsig.data, datePeriod) &&
-          (expectedSigner ?? dnskey.record.name) === rrsig.data.signerName,
+          dnskey.value.data.verifyRrsig(rrsig.data, datePeriod) &&
+          (expectedSigner ?? dnskey.value.record.name) === rrsig.data.signerName,
       );
       const additionalItems = matchingDnskeys.map((dnskey) => ({
-        dnskey: dnskey.data,
-        rrsig: rrsig.data,
+        dnskey,
+        rrsig,
       }));
       return [...accumulator, ...additionalItems];
     }, []);
+  }
 
-    return validRrsigs.some(({ dnskey, rrsig }) => rrsig.verifyRrset(this.rrset, dnskey.publicKey));
+  public verify(
+    dnsKeys: readonly DatedValue<DnskeyRecord>[],
+    datePeriod: DatePeriod,
+    expectedSigner?: string,
+  ): readonly DatePeriod[] {
+    const eligibleRrsigs = this.filterRrsigs(dnsKeys, datePeriod, expectedSigner);
+
+    const matchingRrsigs = eligibleRrsigs.filter(({ dnskey, rrsig }) =>
+      rrsig.data.verifyRrset(this.rrset, dnskey.value.data.publicKey),
+    );
+
+    return matchingRrsigs
+      .flatMap(({ dnskey, rrsig }) =>
+        dnskey.datePeriods.map((period) =>
+          period.intersect(
+            DatePeriod.init(rrsig.data.signatureInception, rrsig.data.signatureExpiry),
+          ),
+        ),
+      )
+      .filter((period) => period !== undefined) as DatePeriod[];
   }
 }

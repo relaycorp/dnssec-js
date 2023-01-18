@@ -33,13 +33,13 @@ interface RecordGenerationOptions extends SignatureOptions {
   readonly ttl: number;
 }
 
-interface DnskeyGenerationOptions extends RecordGenerationOptions {
-  readonly additionalDnskeys: readonly DnsRecord[];
-  readonly flags: Partial<DnskeyFlags>;
-}
-
 interface DsGenerationOptions extends RecordGenerationOptions {
   readonly digestType: DigestType;
+}
+
+export interface DnskeyGenerationOptions extends RecordGenerationOptions {
+  readonly additionalDnskeys: readonly DnsRecord[];
+  readonly flags: Partial<DnskeyFlags>;
 }
 
 export class ZoneSigner {

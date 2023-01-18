@@ -1,11 +1,11 @@
 import type { KeyObject } from 'node:crypto';
 
 import { jest } from '@jest/globals';
-import { addSeconds, setMilliseconds, subSeconds } from 'date-fns';
+import { addSeconds, differenceInSeconds, setMilliseconds, subSeconds } from 'date-fns';
 
 import { QUESTION, RECORD, RECORD_TLD, RRSET } from '../testUtils/dnsStubs.js';
 
-import { ZoneSigner } from './testing/ZoneSigner.js';
+import { type DnskeyGenerationOptions, ZoneSigner } from './testing/ZoneSigner.js';
 import type { SignatureOptions } from './testing/SignatureOptions.js';
 import { SignedRrSet } from './SignedRrSet.js';
 import { DnssecAlgorithm } from './DnssecAlgorithm.js';
@@ -17,6 +17,7 @@ import { DnskeyData } from './records/DnskeyData.js';
 import { RrsigData } from './records/RrsigData.js';
 import { DnsClass } from './utils/dns/ianaClasses.js';
 import { IANA_RR_TYPE_IDS } from './utils/dns/ianaRrTypes.js';
+import { type DatedValue } from './DatedValue.js';
 
 const NOW = setMilliseconds(new Date(), 0);
 const RRSIG_OPTIONS: SignatureOptions = {
@@ -225,13 +226,24 @@ describe('SignedRrSet', () => {
       RRSIG_OPTIONS.signatureExpiry,
     );
 
+    function generateDatedDnskey(
+      signer: ZoneSigner,
+      datePeriod: DatePeriod,
+      options: Partial<DnskeyGenerationOptions> = {},
+    ): DatedValue<DnskeyRecord> {
+      const dnskey = signer.generateDnskey(options);
+      return { value: dnskey, datePeriods: [datePeriod] };
+    }
+
     test('Verification should fail if no RRSig is deemed valid by any DNSKEY', () => {
       const dnskey1 = apexSigner.generateDnskey({ flags: { secureEntryPoint: true } });
-      const dnskey2 = apexSigner.generateDnskey({ flags: { secureEntryPoint: false } });
+      const dnskey2Dated = generateDatedDnskey(apexSigner, validityPeriod, {
+        flags: { secureEntryPoint: false },
+      });
       const rrsig = apexSigner.generateRrsig(RRSET, dnskey1.data.calculateKeyTag(), RRSIG_OPTIONS);
       const signedRrset = SignedRrSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
 
-      expect(signedRrset.verify([dnskey2], validityPeriod)).toBeFalse();
+      expect(signedRrset.verify([dnskey2Dated], validityPeriod)).toBeEmpty();
     });
 
     test('Verification should fail if RRSig signer does not match DNSKEY RR owner', () => {
@@ -242,21 +254,30 @@ describe('SignedRrSet', () => {
         data: dnskey.data,
         record: dnskey.record.shallowCopy({ name: `not-${dnskey.record.name}` }),
       };
+      const invalidDnskeyDated = { value: invalidDnskey, datePeriods: [validityPeriod] };
 
-      expect(signedRrset.verify([invalidDnskey], validityPeriod)).toBeFalse();
+      expect(signedRrset.verify([invalidDnskeyDated], validityPeriod)).toBeEmpty();
     });
 
     test('Verification should fail if RRSig signer does not match explicit one', () => {
-      const dnskey = apexSigner.generateDnskey();
-      const rrsig = apexSigner.generateRrsig(RRSET, dnskey.data.calculateKeyTag(), RRSIG_OPTIONS);
+      const datedDnskey = generateDatedDnskey(apexSigner, validityPeriod);
+      const rrsig = apexSigner.generateRrsig(
+        RRSET,
+        datedDnskey.value.data.calculateKeyTag(),
+        RRSIG_OPTIONS,
+      );
       const signedRrset = SignedRrSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
 
-      expect(signedRrset.verify([dnskey], validityPeriod, `not-${QUESTION.name}`)).toBeFalse();
+      expect(signedRrset.verify([datedDnskey], validityPeriod, `not-${QUESTION.name}`)).toBeEmpty();
     });
 
     test('Verification should fail if not deemed valid by any RRSig', () => {
-      const dnskey = apexSigner.generateDnskey();
-      const rrsig = apexSigner.generateRrsig(RRSET, dnskey.data.calculateKeyTag(), RRSIG_OPTIONS);
+      const datedDnskey = generateDatedDnskey(apexSigner, validityPeriod);
+      const rrsig = apexSigner.generateRrsig(
+        RRSET,
+        datedDnskey.value.data.calculateKeyTag(),
+        RRSIG_OPTIONS,
+      );
       const type = IANA_RR_TYPE_IDS.A;
       expect(type).not.toStrictEqual(RRSET.type); // Make sure we're picking something different
       const invalidRecords = RRSET.records.map((record) => record.shallowCopy({ type }));
@@ -265,19 +286,23 @@ describe('SignedRrSet', () => {
         rrsig.record,
       ]);
 
-      expect(signedRrset.verify([dnskey], validityPeriod)).toBeFalse();
+      expect(signedRrset.verify([datedDnskey], validityPeriod)).toBeEmpty();
     });
 
     test('Verification should fail if RRSig expired', () => {
-      const dnskey = apexSigner.generateDnskey();
-      const rrsig = apexSigner.generateRrsig(RRSET, dnskey.data.calculateKeyTag(), RRSIG_OPTIONS);
+      const datedDnskey = generateDatedDnskey(apexSigner, validityPeriod);
+      const rrsig = apexSigner.generateRrsig(
+        RRSET,
+        datedDnskey.value.data.calculateKeyTag(),
+        RRSIG_OPTIONS,
+      );
       const signedRrset = SignedRrSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
       const invalidPeriod = DatePeriod.init(
         subSeconds(rrsig.data.signatureInception, 2),
         subSeconds(rrsig.data.signatureInception, 1),
       );
 
-      expect(signedRrset.verify([dnskey], invalidPeriod)).toBeFalse();
+      expect(signedRrset.verify([datedDnskey], invalidPeriod)).toBeEmpty();
     });
 
     test('RRSig should be verified with the correct DNSKEY public key', async () => {
@@ -286,24 +311,26 @@ describe('SignedRrSet', () => {
       const verifyRrsetSpy = jest.spyOn(RrsigData.prototype, 'verifyRrset');
       try {
         verifyRrsigSpy.mockReturnValue(true);
-        const validDnskey = apexSigner.generateDnskey();
+        const validDnskeyDated = generateDatedDnskey(apexSigner, validityPeriod);
         const dnssecAlgorithm = apexSigner.algorithm;
         const invalidSigner = await ZoneSigner.generate(dnssecAlgorithm, apexSigner.zoneName);
-        const invalidDnskey = invalidSigner.generateDnskey();
+        const invalidDnskey = generateDatedDnskey(invalidSigner, validityPeriod);
         const rrsig = apexSigner.generateRrsig(
           RRSET,
-          validDnskey.data.calculateKeyTag(),
+          validDnskeyDated.value.data.calculateKeyTag(),
           RRSIG_OPTIONS,
         );
         const signedRrset = SignedRrSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
 
-        expect(signedRrset.verify([invalidDnskey, validDnskey], validityPeriod)).toBeTrue();
+        expect(signedRrset.verify([invalidDnskey, validDnskeyDated], validityPeriod)).toHaveLength(
+          1,
+        );
 
         expect(verifyRrsetSpy).toHaveBeenNthCalledWith(
           1,
           expect.anything(),
           expect.toSatisfy<KeyObject>((key) =>
-            serialisePublicKey(invalidDnskey.data.publicKey, dnssecAlgorithm).equals(
+            serialisePublicKey(invalidDnskey.value.data.publicKey, dnssecAlgorithm).equals(
               serialisePublicKey(key, dnssecAlgorithm),
             ),
           ),
@@ -312,7 +339,7 @@ describe('SignedRrSet', () => {
           2,
           expect.anything(),
           expect.toSatisfy<KeyObject>((key) =>
-            serialisePublicKey(validDnskey.data.publicKey, dnssecAlgorithm).equals(
+            serialisePublicKey(validDnskeyDated.value.data.publicKey, dnssecAlgorithm).equals(
               serialisePublicKey(key, dnssecAlgorithm),
             ),
           ),
@@ -324,11 +351,84 @@ describe('SignedRrSet', () => {
     });
 
     test('Verification should succeed if deemed valid by a valid RRSig', () => {
+      const datedDnskey = generateDatedDnskey(apexSigner, validityPeriod);
+      const rrsig = apexSigner.generateRrsig(
+        RRSET,
+        datedDnskey.value.data.calculateKeyTag(),
+        RRSIG_OPTIONS,
+      );
+      const signedRrset = SignedRrSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
+
+      expect(signedRrset.verify([datedDnskey], validityPeriod)).toHaveLength(1);
+    });
+
+    test('Validity period should be intersection of RRSig and DNSKEY', () => {
+      const dnskeyPeriod = DatePeriod.init(
+        addSeconds(validityPeriod.start, 1),
+        subSeconds(validityPeriod.end, 1),
+      );
+      const datedDnskey = generateDatedDnskey(apexSigner, dnskeyPeriod);
+      const rrsigExpiry = subSeconds(dnskeyPeriod.end, 1);
+      const rrsig = apexSigner.generateRrsig(RRSET, datedDnskey.value.data.calculateKeyTag(), {
+        ...RRSIG_OPTIONS,
+        signatureExpiry: rrsigExpiry,
+      });
+      const signedRrset = SignedRrSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
+
+      const [period] = signedRrset.verify([datedDnskey], validityPeriod);
+
+      expect(period.start).toStrictEqual(dnskeyPeriod.start);
+      expect(period.end).toStrictEqual(rrsigExpiry);
+    });
+
+    test('Non-matching DNSSKEY periods should be ignored', () => {
       const dnskey = apexSigner.generateDnskey();
       const rrsig = apexSigner.generateRrsig(RRSET, dnskey.data.calculateKeyTag(), RRSIG_OPTIONS);
       const signedRrset = SignedRrSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
+      const invalidPeriod = DatePeriod.init(
+        addSeconds(validityPeriod.end, 1),
+        addSeconds(validityPeriod.end, 2),
+      );
+      const datedDnskey = { value: dnskey, datePeriods: [validityPeriod, invalidPeriod] };
 
-      expect(signedRrset.verify([dnskey], validityPeriod)).toBeTrue();
+      const periods = signedRrset.verify([datedDnskey], validityPeriod);
+
+      expect(periods).toHaveLength(1);
+      const [period] = periods;
+      expect(period.start).toStrictEqual(validityPeriod.start);
+      expect(period.end).toStrictEqual(validityPeriod.end);
+    });
+
+    test('Multiple periods should be returned if multiple signatures match', () => {
+      const datedDnskey = generateDatedDnskey(apexSigner, validityPeriod);
+      const cutoffDate = addSeconds(
+        validityPeriod.start,
+        differenceInSeconds(validityPeriod.end, validityPeriod.start),
+      );
+      const { record: rrsig1Record } = apexSigner.generateRrsig(
+        RRSET,
+        datedDnskey.value.data.calculateKeyTag(),
+        { ...RRSIG_OPTIONS, signatureExpiry: cutoffDate },
+      );
+      const { record: rrsig2Record } = apexSigner.generateRrsig(
+        RRSET,
+        datedDnskey.value.data.calculateKeyTag(),
+        { ...RRSIG_OPTIONS, signatureInception: cutoffDate },
+      );
+      const signedRrset = SignedRrSet.initFromRecords(QUESTION, [
+        ...RRSET.records,
+        rrsig1Record,
+        rrsig2Record,
+      ]);
+
+      const periods = signedRrset.verify([datedDnskey], validityPeriod);
+
+      expect(periods).toHaveLength(2);
+      const [period1, period2] = periods;
+      expect(period1.start).toStrictEqual(validityPeriod.start);
+      expect(period1.end).toStrictEqual(cutoffDate);
+      expect(period2.start).toStrictEqual(cutoffDate);
+      expect(period2.end).toStrictEqual(validityPeriod.end);
     });
   });
 });
