@@ -58,7 +58,10 @@ export class Zone {
       return { status: SecurityStatus.BOGUS, reasonChain: ['No DNSKEY matched specified DS(s)'] };
     }
 
-    if (!dnskeySignedRrset.verify(zskDnskeys, datePeriod)) {
+    const validDnskeyPeriods = dnskeySignedRrset.verify(
+      zskDnskeys.map((dnskey) => ({ value: dnskey, datePeriods: [datePeriod] })),
+    );
+    if (validDnskeyPeriods.length === 0) {
       return { status: SecurityStatus.BOGUS, reasonChain: ['No valid DNSKEY RRSig was found'] };
     }
 
@@ -82,7 +85,8 @@ export class Zone {
   ) {}
 
   public verifyRrset(rrset: SignedRrSet, datePeriod: DatePeriod): boolean {
-    return rrset.verify(this.dnskeys, datePeriod);
+    const datedDnskeys = this.dnskeys.map((value) => ({ value, datePeriods: [datePeriod] }));
+    return rrset.verify(datedDnskeys).length !== 0;
   }
 
   public initChild(
@@ -103,7 +107,9 @@ export class Zone {
       dsMessage.answers,
     );
 
-    if (!dsSignedRrset.verify(this.dnskeys, datePeriod, this.name)) {
+    const datedDnskeys = this.dnskeys.map((value) => ({ value, datePeriods: [datePeriod] }));
+    const validDsPeriods = dsSignedRrset.verify(datedDnskeys, this.name);
+    if (validDsPeriods.length === 0) {
       return {
         status: SecurityStatus.BOGUS,
         reasonChain: ['Could not find at least one valid DS record'],
