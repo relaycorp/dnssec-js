@@ -243,7 +243,7 @@ describe('SignedRrSet', () => {
       const rrsig = apexSigner.generateRrsig(RRSET, dnskey1.data.calculateKeyTag(), RRSIG_OPTIONS);
       const signedRrset = SignedRrSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
 
-      expect(signedRrset.verify([dnskey2Dated], validityPeriod)).toBeEmpty();
+      expect(signedRrset.verify([dnskey2Dated])).toBeEmpty();
     });
 
     test('Verification should fail if RRSig signer does not match DNSKEY RR owner', () => {
@@ -256,7 +256,7 @@ describe('SignedRrSet', () => {
       };
       const invalidDnskeyDated = { value: invalidDnskey, datePeriods: [validityPeriod] };
 
-      expect(signedRrset.verify([invalidDnskeyDated], validityPeriod)).toBeEmpty();
+      expect(signedRrset.verify([invalidDnskeyDated])).toBeEmpty();
     });
 
     test('Verification should fail if RRSig signer does not match explicit one', () => {
@@ -268,7 +268,7 @@ describe('SignedRrSet', () => {
       );
       const signedRrset = SignedRrSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
 
-      expect(signedRrset.verify([datedDnskey], validityPeriod, `not-${QUESTION.name}`)).toBeEmpty();
+      expect(signedRrset.verify([datedDnskey], `not-${QUESTION.name}`)).toBeEmpty();
     });
 
     test('Verification should fail if not deemed valid by any RRSig', () => {
@@ -286,23 +286,18 @@ describe('SignedRrSet', () => {
         rrsig.record,
       ]);
 
-      expect(signedRrset.verify([datedDnskey], validityPeriod)).toBeEmpty();
+      expect(signedRrset.verify([datedDnskey])).toBeEmpty();
     });
 
     test('Verification should fail if RRSig expired', () => {
       const datedDnskey = generateDatedDnskey(apexSigner, validityPeriod);
-      const rrsig = apexSigner.generateRrsig(
-        RRSET,
-        datedDnskey.value.data.calculateKeyTag(),
-        RRSIG_OPTIONS,
-      );
+      const rrsig = apexSigner.generateRrsig(RRSET, datedDnskey.value.data.calculateKeyTag(), {
+        signatureInception: subSeconds(validityPeriod.start, 2),
+        signatureExpiry: subSeconds(validityPeriod.start, 1),
+      });
       const signedRrset = SignedRrSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
-      const invalidPeriod = DatePeriod.init(
-        subSeconds(rrsig.data.signatureInception, 2),
-        subSeconds(rrsig.data.signatureInception, 1),
-      );
 
-      expect(signedRrset.verify([datedDnskey], invalidPeriod)).toBeEmpty();
+      expect(signedRrset.verify([datedDnskey])).toBeEmpty();
     });
 
     test('RRSig should be verified with the correct DNSKEY public key', async () => {
@@ -322,9 +317,7 @@ describe('SignedRrSet', () => {
         );
         const signedRrset = SignedRrSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
 
-        expect(signedRrset.verify([invalidDnskey, validDnskeyDated], validityPeriod)).toHaveLength(
-          1,
-        );
+        expect(signedRrset.verify([invalidDnskey, validDnskeyDated])).toHaveLength(1);
 
         expect(verifyRrsetSpy).toHaveBeenNthCalledWith(
           1,
@@ -359,7 +352,7 @@ describe('SignedRrSet', () => {
       );
       const signedRrset = SignedRrSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
 
-      expect(signedRrset.verify([datedDnskey], validityPeriod)).toHaveLength(1);
+      expect(signedRrset.verify([datedDnskey])).toHaveLength(1);
     });
 
     test('Validity period should be intersection of RRSig and DNSKEY', () => {
@@ -375,7 +368,7 @@ describe('SignedRrSet', () => {
       });
       const signedRrset = SignedRrSet.initFromRecords(QUESTION, [...RRSET.records, rrsig.record]);
 
-      const [period] = signedRrset.verify([datedDnskey], validityPeriod);
+      const [period] = signedRrset.verify([datedDnskey]);
 
       expect(period.start).toStrictEqual(dnskeyPeriod.start);
       expect(period.end).toStrictEqual(rrsigExpiry);
@@ -391,7 +384,7 @@ describe('SignedRrSet', () => {
       );
       const datedDnskey = { value: dnskey, datePeriods: [validityPeriod, invalidPeriod] };
 
-      const periods = signedRrset.verify([datedDnskey], validityPeriod);
+      const periods = signedRrset.verify([datedDnskey]);
 
       expect(periods).toHaveLength(1);
       const [period] = periods;
@@ -421,7 +414,7 @@ describe('SignedRrSet', () => {
         rrsig2Record,
       ]);
 
-      const periods = signedRrset.verify([datedDnskey], validityPeriod);
+      const periods = signedRrset.verify([datedDnskey]);
 
       expect(periods).toHaveLength(2);
       const [period1, period2] = periods;

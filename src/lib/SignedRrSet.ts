@@ -59,13 +59,12 @@ export class SignedRrSet {
 
   protected filterRrsigs(
     dnsKeys: readonly DatedValue<DnskeyRecord>[],
-    datePeriod: DatePeriod,
     expectedSigner: string | undefined,
   ) {
     return this.rrsigs.reduce<readonly RrsigWithDnskeyData[]>((accumulator, rrsig) => {
       const matchingDnskeys = dnsKeys.filter(
         (dnskey) =>
-          dnskey.value.data.verifyRrsig(rrsig.data, datePeriod) &&
+          dnskey.value.data.verifyRrsig(rrsig.data, dnskey.datePeriods) &&
           (expectedSigner ?? dnskey.value.record.name) === rrsig.data.signerName,
       );
       const additionalItems = matchingDnskeys.map((dnskey) => ({
@@ -78,10 +77,9 @@ export class SignedRrSet {
 
   public verify(
     dnsKeys: readonly DatedValue<DnskeyRecord>[],
-    datePeriod: DatePeriod,
     expectedSigner?: string,
   ): readonly DatePeriod[] {
-    const eligibleRrsigs = this.filterRrsigs(dnsKeys, datePeriod, expectedSigner);
+    const eligibleRrsigs = this.filterRrsigs(dnsKeys, expectedSigner);
 
     const matchingRrsigs = eligibleRrsigs.filter(({ dnskey, rrsig }) =>
       rrsig.data.verifyRrset(this.rrset, dnskey.value.data.publicKey),

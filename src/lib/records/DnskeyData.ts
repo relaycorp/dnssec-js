@@ -80,7 +80,7 @@ export class DnskeyData implements DnssecRecordData {
     return calculateKeyTag(rdata);
   }
 
-  public verifyRrsig(rrsigData: RrsigData, datePeriod: DatePeriod): boolean {
+  public verifyRrsig(rrsigData: RrsigData, datePeriods: readonly DatePeriod[]): boolean {
     if (this.calculateKeyTag() !== rrsigData.keyTag) {
       return false;
     }
@@ -89,6 +89,8 @@ export class DnskeyData implements DnssecRecordData {
       return false;
     }
 
-    return datePeriod.overlaps(rrsigData.signatureInception, rrsigData.signatureExpiry);
+    return datePeriods.some((period) =>
+      period.overlaps(rrsigData.signatureInception, rrsigData.signatureExpiry),
+    );
   }
 }

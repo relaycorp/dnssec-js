@@ -157,14 +157,14 @@ describe('DnskeyData', () => {
         stubRrsigOptions,
       );
 
-      expect(dnskeyData.verifyRrsig(rrsigData, stubValidityPeriod)).toBeFalse();
+      expect(dnskeyData.verifyRrsig(rrsigData, [stubValidityPeriod])).toBeFalse();
     });
 
     test('Key tag should match', () => {
       const differentKeyTag = dnskeyData.calculateKeyTag() + 1;
       const { data: rrsigData } = tldSigner.generateRrsig(RRSET, differentKeyTag, stubRrsigOptions);
 
-      expect(dnskeyData.verifyRrsig(rrsigData, stubValidityPeriod)).toBeFalse();
+      expect(dnskeyData.verifyRrsig(rrsigData, [stubValidityPeriod])).toBeFalse();
     });
 
     test('Signature validity be within required period', () => {
@@ -173,17 +173,17 @@ describe('DnskeyData', () => {
         signatureInception: subSeconds(stubValidityPeriod.start, 2),
       });
 
-      expect(dnskeyData.verifyRrsig(rrsigData, stubValidityPeriod)).toBeFalse();
+      expect(dnskeyData.verifyRrsig(rrsigData, [stubValidityPeriod])).toBeFalse();
     });
 
-    test('Valid RRSIg should be SECURE', () => {
+    test('Valid RRSig should be reported as such', () => {
       const { data: rrsigData } = tldSigner.generateRrsig(
         RRSET,
         dnskeyData.calculateKeyTag(),
         stubRrsigOptions,
       );
 
-      expect(dnskeyData.verifyRrsig(rrsigData, stubValidityPeriod)).toBeTrue();
+      expect(dnskeyData.verifyRrsig(rrsigData, [stubValidityPeriod])).toBeTrue();
     });
   });
 });
