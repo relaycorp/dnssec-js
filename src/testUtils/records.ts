@@ -8,6 +8,6 @@ export function copyDnssecRecordData<
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   return {
     data: newData,
-    record: originalRecord.record.shallowCopy({ dataSerialised: newData.serialise() }),
+    record: originalRecord.record.shallowCopy({ data: newData.serialise() }),
   } as DnsRecord;
 }

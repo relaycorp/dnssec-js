@@ -312,15 +312,22 @@ describe('DnsRecord', () => {
       expect(newRecord.dataSerialised).toBe(RECORD.dataSerialised);
     });
 
-    test('New data should be used if set', () => {
+    test('New data serialisation should be used if set', () => {
       const newData = Buffer.alloc(8);
-      const newRecord = RECORD.shallowCopy({ dataSerialised: newData });
+      const newRecord = RECORD.shallowCopy({ data: newData });
 
       expect(newRecord.name).toStrictEqual(RECORD.name);
       expect(newRecord.typeId).toStrictEqual(RECORD.typeId);
       expect(newRecord.classId).toStrictEqual(RECORD.classId);
       expect(newRecord.ttl).toStrictEqual(RECORD.ttl);
       expect(newRecord.dataSerialised).toBe(newData);
+    });
+
+    test('New data fields should be used if set', () => {
+      const newData = `not-${RECORD.dataFields}`;
+      const newRecord = RECORD.shallowCopy({ data: newData });
+
+      expect(newRecord.dataFields).toBe(newData);
     });
   });
 });

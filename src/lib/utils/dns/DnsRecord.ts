@@ -17,7 +17,7 @@ interface RecordFields {
   readonly type: number;
   readonly class: DnsClass;
   readonly ttl: number;
-  readonly dataSerialised: Buffer;
+  readonly data: unknown;
 }
 
 function deserialiseRdata(serialisation: Buffer, typeName: string, codec: Codec<any>): any {
@@ -107,8 +107,8 @@ export class DnsRecord {
     const type = partialRecord.type ?? this.typeId;
     const classId = partialRecord.class ?? this.classId;
     const ttl = partialRecord.ttl ?? this.ttl;
-    const dataSerialised = partialRecord.dataSerialised ?? this.dataSerialised;
-    return new DnsRecord(name, type, classId, ttl, dataSerialised);
+    const data = partialRecord.data ?? this.dataSerialised;
+    return new DnsRecord(name, type, classId, ttl, data);
   }
 
   /**
