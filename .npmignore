@@ -3,7 +3,7 @@
 !build/lib/**
 build/lib/integration_tests
 build/lib/testUtils/**
-build/lib/**/*.spec.js*
+build/lib/**/*.spec.*
 
 !LICENSE
 !README.md
