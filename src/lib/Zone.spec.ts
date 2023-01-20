@@ -121,7 +121,7 @@ describe('Zone', () => {
         tldDnskey.rrsig.data.signature,
       );
       const mismatchingDnskeyRrsig = tldDnskey.rrsig.record.shallowCopy({
-        dataSerialised: mismatchingDnskeyRrsigData.serialise(),
+        data: mismatchingDnskeyRrsigData.serialise(),
       });
       const result = Zone.init(
         RECORD_TLD,
@@ -149,7 +149,7 @@ describe('Zone', () => {
         tldDnskey.rrsig.data.signature,
       );
       const mismatchingDnskeyRrsig = tldDnskey.rrsig.record.shallowCopy({
-        dataSerialised: mismatchingDnskeyRrsigData.serialise(),
+        data: mismatchingDnskeyRrsigData.serialise(),
       });
       const result = Zone.init(
         RECORD_TLD,

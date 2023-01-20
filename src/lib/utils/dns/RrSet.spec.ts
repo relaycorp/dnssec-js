@@ -53,7 +53,7 @@ describe('RrSet', () => {
     });
 
     test('Multiple records should be supported', () => {
-      const record2 = RECORD.shallowCopy({ dataSerialised: Buffer.from([1, 2]) });
+      const record2 = RECORD.shallowCopy({ data: Buffer.from([1, 2]) });
 
       const rrset = RrSet.init(QUESTION, [RECORD, record2]);
 
@@ -92,8 +92,8 @@ describe('RrSet', () => {
       });
 
       test('RDATA should be sorted from the left if they have same length', () => {
-        const record1 = RECORD.shallowCopy({ dataSerialised: Buffer.from([1, 0]) });
-        const record2 = RECORD.shallowCopy({ dataSerialised: Buffer.from([1, 1]) });
+        const record1 = RECORD.shallowCopy({ data: Buffer.from([1, 0]) });
+        const record2 = RECORD.shallowCopy({ data: Buffer.from([1, 1]) });
 
         const rrset = RrSet.init(QUESTION, [record2, record1]);
 
