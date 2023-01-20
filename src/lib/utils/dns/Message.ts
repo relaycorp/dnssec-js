@@ -14,7 +14,7 @@ import { DnsError } from './DnsError.js';
 import type { IanaRrTypeName } from './ianaRrTypes.js';
 import type { DnsClassName } from './ianaClasses.js';
 import type { RcodeName } from './ianaRcodes.js';
-import { getRcodeId, getRcodeName } from './ianaRcodes.js';
+import { getRcodeId } from './ianaRcodes.js';
 import { getRrTypeName } from './ianaRrTypes.js';
 import { getDnsClassName } from './ianaClasses.js';
 
@@ -46,7 +46,7 @@ export class Message {
           answer.type,
           answer.class as DnsClassName,
           answer.ttl!,
-          answer.data as object,
+          answer.data,
         ),
     );
     return new Message({ rcode }, questions, answers);
@@ -59,7 +59,6 @@ export class Message {
   ) {}
 
   public serialise(): Uint8Array {
-    const rcode = getRcodeName(this.header.rcode);
     const questions: DpQuestion[] = this.questions.map((question) => ({
       name: question.name,
       type: question.getTypeName(),
@@ -71,7 +70,11 @@ export class Message {
       class: getDnsClassName(answer.classId) as RecordClass,
       data: answer.dataFields,
     }));
-    return encode({ rcode, questions, answers });
+    return encode({
+      flags: this.header.rcode, // `rcode` field has no effect, so we have to pass it in the flags
+      questions,
+      answers,
+    });
   }
 
   /**
