@@ -219,12 +219,12 @@ describe('Message', () => {
   describe('serialise', () => {
     describe('Header', () => {
       test('RCODE should be honoured', () => {
-        const message = new Message({ rcode: RCODE_IDS.NOERROR }, [], []);
+        const message = new Message({ rcode: RCODE_IDS.NXDOMAIN }, [], []);
 
         const serialisation = message.serialise();
 
         const messageDeserialised = decode(serialisation);
-        expect(messageDeserialised.rcode).toBe('NOERROR');
+        expect(messageDeserialised.rcode).toBe('NXDOMAIN');
       });
     });
 

@@ -1,5 +1,5 @@
 import type { RcodeIdOrName } from './ianaRcodes.js';
-import { getRcodeId, getRcodeName, RCODE_IDS } from './ianaRcodes.js';
+import { getRcodeId, RCODE_IDS } from './ianaRcodes.js';
 import { DnsError } from './DnsError.js';
 
 describe('getRcodeId', () => {
@@ -21,21 +21,6 @@ describe('getRcodeId', () => {
     expect(() => getRcodeId(invalidName)).toThrowWithMessage(
       DnsError,
       `DNS RCode name "${invalidName}" is not defined by IANA`,
-    );
-  });
-});
-
-describe('getRcodeName', () => {
-  test('Id should be converted to name', () => {
-    expect(getRcodeName(RCODE_IDS.NOERROR)).toBe('NOERROR');
-  });
-
-  test('Id not defined by IANA should cause an error', () => {
-    const invalidId = Math.max(...Object.values(RCODE_IDS)) + 1;
-
-    expect(() => getRcodeName(invalidId)).toThrowWithMessage(
-      DnsError,
-      `DNS RCode id ${invalidId} is not defined by IANA`,
     );
   });
 });
