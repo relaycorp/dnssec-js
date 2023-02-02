@@ -92,3 +92,28 @@ describe('overlaps', () => {
     expect(period.overlaps(start, end)).toBeTrue();
   });
 });
+
+describe('intersect', () => {
+  const stubPeriod = DatePeriod.init(subSeconds(NOW, 1), addSeconds(NOW, 1));
+
+  test('Undefined should be returned if periods do not overlap', () => {
+    const otherPeriod = DatePeriod.init(
+      addSeconds(stubPeriod.end, 1),
+      addSeconds(stubPeriod.end, 2),
+    );
+
+    expect(stubPeriod.intersect(otherPeriod)).toBeUndefined();
+  });
+
+  test('Start and end dates should be latest and earliest of two periods, respectively', () => {
+    const otherPeriod = DatePeriod.init(
+      addSeconds(stubPeriod.start, 1),
+      addSeconds(stubPeriod.end, 1),
+    );
+
+    const intersection = stubPeriod.intersect(otherPeriod);
+
+    expect(intersection!.start).toStrictEqual(otherPeriod.start);
+    expect(intersection!.end).toStrictEqual(stubPeriod.end);
+  });
+});

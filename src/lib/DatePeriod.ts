@@ -20,6 +20,15 @@ export class DatePeriod {
       return false;
     }
 
-    return this.end >= otherStart;
+    return otherStart <= this.end;
+  }
+
+  public intersect(otherPeriod: DatePeriod): DatePeriod | undefined {
+    if (!this.overlaps(otherPeriod.start, otherPeriod.end)) {
+      return undefined;
+    }
+    const start = this.start < otherPeriod.start ? otherPeriod.start : this.start;
+    const end = this.end < otherPeriod.end ? this.end : otherPeriod.end;
+    return new DatePeriod(start, end);
   }
 }
