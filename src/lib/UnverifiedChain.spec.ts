@@ -19,7 +19,7 @@ import type {
 } from './securityStatusResults.js';
 import { SecurityStatus } from './SecurityStatus.js';
 import type { DsData } from './records/DsData.js';
-import { DatePeriod } from './DatePeriod.js';
+import { DatePeriod } from './dates.js';
 import type { Resolver } from './Resolver.js';
 import { DnsClass } from './utils/dns/ianaClasses.js';
 import { getRcodeId, RCODE_IDS } from './utils/dns/ianaRcodes.js';

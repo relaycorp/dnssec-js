@@ -3,7 +3,7 @@ import { addMinutes } from 'date-fns';
 
 import { DnssecAlgorithm } from '../DnssecAlgorithm.js';
 import { type RrSet } from '../utils/dns/RrSet.js';
-import { type DatePeriod } from '../DatePeriod.js';
+import { type IDatePeriod } from '../dates.js';
 import { type DsResponse, type ZoneResponseSet } from '../dnssecResponses.js';
 import { Message } from '../utils/dns/Message.js';
 import { type Resolver } from '../Resolver.js';
@@ -185,7 +185,7 @@ export class MockChain {
   public generateFixture(
     rrset: RrSet,
     status: SecurityStatus,
-    signaturePeriod?: DatePeriod,
+    signaturePeriod?: IDatePeriod,
   ): MockChainFixture {
     const now = new Date();
     const signatureOptions: SignatureOptions = signaturePeriod

@@ -12,7 +12,7 @@ export { DnsRecord } from './lib/utils/dns/DnsRecord.js';
 export { RrSet } from './lib/utils/dns/RrSet.js';
 
 // DNSSEC-related
-export { DatePeriod } from './lib/DatePeriod.js';
+export { type IDatePeriod } from './lib/dates.js';
 export { DigestType } from './lib/DigestType.js';
 export { DnssecAlgorithm } from './lib/DnssecAlgorithm.js';
 export type { Resolver } from './lib/Resolver.js';

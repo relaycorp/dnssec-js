@@ -6,7 +6,7 @@ import type { DnskeyRecord, RrsigRecord } from './records/dnssecRecords.js';
 import { DnssecRecordType } from './records/DnssecRecordType.js';
 import { RrsigData } from './records/RrsigData.js';
 import type { Question } from './utils/dns/Question.js';
-import type { DatePeriod } from './DatePeriod.js';
+import type { DatePeriod } from './dates.js';
 import type { DnskeyData } from './records/DnskeyData.js';
 import { isChildZone } from './utils/dns/name.js';
 

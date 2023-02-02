@@ -1,10 +1,10 @@
-import type { Packet } from '@leichtgewicht/dns-packet';
 import {
   decode,
   encode,
   type Answer,
   type Question as DpQuestion,
   type RecordClass,
+  type Packet,
 } from '@leichtgewicht/dns-packet';
 
 import { DnsRecord } from './DnsRecord.js';

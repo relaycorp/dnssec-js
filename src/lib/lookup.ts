@@ -3,7 +3,7 @@ import type { Resolver } from './Resolver.js';
 import type { VerificationOptions } from './VerificationOptions.js';
 import type { ChainVerificationResult } from './securityStatusResults.js';
 import { UnverifiedChain } from './UnverifiedChain.js';
-import { DatePeriod } from './DatePeriod.js';
+import { DatePeriod, type IDatePeriod } from './dates.js';
 import type { TrustAnchor } from './TrustAnchor.js';
 import { DsData } from './records/DsData.js';
 import { IANA_TRUST_ANCHORS } from './ianaTrustAnchors.js';
@@ -12,6 +12,12 @@ function convertTrustAnchors(trustAnchors: readonly TrustAnchor[]): readonly DsD
   return trustAnchors.map(
     (anchor) => new DsData(anchor.keyTag, anchor.algorithm, anchor.digestType, anchor.digest),
   );
+}
+
+function convertDatePeriod(dateOrPeriod: Date | IDatePeriod) {
+  return dateOrPeriod instanceof Date
+    ? DatePeriod.init(dateOrPeriod, dateOrPeriod)
+    : DatePeriod.init(dateOrPeriod.start, dateOrPeriod.end);
 }
 
 /**
@@ -23,10 +29,7 @@ export async function dnssecLookUp(
   options: Partial<VerificationOptions> = {},
 ): Promise<ChainVerificationResult> {
   const unverifiedChain = await UnverifiedChain.retrieve(question, resolver);
-
-  const dateOrPeriod = options.dateOrPeriod ?? new Date();
-  const datePeriod =
-    dateOrPeriod instanceof DatePeriod ? dateOrPeriod : DatePeriod.init(dateOrPeriod, dateOrPeriod);
+  const datePeriod = convertDatePeriod(options.dateOrPeriod ?? new Date());
   const dsData = options.trustAnchors
     ? convertTrustAnchors(options.trustAnchors)
     : IANA_TRUST_ANCHORS;

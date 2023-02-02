@@ -39,7 +39,7 @@
   },
   "devDependencies": {
     "@jest/globals": "^29.4.1",
-    "@relaycorp/eslint-config": "^1.1.56",
+    "@relaycorp/eslint-config": "^1.1.61",
     "@relaycorp/shared-config": "^1.9.3",
     "@types/jest": "^29.4.0",
     "@typescript-eslint/parser": "^5.49.0",

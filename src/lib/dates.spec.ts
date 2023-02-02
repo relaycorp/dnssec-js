@@ -1,6 +1,6 @@
 import { addSeconds, subSeconds } from 'date-fns';
 
-import { DatePeriod } from './DatePeriod.js';
+import { DatePeriod } from './dates.js';
 
 const NOW = new Date();
 

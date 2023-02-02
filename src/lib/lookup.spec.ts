@@ -8,7 +8,7 @@ import type { Resolver } from './Resolver.js';
 import { UnverifiedChain } from './UnverifiedChain.js';
 import type { VerifiedRrSet } from './securityStatusResults.js';
 import { SecurityStatus } from './SecurityStatus.js';
-import { DatePeriod } from './DatePeriod.js';
+import { DatePeriod } from './dates.js';
 import type { TrustAnchor } from './TrustAnchor.js';
 import type { DsData } from './records/DsData.js';
 import { DnssecAlgorithm } from './DnssecAlgorithm.js';
