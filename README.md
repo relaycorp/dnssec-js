@@ -98,7 +98,7 @@ import { IDatePeriod, dnssecLookUp } from '@relaycorp/dnssec';
 import { subHours } from 'date-fns';
 
 const now = new Date();
-const datePeriod: IDatePeriod = { start: subHours(now, 1), end: now };
+const datePeriod: IDatePeriod = { start: now, end: subHours(now, 1) };
 dnssecLookUp(QUESTION, RESOLVER, { dateOrPeriod: datePeriod });
 ```
 
