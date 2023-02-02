@@ -1,4 +1,9 @@
-export class DatePeriod {
+export interface IDatePeriod {
+  readonly start: Date;
+  readonly end: Date;
+}
+
+export class DatePeriod implements IDatePeriod {
   public static init(start: Date, end: Date): DatePeriod {
     if (end < start) {
       throw new Error(

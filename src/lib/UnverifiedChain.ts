@@ -5,7 +5,7 @@ import type { ChainVerificationResult, VerificationResult } from './securityStat
 import { augmentFailureResult } from './securityStatusResults.js';
 import { SecurityStatus } from './SecurityStatus.js';
 import { Zone } from './Zone.js';
-import type { DatePeriod } from './DatePeriod.js';
+import type { DatePeriod } from './dates.js';
 import { SignedRrSet } from './SignedRrSet.js';
 import type { Resolver } from './Resolver.js';
 import type { DnsClass } from './utils/dns/ianaClasses.js';

@@ -9,7 +9,7 @@ import { DnssecRecordType } from './records/DnssecRecordType.js';
 import type { DnskeyRecord } from './records/dnssecRecords.js';
 import { SignedRrSet } from './SignedRrSet.js';
 import { DnsClass } from './utils/dns/ianaClasses.js';
-import type { DatePeriod } from './DatePeriod.js';
+import type { DatePeriod } from './dates.js';
 import { Question } from './utils/dns/Question.js';
 import { RCODE_IDS } from './utils/dns/ianaRcodes.js';
 

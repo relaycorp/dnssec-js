@@ -11,7 +11,7 @@ import { SignedRrSet } from './SignedRrSet.js';
 import { DnssecAlgorithm } from './DnssecAlgorithm.js';
 import { RrSet } from './utils/dns/RrSet.js';
 import type { DnskeyRecord } from './records/dnssecRecords.js';
-import { DatePeriod } from './DatePeriod.js';
+import { DatePeriod } from './dates.js';
 import { serialisePublicKey } from './utils/crypto/keySerialisation.js';
 import { DnskeyData } from './records/DnskeyData.js';
 import { RrsigData } from './records/RrsigData.js';

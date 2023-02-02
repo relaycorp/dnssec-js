@@ -6,7 +6,7 @@ import type { DNSKeyData } from '@leichtgewicht/dns-packet';
 
 import type { DnssecAlgorithm } from '../DnssecAlgorithm.js';
 import { deserialisePublicKey, serialisePublicKey } from '../utils/crypto/keySerialisation.js';
-import type { DatePeriod } from '../DatePeriod.js';
+import type { DatePeriod } from '../dates.js';
 
 import type { DnskeyFlags } from './DnskeyFlags.js';
 import type { DnssecRecordData } from './DnssecRecordData.js';

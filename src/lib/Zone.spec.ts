@@ -18,7 +18,7 @@ import { Question } from './utils/dns/Question.js';
 import { DnsClass } from './utils/dns/ianaClasses.js';
 import { DnssecRecordType } from './records/DnssecRecordType.js';
 import { SignedRrSet } from './SignedRrSet.js';
-import { DatePeriod } from './DatePeriod.js';
+import { DatePeriod } from './dates.js';
 import type { DnsRecord } from './utils/dns/DnsRecord.js';
 import { RCODE_IDS } from './utils/dns/ianaRcodes.js';
 

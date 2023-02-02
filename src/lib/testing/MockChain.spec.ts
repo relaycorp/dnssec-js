@@ -4,7 +4,7 @@ import { QUESTION, RECORD, RRSET } from '../../testUtils/dnsStubs.js';
 import { SecurityStatus } from '../SecurityStatus.js';
 import { dnssecLookUp } from '../lookup.js';
 import { type FailureStatus } from '../securityStatusResults.js';
-import { DatePeriod } from '../DatePeriod.js';
+import { DatePeriod } from '../dates.js';
 import { DnsError } from '../utils/dns/DnsError.js';
 
 import { MockChain } from './MockChain.js';

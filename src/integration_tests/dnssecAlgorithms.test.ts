@@ -3,7 +3,7 @@ import { addSeconds, subSeconds } from 'date-fns';
 import { DnssecAlgorithm } from '../lib/DnssecAlgorithm.js';
 import { ZoneSigner } from '../lib/testing/ZoneSigner.js';
 import { Zone } from '../lib/Zone.js';
-import { DatePeriod } from '../lib/DatePeriod.js';
+import { DatePeriod } from '../lib/dates.js';
 import { SecurityStatus } from '../lib/SecurityStatus.js';
 import type { SignatureOptions } from '../lib/testing/SignatureOptions.js';
 

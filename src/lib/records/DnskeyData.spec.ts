@@ -4,7 +4,7 @@ import { addMinutes, addSeconds, setMilliseconds, subSeconds } from 'date-fns';
 import { DnssecAlgorithm } from '../DnssecAlgorithm.js';
 import { ZoneSigner } from '../testing/ZoneSigner.js';
 import { RECORD_TLD, RRSET } from '../../testUtils/dnsStubs.js';
-import { DatePeriod } from '../DatePeriod.js';
+import { DatePeriod } from '../dates.js';
 import {
   DNSSEC_ROOT_DNSKEY_DATA,
   DNSSEC_ROOT_DNSKEY_KEY_TAG,

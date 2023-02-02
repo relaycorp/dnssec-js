@@ -1,7 +1,7 @@
-import type { DatePeriod } from './DatePeriod.js';
+import type { IDatePeriod } from './dates.js';
 import type { TrustAnchor } from './TrustAnchor.js';
 
 export interface VerificationOptions {
-  readonly dateOrPeriod: Date | DatePeriod;
+  readonly dateOrPeriod: Date | IDatePeriod;
   readonly trustAnchors: readonly TrustAnchor[];
 }
