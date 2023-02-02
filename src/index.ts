@@ -26,4 +26,7 @@ export type {
 } from './lib/securityStatusResults.js';
 export type { TrustAnchor } from './lib/TrustAnchor.js';
 export type { VerificationOptions } from './lib/VerificationOptions.js';
+
+// Test utilities
 export { MockChain } from './lib/testing/MockChain.js';
+export type { MockChainFixture } from './lib/testing/MockChainFixture.js';
