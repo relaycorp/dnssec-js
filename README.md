@@ -89,16 +89,16 @@ However, errors are thrown upon attempting to parse malformed RDATA values for D
 
 ### Validation period
 
-By default, DNSSEC signatures MUST be valid at the time the `dnssecLookUp()` function is called, but this can be customised by passing a `Date` or `DatePeriod` instance.
+By default, DNSSEC signatures MUST be valid at the time the `dnssecLookUp()` function is called, but this can be customised by passing a `Date` or `IDatePeriod` object.
 
-A `DatePeriod` instance is useful when you just want signatures to be valid **at any point** within a given time period. For example, if you want to tolerate [clock drift](https://en.wikipedia.org/wiki/Clock_drift), you could accept signatures valid in the past hour:
+An `IDatePeriod` object is useful when you just want signatures to be valid **at any point** within a given time period. For example, if you want to tolerate [clock drift](https://en.wikipedia.org/wiki/Clock_drift), you could accept signatures valid in the past hour:
 
 ```js
-import { DatePeriod, dnssecLookUp } from '@relaycorp/dnssec';
+import { IDatePeriod, dnssecLookUp } from '@relaycorp/dnssec';
 import { subHours } from 'date-fns';
 
 const now = new Date();
-const datePeriod = DatePeriod.init(now, subHours(now, 1));
+const datePeriod: IDatePeriod = { start: now, end: subHours(now, 1) };
 dnssecLookUp(QUESTION, RESOLVER, { dateOrPeriod: datePeriod });
 ```
 
