@@ -1,9 +1,10 @@
-import type {
-  Answer as DPAnswer,
-  Question as DPQuestion,
-  TxtAnswer,
+import {
+  decode,
+  encode,
+  type Answer as DPAnswer,
+  type Question as DPQuestion,
+  type TxtAnswer,
 } from '@leichtgewicht/dns-packet';
-import { decode, encode } from '@leichtgewicht/dns-packet';
 
 import {
   QUESTION,

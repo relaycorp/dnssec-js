@@ -1,5 +1,4 @@
-import type { DnsClassName } from './ianaClasses.js';
-import { DnsClass, getDnsClassId, getDnsClassName } from './ianaClasses.js';
+import { DnsClass, type DnsClassName, getDnsClassId, getDnsClassName } from './ianaClasses.js';
 import { DnsError } from './DnsError.js';
 
 describe('getDnsClassId', () => {

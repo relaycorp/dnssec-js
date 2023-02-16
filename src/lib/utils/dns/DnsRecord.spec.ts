@@ -1,5 +1,4 @@
-import type { MxData, TxtAnswer } from '@leichtgewicht/dns-packet';
-import { answer as ANSWER, mx } from '@leichtgewicht/dns-packet';
+import { answer as ANSWER, mx, type MxData, type TxtAnswer } from '@leichtgewicht/dns-packet';
 
 import {
   RECORD,
@@ -9,8 +8,12 @@ import {
 } from '../../../testUtils/dnsStubs.js';
 
 import { DnsRecord } from './DnsRecord.js';
-import type { IanaRrTypeName } from './ianaRrTypes.js';
-import { getRrTypeName, IANA_RR_TYPE_IDS, IANA_RR_TYPE_NAMES } from './ianaRrTypes.js';
+import {
+  getRrTypeName,
+  type IanaRrTypeName,
+  IANA_RR_TYPE_IDS,
+  IANA_RR_TYPE_NAMES,
+} from './ianaRrTypes.js';
 import { DnsError } from './DnsError.js';
 import { DnsClass } from './ianaClasses.js';
 

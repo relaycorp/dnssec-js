@@ -1,5 +1,10 @@
-import type { IanaRrTypeName } from './ianaRrTypes.js';
-import { getRrTypeId, getRrTypeName, IANA_RR_TYPE_IDS, IANA_RR_TYPE_NAMES } from './ianaRrTypes.js';
+import {
+  getRrTypeId,
+  getRrTypeName,
+  IANA_RR_TYPE_IDS,
+  IANA_RR_TYPE_NAMES,
+  type IanaRrTypeName,
+} from './ianaRrTypes.js';
 import { DnsError } from './DnsError.js';
 
 describe('IANA_RR_TYPE_NAMES', () => {

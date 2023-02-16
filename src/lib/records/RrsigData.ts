@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-magic-numbers */
 
-import type { KeyObject } from 'node:crypto';
-import { sign as cryptoSign, verify as cryptoVerify } from 'node:crypto';
+import { sign as cryptoSign, verify as cryptoVerify, type KeyObject } from 'node:crypto';
 
 import type { RRSigData } from '@leichtgewicht/dns-packet';
 import { fromUnixTime, getUnixTime } from 'date-fns';
@@ -10,8 +9,7 @@ import type { DnssecAlgorithm } from '../DnssecAlgorithm.js';
 import { countLabels, normaliseName, serialiseName } from '../utils/dns/name.js';
 import type { RrSet } from '../utils/dns/RrSet.js';
 import { getNodejsSignatureHashAlgo } from '../utils/crypto/hashing.js';
-import type { IanaRrTypeName } from '../utils/dns/ianaRrTypes.js';
-import { getRrTypeId } from '../utils/dns/ianaRrTypes.js';
+import { getRrTypeId, type IanaRrTypeName } from '../utils/dns/ianaRrTypes.js';
 import {
   convertSignatureFromDnssec,
   convertSignatureToDnssec,

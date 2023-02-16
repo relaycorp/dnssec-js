@@ -11,12 +11,9 @@ import { DnsRecord } from './DnsRecord.js';
 import type { Header } from './Header.js';
 import { Question } from './Question.js';
 import { DnsError } from './DnsError.js';
-import type { IanaRrTypeName } from './ianaRrTypes.js';
-import type { DnsClassName } from './ianaClasses.js';
-import type { RcodeName } from './ianaRcodes.js';
-import { getRcodeId } from './ianaRcodes.js';
-import { getRrTypeName } from './ianaRrTypes.js';
-import { getDnsClassName } from './ianaClasses.js';
+import { getRcodeId, type RcodeName } from './ianaRcodes.js';
+import { getRrTypeName, type IanaRrTypeName } from './ianaRrTypes.js';
+import { getDnsClassName, type DnsClassName } from './ianaClasses.js';
 
 /**
  * Partial representation of DNS messages (the generalisation for "queries" and "answers").

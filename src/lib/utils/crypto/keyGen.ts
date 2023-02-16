@@ -1,11 +1,11 @@
-import type {
-  ECKeyPairKeyObjectOptions,
-  ED25519KeyPairKeyObjectOptions,
-  ED448KeyPairKeyObjectOptions,
-  RSAKeyPairKeyObjectOptions,
-  KeyObject,
+import {
+  generateKeyPair as cryptoGenerateKeyPair,
+  type ECKeyPairKeyObjectOptions,
+  type ED25519KeyPairKeyObjectOptions,
+  type ED448KeyPairKeyObjectOptions,
+  type RSAKeyPairKeyObjectOptions,
+  type KeyObject,
 } from 'node:crypto';
-import { generateKeyPair as cryptoGenerateKeyPair } from 'node:crypto';
 import { promisify } from 'node:util';
 
 import { DnssecAlgorithm } from '../../DnssecAlgorithm.js';
