@@ -1,15 +1,12 @@
 /* eslint-disable @typescript-eslint/no-magic-numbers */
 
-import type { Codec } from '@leichtgewicht/dns-packet';
-import { enc } from '@leichtgewicht/dns-packet';
+import { enc, type Codec } from '@leichtgewicht/dns-packet';
 
 import { lengthPrefixRdata } from './rdata.js';
-import type { DnsClass, DnsClassIdOrName } from './ianaClasses.js';
-import { getDnsClassId } from './ianaClasses.js';
+import { getDnsClassId, type DnsClass, type DnsClassIdOrName } from './ianaClasses.js';
 import { normaliseName, serialiseName } from './name.js';
 import { Question } from './Question.js';
-import type { IanaRrTypeIdOrName } from './ianaRrTypes.js';
-import { getRrTypeId, getRrTypeName } from './ianaRrTypes.js';
+import { getRrTypeId, getRrTypeName, type IanaRrTypeIdOrName } from './ianaRrTypes.js';
 import { DnsError } from './DnsError.js';
 
 interface RecordFields {

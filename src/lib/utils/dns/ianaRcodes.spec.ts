@@ -1,5 +1,4 @@
-import type { RcodeIdOrName } from './ianaRcodes.js';
-import { getRcodeId, RCODE_IDS } from './ianaRcodes.js';
+import { getRcodeId, RCODE_IDS, type RcodeIdOrName } from './ianaRcodes.js';
 import { DnsError } from './DnsError.js';
 
 describe('getRcodeId', () => {

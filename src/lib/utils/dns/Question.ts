@@ -1,8 +1,11 @@
-import type { IanaRrTypeIdOrName, IanaRrTypeName } from './ianaRrTypes.js';
-import { getRrTypeId, IANA_RR_TYPE_NAMES } from './ianaRrTypes.js';
+import {
+  getRrTypeId,
+  type IanaRrTypeIdOrName,
+  type IanaRrTypeName,
+  IANA_RR_TYPE_NAMES,
+} from './ianaRrTypes.js';
 import { DnsError } from './DnsError.js';
-import type { DnsClassIdOrName } from './ianaClasses.js';
-import { DnsClass, getDnsClassId } from './ianaClasses.js';
+import { DnsClass, type DnsClassIdOrName, getDnsClassId } from './ianaClasses.js';
 import { normaliseName } from './name.js';
 
 interface QuestionFields {

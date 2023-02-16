@@ -1,5 +1,4 @@
-import type { KeyObject } from 'node:crypto';
-import { createPublicKey } from 'node:crypto';
+import { createPublicKey, type KeyObject } from 'node:crypto';
 
 import { DnssecAlgorithm } from '../../DnssecAlgorithm.js';
 import { DnssecError } from '../../DnssecError.js';

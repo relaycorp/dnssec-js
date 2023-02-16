@@ -1,6 +1,6 @@
-import { type Resolver } from '../Resolver.js';
-import { type TrustAnchor } from '../TrustAnchor.js';
-import { type Message } from '../utils/dns/Message.js';
+import type { Resolver } from '../Resolver.js';
+import type { TrustAnchor } from '../TrustAnchor.js';
+import type { Message } from '../utils/dns/Message.js';
 
 export interface MockChainFixture {
   readonly resolver: Resolver;
