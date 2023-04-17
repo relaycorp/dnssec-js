@@ -45,7 +45,7 @@
     "@typescript-eslint/parser": "^5.56.0",
     "del-cli": "^5.0.0",
     "dohdec": "https://gitpkg.now.sh/hildjj/dohdec/pkg/dohdec?acd49694a83825a461bdff55e4a4a63ca7a4bbef",
-    "eslint": "^8.37.0",
+    "eslint": "^8.38.0",
     "jest": "^29.5.0",
     "jest-date-mock": "^1.0.8",
     "jest-extended": "^3.2.4",
