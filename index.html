@@ -69,7 +69,6 @@
 <li><a href="https://github.com/getdnsapi/getdns-node">getdns-node</a>. Unfortunately, it was last updated in June 2021 and its dependency on an externally-managed C library has proven extremely problematic (see <a href="https://github.com/getdnsapi/getdns-node/issues/8">#8</a>, <a href="https://github.com/getdnsapi/getdns-node/issues/33">#33</a>, <a href="https://github.com/getdnsapi/getdns-node/issues/38">#38</a>, <a href="https://github.com/getdnsapi/getdns-node/issues/42">#42</a>, etc).</li>
 <li><a href="https://github.com/netkicorp/dnssecjs">dnssecjs</a>. Unfortunately, it was abandoned shortly after it was (apparently) completed in 2017 and it was never published to NPM (so it&#39;s unlikely it was ever used). We decided not to fork it because we won&#39;t know how reliable/secure it is (assuming it works) until we spend significant time reviewing the code and testing it, and then we&#39;d have to spend a lot more time to (1) rewrite it to match the tech and best practices available in 2022 (e.g., TypeScript) and (2) thoroughly unit test it (and it doesn&#39;t have a single test).</li>
 </ul>
-<a id="md:nodejs-version-support" class="tsd-anchor"></a><h2><a href="#md:nodejs-version-support">Node.js version support</a></h2><p>This library requires Node.js 16 or newer, but going forward we will follow the Node.js release schedule.</p>
 <a id="md:contributions" class="tsd-anchor"></a><h2><a href="#md:contributions">Contributions</a></h2><p>We love contributions! If you haven&#39;t contributed to a Relaycorp project before, please take a minute to <a href="https://github.com/relaycorp/.github/blob/master/CONTRIBUTING.md">read our guidelines</a> first.</p>
 </div></div>
 <div class="col-sidebar">
@@ -106,7 +105,6 @@
 <li><a href="#md:api-documentation"><span>API documentation</span></a></li>
 <li><a href="#md:missing-functionality"><span>Missing functionality</span></a></li>
 <li><a href="#md:alternatives-considered"><span>Alternatives considered</span></a></li>
-<li><a href="#md:nodejs-version-support"><span>Node.js version support</span></a></li>
 <li><a href="#md:contributions"><span>Contributions</span></a></li></ul></li></ul></li></ul></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="modules.html" class="current"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-namespace)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6" id="icon-4-path"></rect><path d="M9.33 16V7.24H10.77L13.446 14.74C13.43 14.54 13.41 14.296 13.386 14.008C13.37 13.712 13.354 13.404 13.338 13.084C13.33 12.756 13.326 12.448 13.326 12.16V7.24H14.37V16H12.93L10.266 8.5C10.282 8.692 10.298 8.936 10.314 9.232C10.33 9.52 10.342 9.828 10.35 10.156C10.366 10.476 10.374 10.784 10.374 11.08V16H9.33Z" fill="var(--color-text)" id="icon-4-text"></path></svg><span>@relaycorp/dnssec</span></a>
