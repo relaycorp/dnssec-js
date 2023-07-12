@@ -42,7 +42,7 @@
     "@relaycorp/eslint-config": "^1.1.63",
     "@relaycorp/shared-config": "^1.9.4",
     "@types/jest": "^29.4.0",
-    "@typescript-eslint/parser": "^5.59.6",
+    "@typescript-eslint/parser": "^5.61.0",
     "del-cli": "^5.0.0",
     "dohdec": "https://gitpkg.now.sh/hildjj/dohdec/pkg/dohdec?acd49694a83825a461bdff55e4a4a63ca7a4bbef",
     "eslint": "^8.44.0",
