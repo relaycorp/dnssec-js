@@ -1,4 +1,5 @@
 import { DNSoverHTTPS } from 'dohdec';
+import type { DOH_LookupOptions as DohLookupOptions } from 'dohdec/types/doh.js';
 
 import type { Resolver } from '../lib/Resolver.js';
 import { Question } from '../lib/utils/dns/Question.js';
@@ -27,18 +28,17 @@ async function retryUponFailure<Type>(
   }
 }
 
-const RESOLVER: Resolver = async (question) =>
-  (await retryUponFailure(
-    async () =>
-      DOH_CLIENT.lookup(question.name, {
-        rrtype: question.getTypeName(),
-        json: false,
-        decode: false,
-        dnssec: true, // Retrieve RRSig records
-        dnssecCheckingDisabled: true,
-      }),
-    3,
-  )) as Promise<Buffer>;
+const RESOLVER: Resolver = async (question) => {
+  const options: DohLookupOptions = {
+    rrtype: question.getTypeName(),
+    json: false,
+    decode: false,
+    dnssec: true, // Retrieve RRSig records
+    dnssecCheckingDisabled: true,
+  };
+  const lookUp = async () => DOH_CLIENT.lookup(question.name, options) as Promise<Buffer>;
+  return retryUponFailure(lookUp, 3);
+};
 
 test('Positive response in valid DNSSEC zone should be SECURE', async () => {
   const question = new Question('dnssec-deployment.org.', 'A');
