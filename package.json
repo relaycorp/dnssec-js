@@ -60,7 +60,7 @@
     "@leichtgewicht/dns-packet": "^6.0.3",
     "@peculiar/asn1-schema": "^2.3.8",
     "bigint-buffer": "^1.1.5",
-    "date-fns": "^2.30.0"
+    "date-fns": "^4.0.0"
   },
   "prettier": "@relaycorp/shared-config/.prettierrc.json",
   "publishConfig": {
