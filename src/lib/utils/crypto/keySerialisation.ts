@@ -1,10 +1,9 @@
 import { createPublicKey, type KeyObject } from 'node:crypto';
 
-import { toBufferBE } from 'bigint-buffer';
-
-import { getIntegerByteLength } from '../integers.js';
 import { DnssecAlgorithm } from '../../DnssecAlgorithm.js';
 import { DnssecError } from '../../DnssecError.js';
+import { bigintToPaddedBuffer } from '../bigint.js';
+import { getIntegerByteLength } from '../integers.js';
 
 import { ECDSA_CURVE_LENGTH, EDDSA_SERIALISED_KEY_LENGTH } from './curves.js';
 
@@ -33,7 +32,7 @@ function serialiseRsaPublicKey(publicKey: KeyObject): Buffer {
   }
 
   const exponent = publicKey.asymmetricKeyDetails!.publicExponent!;
-  const exponentBuffer = toBufferBE(exponent, getIntegerByteLength(exponent));
+  const exponentBuffer = bigintToPaddedBuffer(exponent, getIntegerByteLength(exponent));
   const exponentLengthPrefix = serialiseRsaExponentPrefix(exponentBuffer);
 
   const keyJwt = publicKey.export({ format: 'jwk' });

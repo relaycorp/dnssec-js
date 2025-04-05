@@ -1,5 +1,5 @@
 import { AsnProp, AsnPropTypes, AsnSerializer } from '@peculiar/asn1-schema';
-import { toBigIntBE } from 'bigint-buffer';
+import { bufToBigint } from 'bigint-conversion';
 
 import { DnssecAlgorithm } from '../../DnssecAlgorithm.js';
 import { DnssecError } from '../../DnssecError.js';
@@ -36,8 +36,8 @@ describe('convertSignatureToDnssec', () => {
       const rSerialisation = ECDSA_SIGNATURES.p256.subarray(0, totalLength / 2);
       const sSerialisation = ECDSA_SIGNATURES.p256.subarray(totalLength / 2);
       const asn1Signature = new EcdsaSignature();
-      asn1Signature.rParam = toBigIntBE(rSerialisation);
-      asn1Signature.sParam = toBigIntBE(sSerialisation);
+      asn1Signature.rParam = bufToBigint(rSerialisation);
+      asn1Signature.sParam = bufToBigint(sSerialisation);
       const derSignature = Buffer.from(AsnSerializer.serialize(asn1Signature));
 
       const dnssecSerialisation = convertSignatureToDnssec(
@@ -54,8 +54,8 @@ describe('convertSignatureToDnssec', () => {
       const rSerialisation = ECDSA_SIGNATURES.p384.subarray(0, totalLength / 2);
       const sSerialisation = ECDSA_SIGNATURES.p384.subarray(totalLength / 2);
       const asn1Signature = new EcdsaSignature();
-      asn1Signature.rParam = toBigIntBE(rSerialisation);
-      asn1Signature.sParam = toBigIntBE(sSerialisation);
+      asn1Signature.rParam = bufToBigint(rSerialisation);
+      asn1Signature.sParam = bufToBigint(sSerialisation);
       const derSignature = Buffer.from(AsnSerializer.serialize(asn1Signature));
 
       const dnssecSerialisation = convertSignatureToDnssec(

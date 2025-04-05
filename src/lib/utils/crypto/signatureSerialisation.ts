@@ -1,8 +1,9 @@
 import { AsnParser, AsnSerializer } from '@peculiar/asn1-schema';
-import { toBigIntBE, toBufferBE } from 'bigint-buffer';
+import { bufToBigint } from 'bigint-conversion';
 
 import { DnssecAlgorithm } from '../../DnssecAlgorithm.js';
 import { DnssecError } from '../../DnssecError.js';
+import { bigintToPaddedBuffer } from '../bigint.js';
 
 import { EcdsaSignature } from './EcdsaSignature.js';
 import { ECDSA_CURVE_LENGTH } from './curves.js';
@@ -10,7 +11,7 @@ import { ECDSA_CURVE_LENGTH } from './curves.js';
 function convertEcdsaSignatureToDnssec(
   originalSignature: Buffer,
   algorithm: DnssecAlgorithm.ECDSAP256SHA256 | DnssecAlgorithm.ECDSAP384SHA384,
-) {
+): Buffer {
   let signature: EcdsaSignature;
   try {
     signature = AsnParser.parse(originalSignature, EcdsaSignature);
@@ -19,8 +20,8 @@ function convertEcdsaSignatureToDnssec(
   }
   // eslint-disable-next-line @typescript-eslint/no-magic-numbers
   const length = ECDSA_CURVE_LENGTH[algorithm] / 2;
-  const rSerialised = toBufferBE(signature.rParam, length);
-  const sSerialised = toBufferBE(signature.sParam, length);
+  const rSerialised = bigintToPaddedBuffer(signature.rParam, length);
+  const sSerialised = bigintToPaddedBuffer(signature.sParam, length);
   return Buffer.concat([rSerialised, sSerialised]);
 }
 
@@ -39,8 +40,8 @@ function convertEcdsaSignatureFromDnssec(
   const rSerialised = dnssecSignature.subarray(0, parametersLength);
   const sSerialised = dnssecSignature.subarray(parametersLength);
   const asn1Signature = new EcdsaSignature();
-  asn1Signature.rParam = toBigIntBE(rSerialised);
-  asn1Signature.sParam = toBigIntBE(sSerialised);
+  asn1Signature.rParam = bufToBigint(rSerialised);
+  asn1Signature.sParam = bufToBigint(sSerialised);
   const derSignature = AsnSerializer.serialize(asn1Signature);
   return Buffer.from(derSignature);
 }
